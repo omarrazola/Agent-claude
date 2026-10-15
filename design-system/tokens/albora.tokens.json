@@ -1,0 +1,54 @@
+{
+  "$description": "Albora DS v2.3 · tokens en formato Design Tokens (W3C). Fuente única para código y Figma.",
+  "color": {
+    "pine": {
+      "$type": "color",
+      "default": { "$value": "#1E4A42", "$description": "Acción principal" },
+      "700": { "$value": "#163832", "$description": "Hover y pulsado" },
+      "50": { "$value": "#E7EFEC", "$description": "Selección" }
+    },
+    "sun": {
+      "$type": "color",
+      "default": { "$value": "#E2A63B", "$description": "Beneficios y Albora Club" },
+      "50": { "$value": "#FBF1DD", "$description": "Fondos de Albora Club" }
+    },
+    "stone": { "$type": "color", "$value": "#F4F2EE", "$description": "Fondo base" },
+    "white": { "$type": "color", "$value": "#FFFFFF" },
+    "ink": {
+      "$type": "color",
+      "default": { "$value": "#1A2421", "$description": "Texto principal" },
+      "60": { "$value": "#5E6B66", "$description": "Texto secundario" }
+    },
+    "line": { "$type": "color", "$value": "#E2E0DA", "$description": "Bordes" },
+    "success": { "$type": "color", "$value": "#2D7A4E" },
+    "error": { "$type": "color", "$value": "#B3412E" }
+  },
+  "font": {
+    "display": { "$type": "fontFamily", "$value": ["Young Serif", "Georgia", "serif"] },
+    "body": { "$type": "fontFamily", "$value": ["Figtree", "Segoe UI", "system-ui", "sans-serif"] }
+  },
+  "fontSize": {
+    "display": { "$type": "dimension", "$value": "28px" },
+    "heading": { "$type": "dimension", "$value": "19px" },
+    "title": { "$type": "dimension", "$value": "15px" },
+    "body": { "$type": "dimension", "$value": "13px" },
+    "caption": { "$type": "dimension", "$value": "11.5px" },
+    "price": { "$type": "dimension", "$value": "17px" }
+  },
+  "space": {
+    "s1": { "$type": "dimension", "$value": "4px" },
+    "s2": { "$type": "dimension", "$value": "8px" },
+    "s3": { "$type": "dimension", "$value": "12px" },
+    "s4": { "$type": "dimension", "$value": "16px" },
+    "s5": { "$type": "dimension", "$value": "24px" }
+  },
+  "radius": {
+    "sm": { "$type": "dimension", "$value": "6px" },
+    "md": { "$type": "dimension", "$value": "12px" },
+    "lg": { "$type": "dimension", "$value": "18px" }
+  },
+  "size": {
+    "touch": { "$type": "dimension", "$value": "44px", "$description": "Área táctil mínima" },
+    "page": { "$type": "dimension", "$value": "430px", "$description": "Ancho máximo en móvil" }
+  }
+}

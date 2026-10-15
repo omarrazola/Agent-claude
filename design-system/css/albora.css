@@ -1,0 +1,169 @@
+/* =========================================================
+   Albora DS v2.3 · CSS
+   Generado a partir de tokens/albora.tokens.json.
+   Los agentes solo pueden usar estas clases y variables.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Color */
+  --al-pine: #1E4A42;
+  --al-pine-700: #163832;
+  --al-pine-50: #E7EFEC;
+  --al-sun: #E2A63B;
+  --al-sun-50: #FBF1DD;
+  --al-stone: #F4F2EE;
+  --al-white: #FFFFFF;
+  --al-ink: #1A2421;
+  --al-ink-60: #5E6B66;
+  --al-line: #E2E0DA;
+  --al-success: #2D7A4E;
+  --al-error: #B3412E;
+
+  /* Tipografía */
+  --al-font-display: "Young Serif", Georgia, serif;
+  --al-font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --al-fs-display: 28px;
+  --al-fs-heading: 19px;
+  --al-fs-title: 15px;
+  --al-fs-body: 13px;
+  --al-fs-caption: 11.5px;
+  --al-fs-price: 17px;
+
+  /* Espaciado y forma */
+  --al-s1: 4px;
+  --al-s2: 8px;
+  --al-s3: 12px;
+  --al-s4: 16px;
+  --al-s5: 24px;
+  --al-r-sm: 6px;
+  --al-r-md: 12px;
+  --al-r-lg: 18px;
+  --al-touch: 44px;
+  --al-page: 430px;
+
+  /* Rol del botón principal (pine por defecto; sun o ink como variantes aprobadas) */
+  --al-cta: var(--al-pine);
+  --al-cta-fg: var(--al-white);
+}
+
+* { box-sizing: border-box; }
+
+/* ---------- Página ---------- */
+.al-page {
+  margin: 0 auto;
+  max-width: var(--al-page);
+  min-height: 100vh;
+  background: var(--al-stone);
+  color: var(--al-ink);
+  font-family: var(--al-font-body);
+  font-size: var(--al-fs-body);
+  line-height: 1.45;
+}
+.al-page a { color: inherit; }
+
+/* ---------- Tipografía ---------- */
+.al-display { font-family: var(--al-font-display); font-size: var(--al-fs-display); font-weight: 400; line-height: 1.15; margin: 0; }
+.al-h { font-family: var(--al-font-display); font-size: var(--al-fs-heading); font-weight: 400; line-height: 1.2; margin: 0; }
+.al-title { font-size: var(--al-fs-title); font-weight: 600; margin: 0; }
+.al-sub { font-size: 12px; color: var(--al-ink-60); margin: 0; }
+.al-legal { font-size: 10.5px; color: var(--al-ink-60); margin: 0; }
+.al-price { font-size: var(--al-fs-price); font-weight: 700; font-variant-numeric: tabular-nums; }
+.al-price small { font-size: 11px; font-weight: 500; color: var(--al-ink-60); }
+.al-old-price { text-decoration: line-through; color: var(--al-ink-60); font-size: 12px; }
+.al-perk { font-size: var(--al-fs-caption); font-weight: 500; color: var(--al-success); }
+.al-rating { font-size: var(--al-fs-caption); color: var(--al-ink-60); }
+.al-logo { font-family: var(--al-font-display); font-size: 18px; color: var(--al-pine); text-decoration: none; }
+
+/* ---------- Barra superior ---------- */
+.al-bar { display: flex; align-items: center; gap: 10px; padding: 10px var(--al-s4); background: var(--al-white); border-bottom: 1px solid var(--al-line); }
+.al-back { width: 32px; height: 32px; border-radius: 50%; background: var(--al-stone); display: grid; place-items: center; text-decoration: none; color: var(--al-ink); font-size: 16px; }
+
+/* ---------- SearchSummary ---------- */
+.al-search { margin: var(--al-s3) var(--al-s4); background: var(--al-white); border: 1px solid var(--al-line); border-radius: var(--al-r-md); padding: 10px var(--al-s3); display: grid; gap: 2px; }
+.al-search small { color: var(--al-ink-60); font-size: 11px; }
+
+/* ---------- Chip ---------- */
+.al-chips { display: flex; gap: 6px; padding: 0 var(--al-s4) 10px; overflow-x: auto; }
+.al-chip { border: 1px solid var(--al-line); background: var(--al-white); border-radius: 99px; padding: 5px 10px; font-size: var(--al-fs-caption); font-weight: 500; white-space: nowrap; color: var(--al-ink); }
+.al-chip.is-on, .al-chip[aria-pressed="true"] { background: var(--al-pine); border-color: var(--al-pine); color: var(--al-white); }
+
+/* ---------- Banner ---------- */
+.al-banner { border-radius: var(--al-r-md); padding: 10px var(--al-s3); font-size: 12px; font-weight: 500; }
+.al-banner--sun { background: var(--al-sun-50); color: #6B4A0E; }
+.al-banner--pine { background: var(--al-pine-50); color: var(--al-pine-700); }
+
+/* ---------- RoomCard ---------- */
+.al-list { display: grid; gap: var(--al-s3); padding: var(--al-s1) var(--al-s4) var(--al-s5); }
+.al-card { display: block; background: var(--al-white); border: 1px solid var(--al-line); border-radius: var(--al-r-lg); overflow: hidden; text-decoration: none; color: inherit; }
+.al-card:hover, .al-card:focus-visible { border-color: var(--al-pine); }
+.al-card__img { height: 118px; position: relative; }
+.al-card__body { padding: var(--al-s3); display: grid; gap: 6px; }
+.al-row { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--al-s2); }
+.al-badge { position: absolute; left: 10px; top: 10px; background: var(--al-sun); color: var(--al-ink); font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 99px; }
+
+/* Imágenes de ejemplo (sustituir por fotos reales) */
+.al-img--sea { background: linear-gradient(180deg, #BFD9DC 0 38%, #6FA4AA 38% 58%, #E8DCC4 58% 100%); }
+.al-img--room { background: linear-gradient(180deg, #E9E4DA 0 55%, #C8B89C 55% 62%, #F7F4EE 62% 100%); }
+.al-img--suite { background: radial-gradient(circle at 75% 30%, #F3D79B 0 14%, transparent 15%), linear-gradient(180deg, #A9C7CC 0 45%, #3E7A80 45% 60%, #D6C7A9 60%); }
+.al-hero { height: 180px; position: relative; }
+
+/* ---------- Section ---------- */
+.al-sec { padding: 14px var(--al-s4); display: grid; gap: 10px; background: var(--al-white); margin-top: var(--al-s2); }
+.al-amenities { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; font-size: 12px; margin: 0; padding: 0; list-style: none; }
+.al-amenities li::before { content: "·"; color: var(--al-sun); font-weight: 900; margin-right: 6px; }
+
+/* ---------- RateOption ---------- */
+.al-rates { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+.al-rates legend { font-size: var(--al-fs-title); font-weight: 600; margin-bottom: 10px; }
+.al-rate { border: 1.5px solid var(--al-line); border-radius: var(--al-r-md); padding: 10px var(--al-s3); display: grid; grid-template-columns: 18px 1fr auto; gap: 2px 10px; align-items: start; cursor: pointer; min-height: var(--al-touch); }
+.al-rate:has(input:checked) { border-color: var(--al-pine); background: var(--al-pine-50); }
+.al-rate input { accent-color: var(--al-pine); margin: 2px 0 0; width: 16px; height: 16px; }
+.al-rate small { grid-column: 2 / -1; color: var(--al-ink-60); font-size: var(--al-fs-caption); }
+
+/* ---------- Button ---------- */
+.al-btn { display: block; width: 100%; text-align: center; border: 0; background: var(--al-cta); color: var(--al-cta-fg); border-radius: var(--al-r-md); padding: var(--al-s3); font: 600 14px/1.2 var(--al-font-body); min-height: var(--al-touch); text-decoration: none; cursor: pointer; }
+.al-btn:hover { filter: brightness(0.92); }
+.al-btn:focus-visible, .al-input:focus-visible, .al-card:focus-visible { outline: 2px solid var(--al-sun); outline-offset: 2px; }
+.al-btn--ghost { background: var(--al-white); color: var(--al-pine); border: 1.5px solid var(--al-pine); }
+.al-btn--sm { width: auto; display: inline-block; padding: 10px 16px; }
+.al-btn--sun { --al-cta: var(--al-sun); --al-cta-fg: var(--al-ink); }
+.al-btn--ink { --al-cta: var(--al-ink); --al-cta-fg: var(--al-white); }
+
+/* ---------- StickyFooter ---------- */
+.al-sticky { position: sticky; bottom: 0; background: var(--al-white); border-top: 1px solid var(--al-line); padding: 10px var(--al-s4) 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+/* ---------- Stepper ---------- */
+.al-steps { display: flex; gap: 6px; padding: var(--al-s3) var(--al-s4) var(--al-s1); margin: 0; list-style: none; }
+.al-steps li { flex: 1; height: 4px; border-radius: 2px; background: var(--al-line); }
+.al-steps li.is-done { background: var(--al-pine); }
+
+/* ---------- Input ---------- */
+.al-field { display: grid; gap: var(--al-s1); }
+.al-field label { font-size: var(--al-fs-caption); font-weight: 600; color: var(--al-ink-60); }
+.al-input { border: 1px solid var(--al-line); border-radius: var(--al-r-sm); padding: 10px; background: var(--al-white); font: 13px var(--al-font-body); color: var(--al-ink); min-height: 42px; width: 100%; }
+.al-field--error .al-input { border-color: var(--al-error); }
+.al-field__error { color: var(--al-error); font-size: var(--al-fs-caption); }
+
+/* ---------- PointsToggle ---------- */
+.al-points { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--al-sun-50); border-radius: var(--al-r-md); padding: 10px var(--al-s3); font-size: 12px; }
+.al-switch { appearance: none; width: 40px; height: 24px; border-radius: 99px; background: #C9C6BF; position: relative; cursor: pointer; flex: 0 0 auto; margin: 0; }
+.al-switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--al-white); transition: left .15s; }
+.al-switch:checked { background: var(--al-pine); }
+.al-switch:checked::after { left: 19px; }
+
+/* ---------- PriceSummary ---------- */
+.al-sum { display: grid; gap: 6px; font-size: 12.5px; font-variant-numeric: tabular-nums; margin: 0; }
+.al-sum div { display: flex; justify-content: space-between; gap: var(--al-s2); }
+.al-sum dt, .al-sum dd { margin: 0; }
+.al-sum .is-discount { color: var(--al-success); }
+.al-sum .is-total { border-top: 1px solid var(--al-line); padding-top: var(--al-s2); font-weight: 700; font-size: 15px; }
+
+/* ---------- Confirmation ---------- */
+.al-confirm { padding: 28px 20px; display: grid; gap: var(--al-s3); text-align: center; justify-items: center; background: var(--al-white); }
+.al-check { width: 56px; height: 56px; border-radius: 50%; background: var(--al-pine-50); color: var(--al-pine); display: grid; place-items: center; font-size: 26px; }
+.al-code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: var(--al-stone); padding: 6px 12px; border-radius: var(--al-r-sm); }
+
+/* ---------- Utilidades ---------- */
+.al-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

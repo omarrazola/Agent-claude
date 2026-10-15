@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirma tu reserva · Albora Mar Valencia</title>
+  <link rel="stylesheet" href="../../design-system/css/albora.css">
+</head>
+<body class="al-page">
+  <header class="al-bar">
+    <a class="al-back" href="ficha-habitacion.html" aria-label="Volver a la habitación">‹</a>
+    <strong>Confirma tu reserva</strong>
+  </header>
+
+  <ol class="al-steps" aria-label="Paso 3 de 3">
+    <li class="is-done"></li>
+    <li class="is-done"></li>
+    <li class="is-done"></li>
+  </ol>
+
+  <main>
+    <form action="confirmacion.html">
+      <section class="al-sec">
+        <h1 class="al-title">Tus datos</h1>
+        <div class="al-field">
+          <label for="name">Nombre y apellidos</label>
+          <input class="al-input" id="name" name="name" autocomplete="name" value="Marta Ruiz Ortega">
+        </div>
+        <div class="al-field">
+          <label for="email">Correo electrónico</label>
+          <input class="al-input" id="email" name="email" type="email" autocomplete="email" value="marta.ruiz@correo.es">
+        </div>
+        <div class="al-field">
+          <label for="phone">Teléfono</label>
+          <input class="al-input" id="phone" name="phone" type="tel" autocomplete="tel" value="+34 612 345 678">
+        </div>
+      </section>
+
+      <section class="al-sec">
+        <div class="al-points">
+          <label for="points"><b>Usar 4.200 puntos Albora Club</b><br>Ahorra 42,00 €</label>
+          <input class="al-switch" id="points" type="checkbox" role="switch" checked>
+        </div>
+
+        <dl class="al-sum">
+          <div><dt>Flexible · 3 noches × 219 €</dt><dd>657,00 €</dd></div>
+          <div><dt>Tasa turística (2 × 3 noches)</dt><dd>9,00 €</dd></div>
+          <div class="is-discount"><dt>Puntos Albora Club</dt><dd>−42,00 €</dd></div>
+          <div class="is-total"><dt>Total</dt><dd>624,00 €</dd></div>
+        </dl>
+        <p class="al-legal">Pagas 624,00 € en el hotel. Cancela gratis hasta el 10 nov a las 23:59.</p>
+      </section>
+
+      <div class="al-sticky">
+        <button class="al-btn" type="submit">Confirmar reserva</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

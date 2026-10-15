@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Albora Design Agents</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: consola de agencia — barra superior con pestañas; demo en dos columnas (ticket | pipeline) y banda de resultados a lo ancho */
+:root{
+  --bg:#F4F6F5; --surface:#FFFFFF; --sunken:#EBEFED; --fg:#16201C; --muted:#5B6863; --line:#D9E0DC;
+  --accent:#3346B8; --accent-soft:#E6E9FA; --on-accent:#FFFFFF; --ok:#2C7A4B; --ok-soft:#E2F2E8; --warn:#A76A12; --warn-soft:#FBF0DD; --idle:#AEB8B3;
+  --f-ui:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --f-hotel-d:"Young Serif", Georgia, serif;
+  --f-hotel:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101413; --surface:#181E1C; --sunken:#0C0F0E; --fg:#E6ECE9; --muted:#9AA7A1; --line:#2A3330;
+  --accent:#93A0FF; --accent-soft:#232A55; --on-accent:#0E1230; --ok:#6CCB92; --ok-soft:#173326; --warn:#E5B35E; --warn-soft:#3A2C12; --idle:#4A5552; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101413; --surface:#181E1C; --sunken:#0C0F0E; --fg:#E6ECE9; --muted:#9AA7A1; --line:#2A3330;
+  --accent:#93A0FF; --accent-soft:#232A55; --on-accent:#0E1230; --ok:#6CCB92; --ok-soft:#173326; --warn:#E5B35E; --warn-soft:#3A2C12; --idle:#4A5552; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.5}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
+p{margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mono{font-family:var(--f-mono);font-size:12.5px}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand strong{font-size:17px;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:4px;background:var(--sunken);padding:4px;border-radius:9px}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:6px 14px;border-radius:6px;font-weight:500;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+
+.intro{padding-block:32px 20px;display:grid;gap:10px;max-width:760px}
+.intro h1{font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;font-weight:600}
+.intro p{color:var(--muted);font-size:16px;max-width:65ch}
+
+/* Demo grid */
+.demo{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start;padding-bottom:28px}
+@media (max-width:900px){.demo{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.panel-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel-h h2{font-size:14px;font-weight:600;margin-right:auto}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:4px 12px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+
+/* Ticket mock */
+.ticket{padding:16px;display:grid;gap:14px}
+.t-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px}
+.t-key{font-family:var(--f-mono);color:var(--accent);font-weight:500}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:99px;background:var(--sunken);color:var(--fg);font-size:12px;font-weight:500;white-space:nowrap}
+.chip.col{background:var(--accent-soft);color:var(--accent)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.ticket h3{font-size:17px;font-weight:600}
+.t-body{font-size:14px;color:var(--fg);display:grid;gap:8px}
+.t-body ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.t-body b{font-weight:600}
+.attach{display:flex;gap:8px;flex-wrap:wrap}
+.attach span{font-size:12px;border:1px dashed var(--line);padding:4px 8px;border-radius:6px;color:var(--muted)}
+.t-foot{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;flex-wrap:wrap}
+.trello .t-key{display:none}
+.trello .ticket{background:linear-gradient(var(--sunken),var(--sunken)) top/100% 6px no-repeat}
+.trello-labels{display:none;gap:6px}
+.trello .trello-labels{display:flex}
+.trello-labels i{display:block;width:40px;height:8px;border-radius:4px}
+
+.run{display:flex;gap:10px;padding:0 16px 16px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;border-radius:8px;font-weight:600;font-size:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.trigger-note{font-size:12.5px;color:var(--muted);padding:0 16px 16px}
+
+/* Pipeline */
+.pipe{list-style:none;margin:0;padding:8px 0}
+.agent{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:4px 12px;padding:12px 16px;position:relative}
+.agent + .agent{border-top:1px solid var(--line)}
+.dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;font-weight:500;background:var(--sunken);color:var(--muted);border:1.5px solid var(--idle)}
+.agent[data-state="running"] .dot{border-color:var(--accent);color:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+.agent[data-state="done"] .dot{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px var(--accent-soft)}}
+.a-name{font-weight:600;font-size:14.5px}
+.a-role{color:var(--muted);font-size:13px;grid-column:2}
+.a-state{font-size:12px;align-self:start}
+.a-detail{grid-column:2 / -1;min-width:0}
+.log{margin-top:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted);display:grid;gap:2px}
+.log div::before{content:"› ";color:var(--accent)}
+.out-toggle{margin-top:8px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;padding:0}
+.out{margin-top:10px;background:var(--sunken);border-radius:8px;padding:14px;font-size:13.5px;display:grid;gap:10px;min-width:0}
+.out h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.out ul,.out ol{margin:0;padding-left:18px;display:grid;gap:4px}
+.out table{border-collapse:collapse;width:100%;font-size:13px}
+.out td,.out th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.out th{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.tbl{overflow-x:auto}
+pre.code{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;font-family:var(--f-mono);font-size:12px;line-height:1.55;color:var(--fg)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.flow span{background:var(--surface);border:1px solid var(--line);padding:4px 8px;border-radius:6px}
+.flow em{font-style:normal;color:var(--muted)}
+
+.progress{height:3px;background:var(--sunken);border-radius:3px;overflow:hidden;flex-basis:100%}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s ease}
+.time{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+
+/* Results */
+.results{padding-block:8px 48px;display:grid;gap:20px}
+.results-h{display:flex;align-items:end;gap:16px;flex-wrap:wrap;justify-content:space-between}
+.results-h h2{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.results-h p{color:var(--muted);max-width:60ch}
+.empty{border:1.5px dashed var(--line);border-radius:var(--r);padding:40px 20px;text-align:center;color:var(--muted);display:grid;gap:6px;justify-items:center}
+.empty strong{color:var(--fg)}
+.screens{display:flex;gap:24px;overflow-x:auto;padding:4px 2px 12px}
+.screen-col{display:grid;gap:10px;flex:0 0 auto}
+.screen-col .lbl{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.screen-col .lbl b{font-weight:600}
+.after{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:900px){.after{grid-template-columns:1fr}}
+.comment{padding:16px;display:grid;gap:10px;font-size:14px}
+.comment .who{display:flex;gap:10px;align-items:center}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:12px;font-weight:700}
+.comment ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.links{display:flex;gap:8px;flex-wrap:wrap}
+.links span{font-family:var(--f-mono);font-size:12px;background:var(--sunken);padding:4px 8px;border-radius:6px}
+.review{padding:16px;display:grid;gap:12px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.check input{margin-top:3px;accent-color:var(--accent)}
+textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical}
+.toast{font-size:13.5px;padding:10px 12px;border-radius:8px;background:var(--ok-soft);color:var(--ok)}
+.toast.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* ===== Albora DS (dentro de los marcos de móvil: tema propio, fijo) ===== */
+.phone{width:300px;height:620px;border-radius:34px;border:8px solid #1C2320;background:#1C2320;overflow:hidden;position:relative;box-shadow:0 10px 30px rgb(0 0 0 / .12)}
+.al{--al-pine:#1E4A42; --al-pine-700:#163832; --al-pine-50:#E7EFEC; --al-sun:#E2A63B; --al-sun-50:#FBF1DD; --al-stone:#F4F2EE; --al-white:#FFFFFF; --al-ink:#1A2421; --al-ink-60:#5E6B66; --al-line:#E2E0DA; --al-error:#B3412E; --al-success:#2D7A4E;
+  --al-s1:4px; --al-s2:8px; --al-s3:12px; --al-s4:16px; --al-s5:24px; --al-r-sm:6px; --al-r-md:12px; --al-r-lg:18px;
+  height:100%;overflow-y:auto;background:var(--al-stone);color:var(--al-ink);font-family:var(--f-hotel);font-size:13px;line-height:1.45;border-radius:26px;color-scheme:light;scrollbar-width:none}
+.al::-webkit-scrollbar{display:none}
+.al-status{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:11px;font-weight:600;background:var(--al-white)}
+.al-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--al-white);border-bottom:1px solid var(--al-line)}
+.al-bar .back{width:28px;height:28px;border-radius:50%;background:var(--al-stone);display:grid;place-items:center;font-size:14px}
+.al-bar b{font-weight:600;font-size:14px}
+.al-logo{font-family:var(--f-hotel-d);font-size:18px;color:var(--al-pine)}
+.al-search{margin:12px 16px;background:var(--al-white);border-radius:var(--al-r-md);border:1px solid var(--al-line);padding:10px 12px;display:grid;gap:2px}
+.al-search small{color:var(--al-ink-60);font-size:11px}
+.al-search span{font-weight:600}
+.al-chips{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+.al-chip{border:1px solid var(--al-line);background:var(--al-white);border-radius:99px;padding:5px 10px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.al-chip.on{background:var(--al-pine);color:var(--al-white);border-color:var(--al-pine)}
+.al-h{font-family:var(--f-hotel-d);font-size:19px;font-weight:400;line-height:1.2;color:var(--al-ink)}
+.al-sub{color:var(--al-ink-60);font-size:12px}
+.al-list{display:grid;gap:12px;padding:4px 16px 20px}
+.al-card{background:var(--al-white);border-radius:var(--al-r-lg);overflow:hidden;border:1px solid var(--al-line)}
+.al-img{height:118px;position:relative}
+.img-sea{background:linear-gradient(180deg,#BFD9DC 0 38%,#6FA4AA 38% 58%,#E8DCC4 58% 100%)}
+.img-room{background:linear-gradient(180deg,#E9E4DA 0 55%,#C8B89C 55% 62%,#F7F4EE 62% 100%)}
+.img-suite{background:radial-gradient(circle at 75% 30%,#F3D79B 0 14%,transparent 15%),linear-gradient(180deg,#A9C7CC 0 45%,#3E7A80 45% 60%,#D6C7A9 60%)}
+.al-badge{position:absolute;left:10px;top:10px;background:var(--al-sun);color:var(--al-ink);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px}
+.al-card-b{padding:12px;display:grid;gap:6px}
+.al-row{display:flex;justify-content:space-between;align-items:end;gap:8px}
+.al-price{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.al-price small{font-weight:500;font-size:11px;color:var(--al-ink-60)}
+.al-perk{font-size:11.5px;color:var(--al-success);font-weight:500}
+.al-btn{display:block;width:100%;text-align:center;background:var(--al-pine);color:var(--al-white);border-radius:var(--al-r-md);padding:12px;font-weight:600;font-size:14px;min-height:44px}
+.al-btn.ghost{background:var(--al-white);color:var(--al-pine);border:1.5px solid var(--al-pine)}
+.al-btn.sm{width:auto;padding:8px 14px;font-size:12.5px;min-height:36px}
+.al-hero{height:170px}
+.al-sec{padding:14px 16px;display:grid;gap:10px;background:var(--al-white);margin-top:8px}
+.al-amen{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px}
+.al-amen span::before{content:"·";color:var(--al-sun);font-weight:900;margin-right:6px}
+.al-rate{border:1.5px solid var(--al-line);border-radius:var(--al-r-md);padding:10px 12px;display:grid;grid-template-columns:18px 1fr auto;gap:2px 10px;align-items:start}
+.al-rate.on{border-color:var(--al-pine);background:var(--al-pine-50)}
+.al-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--al-ink-60);margin-top:2px}
+.al-rate.on .al-radio{border:5px solid var(--al-pine)}
+.al-rate small{grid-column:2 / -1;color:var(--al-ink-60);font-size:11.5px}
+.al-sticky{position:sticky;bottom:0;background:var(--al-white);border-top:1px solid var(--al-line);padding:10px 16px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.al-steps{display:flex;gap:6px;padding:12px 16px 4px}
+.al-steps i{flex:1;height:4px;border-radius:2px;background:var(--al-line)}
+.al-steps i.on{background:var(--al-pine)}
+.al-field{display:grid;gap:4px}
+.al-field label{font-size:11.5px;font-weight:600;color:var(--al-ink-60)}
+.al-input{border:1px solid var(--al-line);border-radius:var(--al-r-sm);padding:10px;background:var(--al-white);font-size:13px;min-height:42px}
+.al-sum{display:grid;gap:6px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.al-sum div{display:flex;justify-content:space-between}
+.al-sum .tot{border-top:1px solid var(--al-line);padding-top:8px;font-weight:700;font-size:15px}
+.al-points{display:flex;justify-content:space-between;align-items:center;background:var(--al-sun-50);border-radius:var(--al-r-md);padding:10px 12px;font-size:12px}
+.al-switch{width:34px;height:20px;border-radius:99px;background:var(--al-pine);position:relative;flex:0 0 auto}
+.al-switch::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--al-white)}
+.al-legal{font-size:10.5px;color:var(--al-ink-60)}
+
+/* DS tab */
+.ds{padding-block:8px 48px;display:grid;gap:28px}
+.ds section{display:grid;gap:14px}
+.ds h2{font-size:20px;font-weight:600}
+.ds .lead{color:var(--muted);max-width:65ch}
+.sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sw{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.sw i{display:block;height:64px}
+.sw div{padding:8px 10px;display:grid;gap:1px}
+.sw b{font-size:13px;font-weight:600}
+.sw code{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.type-row{display:grid;grid-template-columns:140px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
+.type-row code{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ds-stage{background:#F4F2EE;border-radius:var(--r);padding:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;color:#1A2421;color-scheme:light}
+.ds-stage .al{height:auto;background:transparent;border-radius:0;overflow:visible}
+.comp{display:grid;gap:8px;min-width:0}
+.comp > small{font-family:var(--f-mono);font-size:11px;color:#5E6B66}
+.space-row{display:flex;gap:16px;align-items:end;flex-wrap:wrap}
+.space-row div{display:grid;gap:6px;justify-items:center;font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.space-row i{display:block;background:var(--accent);opacity:.75;border-radius:2px}
+
+/* Arquitectura tab */
+.arch{padding-block:8px 48px;display:grid;gap:32px}
+.arch section{display:grid;gap:14px}
+.arch h2{font-size:20px;font-weight:600}
+.arch .lead{color:var(--muted);max-width:65ch}
+.diagram{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:stretch}
+@media (max-width:900px){.diagram{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.diagram{grid-template-columns:1fr}}
+.lane{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;gap:8px;align-content:start}
+.lane h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;display:flex;justify-content:space-between}
+.lane h3 span{font-family:var(--f-mono);color:var(--accent)}
+.node{border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:13.5px;background:var(--bg)}
+.node b{display:block;font-weight:600}
+.node small{color:var(--muted);font-size:12px}
+.node.hl{border-color:var(--accent);background:var(--accent-soft)}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.cols{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:8px;align-content:start;font-size:14px}
+.card h3{font-size:15px;font-weight:600}
+.card ul{margin:0;padding-left:18px;display:grid;gap:4px;color:var(--fg)}
+.card p{color:var(--muted)}
+.big-tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.big-tbl table{border-collapse:collapse;width:100%;min-width:760px;font-size:13.5px}
+.big-tbl th,.big-tbl td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.big-tbl th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--sunken)}
+.big-tbl tr:last-child td{border-bottom:0}
+.phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.phases{grid-template-columns:1fr}}
+.phase{border-top:3px solid var(--accent);background:var(--surface);border-radius:0 0 var(--r) var(--r);padding:16px;display:grid;gap:6px;font-size:14px}
+.phase .when{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.phase h3{font-size:15px;font-weight:600}
+.note{font-size:13px;color:var(--muted);max-width:75ch}
+
+/* ===== Visor, prototipo e iteración ===== */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.viewer-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.versions{display:flex;gap:6px;flex-wrap:wrap}
+.versions button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--f-mono);font-size:12px;padding:3px 9px;border-radius:99px}
+.versions button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.versions button.approved::after{content:" ✓";color:var(--ok)}
+.old-note{font-size:13.5px;background:var(--warn-soft);color:var(--warn);padding:8px 12px;border-radius:8px;margin-bottom:12px}
+.linkbtn{border:0;background:none;color:inherit;font-weight:600;text-decoration:underline;padding:0}
+.muted-s{font-size:13.5px;color:var(--muted)}
+
+.proto{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.proto{grid-template-columns:1fr;justify-items:center}}
+.proto-side{display:grid;gap:12px;font-size:14px;min-width:0;max-width:300px}
+.proto-side.right{justify-self:start}
+.proto-side.left{justify-self:end;text-align:right}
+@media (max-width:900px){.proto-side.left,.proto-side.right{justify-self:center;text-align:left;max-width:340px;width:100%}}
+.proto-step{font-size:12px;font-family:var(--f-mono);color:var(--accent)}
+.proto-side h3{font-size:18px;font-weight:600}
+.proto-side p{color:var(--muted)}
+.proto-nav{display:flex;gap:8px;flex-wrap:wrap}
+.proto-dots{display:flex;gap:6px}
+.proto-dots button{width:26px;height:6px;border-radius:3px;border:0;background:var(--line);padding:0}
+.proto-dots button[aria-current="true"]{background:var(--accent)}
+.hot-toggle{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--muted)}
+.hot-toggle input{accent-color:var(--accent)}
+.phone.hot [data-act]{outline:2px dashed #3346B8;outline-offset:2px}
+.phone.fresh{animation:fresh 1.2s ease}
+@keyframes fresh{0%{box-shadow:0 0 0 0 var(--accent)}30%{box-shadow:0 0 0 6px var(--accent-soft)}100%{box-shadow:0 10px 30px rgb(0 0 0 / .12)}}
+
+.composer{margin-top:20px;padding:16px;display:grid;gap:12px}
+.composer-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.composer-h h2{font-size:15px;font-weight:600;margin-right:auto}
+.mode-pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--sunken);color:var(--muted)}
+.mode-pill.live{background:var(--ok-soft);color:var(--ok)}
+.composer-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:stretch}
+@media (max-width:600px){.composer-row{grid-template-columns:1fr}}
+.composer-row textarea{min-height:56px}
+.composer-actions{display:flex;flex-direction:column;gap:8px}
+@media (max-width:600px){.composer-actions{flex-direction:row}}
+.suggest{display:flex;gap:6px;flex-wrap:wrap}
+.suggest button{border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:12.5px;padding:5px 10px;border-radius:99px}
+.suggest button:hover{border-color:var(--accent);color:var(--accent)}
+.work{display:grid;gap:8px;background:var(--sunken);border-radius:8px;padding:12px;font-size:13.5px}
+.work-agents{display:flex;gap:6px;flex-wrap:wrap}
+.work .q{color:var(--warn)}
+.composer.locked{opacity:.55}
+
+.stack{display:grid;gap:20px;align-content:start}
+.history{list-style:none;margin:0;padding:6px 0;max-height:360px;overflow:auto}
+.history li{padding:10px 16px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:13.5px}
+.history li + li{border-top:1px solid var(--line)}
+.history .v{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:500;padding-top:1px}
+.history .req{grid-column:2;color:var(--muted);font-style:italic}
+.history ul{grid-column:2;margin:2px 0 0;padding-left:16px;color:var(--fg);display:grid;gap:2px}
+.handoff{padding:16px;display:grid;gap:12px;font-size:14px}
+.handoff ul{margin:0;padding-left:18px;display:grid;gap:4px}
+
+/* Albora DS: variantes que los agentes pueden tocar */
+.al{--al-cta:var(--al-pine);--al-cta-fg:#FFFFFF}
+:where(.al button){font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;text-align:inherit;cursor:pointer;display:block;width:100%}
+.al-btn{background:var(--al-cta);color:var(--al-cta-fg)}
+.al-btn.ghost{background:var(--al-white);color:var(--al-pine)}
+.al.compact .al-img{height:92px}
+.al.compact .al-card-b{padding:9px 12px;gap:3px}
+.al.compact .al-list{gap:8px}
+.al-banner{margin:0 16px 10px;border-radius:var(--al-r-md);padding:10px 12px;font-size:12px;font-weight:500}
+.al-banner.sun{background:var(--al-sun-50);color:#6B4A0E}
+.al-banner.pine{background:var(--al-pine-50);color:var(--al-pine-700)}
+.al-sec .al-banner{margin:0}
+.al-rating{font-size:11.5px;color:var(--al-ink-60)}
+.al-rating b{color:var(--al-ink)}
+.al-card:hover{border-color:var(--al-pine)}
+.al-switch.off{background:#C9C6BF}
+.al-switch.off::after{right:auto;left:2px}
+.al-points :where(button){width:auto}
+.al-confirm{padding:28px 20px;display:grid;gap:12px;text-align:center;justify-items:center;background:var(--al-white);min-height:calc(100% - 26px)}
+.al-check{width:56px;height:56px;border-radius:50%;background:var(--al-pine-50);color:var(--al-pine);display:grid;place-items:center;font-size:26px}
+.al-code{font-family:var(--f-mono);font-size:13px;background:var(--al-stone);padding:6px 12px;border-radius:var(--al-r-sm)}
+.al-confirm .al-sum{width:100%;text-align:left;background:var(--al-stone);padding:12px;border-radius:var(--al-r-md)}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><strong>Albora Design Agents</strong><span>Demo · Hoteles Albora × Estudio Norte</span></div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button role="tab" id="tab-demo" aria-selected="true" data-tab="demo">Demo</button>
+      <button role="tab" id="tab-sistema" aria-selected="false" data-tab="sistema">Sistema de diseño</button>
+      <button role="tab" id="tab-arquitectura" aria-selected="false" data-tab="arquitectura">Arquitectura</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ================= DEMO ================= -->
+<section id="view-demo" class="wrap" role="tabpanel">
+  <div class="intro">
+    <span class="eyebrow">Del ticket a las pantallas</span>
+    <h1>Cada petición de diseño llega al diseñador con el trabajo de base ya hecho</h1>
+    <p>Cuando Hoteles Albora abre una petición en Jira o Trello, siete agentes analizan el brief, buscan contexto, definen el flujo, escriben los textos y codifican las pantallas con el sistema de diseño. El diseñador de Estudio Norte recibe un punto de partida para revisar, no una hoja en blanco.</p>
+  </div>
+
+  <div class="demo">
+    <!-- Ticket -->
+    <div class="panel" id="ticketPanel">
+      <div class="panel-h">
+        <h2>Petición entrante</h2>
+        <div class="seg" role="group" aria-label="Herramienta de origen">
+          <button id="srcJira" aria-pressed="true" data-src="jira">Jira</button>
+          <button id="srcTrello" aria-pressed="false" data-src="trello">Trello</button>
+        </div>
+      </div>
+      <div class="ticket">
+        <div class="trello-labels" aria-hidden="true"><i style="background:#2C7A4B"></i><i style="background:#A76A12"></i></div>
+        <div class="t-meta">
+          <span class="t-key">ALB-482</span>
+          <span class="chip col" id="tCol">Diseño · Nuevo</span>
+          <span class="chip">Prioridad alta</span>
+          <span class="chip" id="tType">Historia</span>
+        </div>
+        <h3>Rediseñar el flujo de reserva en móvil</h3>
+        <div class="t-body">
+          <p><b>Contexto.</b> El 71&nbsp;% de las reservas directas empiezan en móvil, pero la conversión móvil es la mitad que en escritorio. Recepción reporta muchas llamadas de clientes que no entienden las tarifas.</p>
+          <p><b>Qué necesitamos.</b></p>
+          <ul>
+            <li>Listado de habitaciones más claro, con precio total visible.</li>
+            <li>Comparar tarifa flexible y no reembolsable sin salir de la ficha.</li>
+            <li>Checkout más corto, con opción de pagar con puntos Albora Club.</li>
+          </ul>
+          <p><b>Fecha objetivo.</b> Revisión con negocio el 30 de octubre.</p>
+        </div>
+        <div class="attach"><span>analytics_reservas_Q3.pdf</span><span>capturas_flujo_actual.zip</span></div>
+        <div class="t-foot"><span>Creado por Marta Ruiz · Ecommerce</span><span id="tAssignee">Asignado a: Estudio Norte</span></div>
+      </div>
+      <div class="run">
+        <button class="btn primary" id="runBtn">Lanzar agentes</button>
+        <button class="btn" id="skipBtn">Ver resultado final</button>
+      </div>
+      <p class="trigger-note" id="triggerNote">En producción esto se dispara solo: al crear la incidencia con la etiqueta <span class="mono">diseño</span>, Jira envía un webhook al orquestador.</p>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="panel">
+      <div class="panel-h">
+        <h2>Agentes trabajando</h2>
+        <span class="time" id="clock">00:00</span>
+        <span class="chip" id="pipeState">En espera</span>
+        <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      </div>
+      <ol class="pipe" id="pipe"></ol>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="results-h">
+      <div>
+        <span class="eyebrow">Entrega para el diseñador</span>
+        <h2>Pantallas codificadas con Albora DS</h2>
+      </div>
+      <p>HTML con los tokens y componentes del sistema. Revisa el flujo, pide cambios a los agentes y, cuando esté listo, apruébalo para desarrollo.</p>
+    </div>
+    <div class="empty" id="emptyState">
+      <strong>Aquí aparecerán las pantallas del flujo</strong>
+      <span>Lanza los agentes o pulsa «Ver resultado final» para ver la entrega completa.</span>
+    </div>
+    <div id="deliverables" hidden>
+      <div class="viewer-bar">
+        <div class="seg" role="group" aria-label="Modo de vista">
+          <button id="modeScreens" aria-pressed="true" data-mode="screens">Pantallas</button>
+          <button id="modeProto" aria-pressed="false" data-mode="proto">Prototipo</button>
+        </div>
+        <div class="versions" id="versions" aria-label="Versiones"></div>
+        <span class="chip" id="lockChip" hidden>Enviado a desarrollo</span>
+      </div>
+      <div class="old-note" id="oldNote" hidden>Estás viendo una versión anterior. <button type="button" class="linkbtn" id="toLatest">Volver a la última</button></div>
+      <div id="viewer"></div>
+
+      <div class="composer panel" id="composer">
+        <div class="composer-h">
+          <h2>Pedir cambios a los agentes</h2>
+          <span class="mode-pill" id="aiMode">Comprobando conexión…</span>
+        </div>
+        <form id="changeForm" class="composer-row">
+          <label for="changeInput" class="sr">Describe el cambio</label>
+          <textarea id="changeInput" rows="2" placeholder="Por ejemplo: muestra la valoración de cada habitación y pon primero la tarifa no reembolsable."></textarea>
+          <div class="composer-actions">
+            <button type="submit" class="btn primary" id="applyBtn">Aplicar cambios</button>
+            <button type="button" class="btn" id="stopBtn" hidden>Detener</button>
+          </div>
+        </form>
+        <div class="suggest" id="suggest" aria-label="Sugerencias"></div>
+        <div class="work" id="work" hidden></div>
+      </div>
+
+      <div class="after">
+        <div class="stack">
+          <div class="panel">
+            <div class="panel-h"><h2>Historial de versiones</h2><span class="time" id="verCount">1 versión</span></div>
+            <ol class="history" id="history"></ol>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><h2>Comentario publicado en el ticket</h2><span class="chip col" id="newCol">Revisión diseño</span></div>
+            <div class="comment">
+              <div class="who"><div class="avatar">AI</div><div><b>Agente de entrega</b><br><span class="time">ALB-482</span></div></div>
+              <p>Primera propuesta lista para revisión. Resumen:</p>
+              <ul>
+                <li>3 pantallas: resultados, ficha con comparador de tarifas y checkout.</li>
+                <li>12 de 12 componentes reutilizados de Albora DS, ninguno nuevo.</li>
+                <li>Accesibilidad AA superada; 1 ajuste corregido automáticamente.</li>
+                <li><b>2 preguntas abiertas para negocio:</b> ¿se puede pagar parte con puntos y parte con tarjeta? ¿La tasa turística se cobra en la reserva o en el hotel?</li>
+              </ul>
+              <div class="links"><span>preview.albora.dev/alb-482</span><span>Figma › ALB-482</span><span>rama: design/alb-482</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" id="approvePanel">
+          <div class="panel-h"><h2>Aprobación</h2><span class="chip warn" id="reviewState">Pendiente</span></div>
+          <form class="review" id="reviewForm">
+            <p class="muted-s">Se aprueba la versión que estás viendo: <b id="approveVer">v0</b>.</p>
+            <label class="check"><input type="checkbox" id="c1"> El flujo responde a los tres puntos del brief</label>
+            <label class="check"><input type="checkbox" id="c2"> Los textos encajan con el tono de Albora</label>
+            <label class="check"><input type="checkbox" id="c3"> Las preguntas abiertas se han enviado a negocio</label>
+            <button type="submit" class="btn primary" id="approveBtn">Aprobar y enviar a desarrollo</button>
+            <div class="toast" id="toast" hidden></div>
+          </form>
+          <div class="handoff" id="handoff" hidden></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SISTEMA ================= -->
+<section id="view-sistema" class="wrap" role="tabpanel" hidden>
+  <div class="intro">
+    <span class="eyebrow">Albora DS · v2.3</span>
+    <h1>El sistema de diseño que usan los agentes</h1>
+    <p>Los agentes no inventan estilos: solo pueden usar estos tokens y componentes. Por eso lo que generan es coherente con la marca y fácil de llevar a desarrollo. El sistema vive en un repositorio de código y está sincronizado con la librería de Figma.</p>
+  </div>
+  <div class="ds">
+    <section>
+      <h2>Color</h2>
+      <p class="lead">Pino es el color de acción. Sol se reserva para destacar beneficios y el programa de fidelización. Piedra es el fondo base, cálido sin llegar a crema.</p>
+      <div class="sw-grid" id="swatches"></div>
+    </section>
+    <section>
+      <h2>Tipografía</h2>
+      <p class="lead">Young Serif para titulares con carácter mediterráneo; Figtree para todo lo funcional. Escala de 6 pasos.</p>
+      <div>
+        <div class="type-row"><code>display / 28</code><span style="font-family:var(--f-hotel-d);font-size:28px">Albora Mar · Valencia</span></div>
+        <div class="type-row"><code>heading / 19</code><span style="font-family:var(--f-hotel-d);font-size:19px">Habitación Deluxe vista mar</span></div>
+        <div class="type-row"><code>title / 15 · 600</code><span style="font-family:var(--f-hotel);font-size:15px;font-weight:600">Elige tu tarifa</span></div>
+        <div class="type-row"><code>body / 13</code><span style="font-family:var(--f-hotel);font-size:13px">Cancelación gratuita hasta 48 horas antes de la llegada.</span></div>
+        <div class="type-row"><code>caption / 11.5</code><span style="font-family:var(--f-hotel);font-size:11.5px;color:var(--muted)">Precio por noche, impuestos incluidos</span></div>
+        <div class="type-row"><code>price / 17 · 700</code><span style="font-family:var(--f-hotel);font-size:17px;font-weight:700;font-variant-numeric:tabular-nums">189,00 €</span></div>
+      </div>
+    </section>
+    <section>
+      <h2>Espaciado y radios</h2>
+      <div class="space-row" id="spaces"></div>
+    </section>
+    <section>
+      <h2>Componentes</h2>
+      <p class="lead">Cada componente tiene su versión en código y en Figma, con el mismo nombre. Así el agente de UI y el diseñador hablan el mismo idioma.</p>
+      <div class="ds-stage">
+        <div class="al" style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+          <div class="comp" style="width:200px"><small>Button / primary · ghost</small><span class="al-btn">Reservar</span><span class="al-btn ghost">Ver habitaciones</span></div>
+          <div class="comp"><small>Chip / filter</small><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="al-chip on">Vista mar</span><span class="al-chip">Desayuno</span><span class="al-chip">Terraza</span></div></div>
+          <div class="comp" style="width:220px"><small>Input / text</small><div class="al-field"><label>Correo electrónico</label><div class="al-input">marta@correo.es</div></div></div>
+          <div class="comp" style="width:240px"><small>RateOption / selected</small><div class="al-rate on"><span class="al-radio"></span><b>Flexible</b><b>219 €</b><small>Cancelación gratuita hasta 48 h antes</small></div></div>
+          <div class="comp" style="width:250px"><small>RoomCard</small><div class="al-card"><div class="al-img img-sea" style="height:90px"><span class="al-badge">Mejor precio</span></div><div class="al-card-b"><b>Doble Superior</b><div class="al-row"><span class="al-perk">Desayuno incluido</span><span class="al-price">189 € <small>/noche</small></span></div></div></div></div>
+          <div class="comp" style="width:240px"><small>PointsToggle</small><div class="al-points"><span><b>Usar 4.200 puntos</b><br>Ahorra 42,00 €</span><span class="al-switch"></span></div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- ================= ARQUITECTURA ================= -->
+<section id="view-arquitectura" class="wrap" role="tabpanel" hidden>
+  <div class="intro">
+    <span class="eyebrow">Cómo se construye de verdad</span>
+    <h1>Arquitectura para el entorno de Hoteles Albora</h1>
+    <p>La demo simula el proceso, pero cada pieza existe hoy. Esta es la implementación que proponemos para un piloto.</p>
+  </div>
+  <div class="arch">
+    <section>
+      <h2>Flujo de extremo a extremo</h2>
+      <div class="diagram">
+        <div class="lane"><h3>Entrada <span>01</span></h3>
+          <div class="node"><b>Jira</b><small>Incidencia con etiqueta «diseño»</small></div>
+          <div class="node"><b>Trello</b><small>Tarjeta movida a «Diseño · Nuevo»</small></div>
+          <div class="node hl"><b>Webhook</b><small>Ambas herramientas lo envían de forma nativa</small></div>
+        </div>
+        <div class="lane"><h3>Orquestación <span>02</span></h3>
+          <div class="node hl"><b>Orquestador</b><small>Función serverless + cola de trabajos</small></div>
+          <div class="node"><b>Normalizador</b><small>Convierte ticket o tarjeta a un brief común</small></div>
+          <div class="node"><b>Estado del trabajo</b><small>Guarda cada paso, permite reintentar</small></div>
+        </div>
+        <div class="lane"><h3>Agentes <span>03</span></h3>
+          <div class="node"><b>Brief → Contexto → UX</b><small>Análisis y definición</small></div>
+          <div class="node"><b>Contenido → UI</b><small>Textos y código con Albora DS</small></div>
+          <div class="node"><b>QA → Entrega</b><small>Accesibilidad, coherencia y publicación</small></div>
+        </div>
+        <div class="lane"><h3>Salida <span>04</span></h3>
+          <div class="node"><b>Comentario en el ticket</b><small>Resumen, preguntas y enlaces</small></div>
+          <div class="node"><b>Previsualización</b><small>URL por ticket</small></div>
+          <div class="node"><b>Figma</b><small>Página v0 con componentes de la librería</small></div>
+          <div class="node hl"><b>Diseñador</b><small>Revisa, ajusta y aprueba</small></div>
+        </div>
+      </div>
+      <p class="note">El diseñador puede responder en el propio ticket («cambia el orden de las tarifas») y el orquestador relanza solo los agentes afectados.</p>
+    </section>
+
+    <section>
+      <h2>Qué hace cada agente</h2>
+      <div class="big-tbl"><table>
+        <thead><tr><th>Agente</th><th>Recibe</th><th>Entrega</th><th>Accede a</th></tr></thead>
+        <tbody id="agentTable"></tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>Piezas técnicas</h2>
+      <div class="cols">
+        <div class="card"><h3>Modelo y agentes</h3><ul><li>Claude vía API, con el Agent SDK para los agentes que usan herramientas.</li><li>Cada agente tiene instrucciones propias y un formato de salida fijo (JSON), así el siguiente lo puede leer.</li><li>Las guías de marca y del sistema van como contexto compartido.</li></ul></div>
+        <div class="card"><h3>Integraciones</h3><ul><li>Jira y Trello: webhooks de entrada y API para comentar y mover tarjetas.</li><li>Repositorio de Albora DS (tokens y componentes).</li><li>Figma: lectura de la librería y escritura de la página v0.</li><li>Analítica: solo informes agregados.</li></ul></div>
+        <div class="card"><h3>Control y seguridad</h3><ul><li>Los agentes nunca publican en producción ni aprueban nada.</li><li>Permisos mínimos: solo los proyectos y tableros de diseño.</li><li>Registro de cada ejecución para auditoría.</li><li>Datos de clientes finales fuera del alcance.</li></ul></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Plan de piloto</h2>
+      <div class="phases">
+        <div class="phase"><span class="when">Semanas 1–2</span><h3>Preparar la base</h3><p>Documentar Albora DS en código, conectar un tablero de pruebas y configurar los dos primeros agentes (brief y contexto).</p></div>
+        <div class="phase"><span class="when">Semanas 3–6</span><h3>Piloto con un equipo</h3><p>Activar la cadena completa en un proyecto. Medir tiempo hasta el primer borrador y cuánto se reutiliza de lo que generan los agentes.</p></div>
+        <div class="phase"><span class="when">Semana 7 en adelante</span><h3>Ampliar</h3><p>Ajustar instrucciones con el feedback de los diseñadores y extender a más proyectos y tipos de petición.</p></div>
+      </div>
+      <p class="note">Los tiempos y costes de esta demo son ilustrativos. El piloto sirve precisamente para medirlos con datos reales del equipo.</p>
+    </section>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+  // ---------- Data ----------
+  var AGENTS = [
+    {id:"brief", name:"Analista de brief", role:"Entiende la petición y detecta lo que falta", dur:2600,
+     tools:"Ticket, adjuntos",
+     logs:["Leyendo ALB-482 y 2 adjuntos","Extrayendo objetivo, alcance y restricciones","Comparando con la plantilla de brief de Albora","2 ambigüedades detectadas"],
+     out:'<h4>Brief estructurado</h4><div class="tbl"><table><tbody><tr><th>Objetivo</th><td>Subir la conversión de reserva directa en móvil</td></tr><tr><th>Métrica</th><td>Conversión móvil (hoy la mitad que escritorio) y llamadas sobre tarifas</td></tr><tr><th>Alcance</th><td>Listado, ficha de habitación y checkout · web móvil</td></tr><tr><th>Fuera</th><td>Búsqueda inicial, app nativa, área de socio</td></tr><tr><th>Fecha</th><td>Revisión con negocio el 30 oct</td></tr></tbody></table></div><h4>Preguntas para negocio</h4><ul><li>¿Se permite pago mixto (puntos + tarjeta)?</li><li>¿La tasa turística se cobra al reservar o en el hotel?</li></ul>',
+     summary:"Brief estructurado y 2 preguntas abiertas"},
+    {id:"ctx", name:"Agente de contexto", role:"Reúne todo lo que ya existe", dur:2800,
+     tools:"Albora DS, histórico de tickets, analítica",
+     logs:["Consultando Albora DS v2.3 → 34 componentes","Buscando tickets relacionados → ALB-311, ALB-397","Leyendo analytics_reservas_Q3.pdf","Mayor abandono: paso de tarifas (54 %)"],
+     out:'<h4>Hallazgos</h4><ul><li>El mayor abandono está en la elección de tarifa: 54&nbsp;% de quienes llegan a la ficha no continúan.</li><li>ALB-311 (2025) ya probó un comparador en escritorio con buen resultado: se reutiliza el patrón.</li><li>Albora Club tiene 38&nbsp;% de reservas con socio identificado, pero el pago con puntos no está en el flujo.</li></ul><h4>Componentes disponibles</h4><div class="flow"><span>RoomCard</span><span>RateOption</span><span>PriceSummary</span><span>Stepper</span><span>PointsToggle</span><span>Input</span><span>Button</span><span>Chip</span></div>',
+     summary:"3 hallazgos y 12 componentes reutilizables"},
+    {id:"ux", name:"Arquitecto UX", role:"Define el flujo, las historias y los criterios", dur:3000,
+     tools:"Brief + contexto",
+     logs:["Mapeando flujo actual: 5 pasos","Proponiendo flujo de 3 pasos","Escribiendo historias de usuario","Definiendo criterios de aceptación"],
+     out:'<h4>Flujo propuesto (5 → 3 pasos)</h4><div class="flow"><span>Resultados con precio total</span><em>→</em><span>Ficha + comparador de tarifas</span><em>→</em><span>Datos y pago</span></div><h4>Historias de usuario</h4><ol><li>Como huésped, quiero ver el precio total de mi estancia en el listado para comparar sin entrar en cada habitación.</li><li>Como huésped, quiero ver la diferencia entre tarifa flexible y no reembolsable en la misma pantalla.</li><li>Como socio de Albora Club, quiero usar mis puntos en el checkout.</li></ol><h4>Criterios de aceptación</h4><ul><li>El total incluye impuestos y se indica el número de noches.</li><li>La tarifa recomendada aparece preseleccionada y explicada.</li><li>El checkout cabe en una pantalla y media en un móvil de 375 px.</li></ul>',
+     summary:"Flujo de 3 pasos, 3 historias, 3 criterios"},
+    {id:"copy", name:"Redactor UX", role:"Escribe los textos con el tono de Albora", dur:2200,
+     tools:"Guía de tono de Albora",
+     logs:["Aplicando guía de tono: cercano, claro, sin tecnicismos","Redactando 26 textos de interfaz","Revisando textos legales de tarifas"],
+     out:'<h4>Textos clave</h4><div class="tbl"><table><thead><tr><th>Lugar</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Tarifa</td><td>Tarifa NR -15 %</td><td>No reembolsable · pagas ahora y ahorras 30 €/noche</td></tr><tr><td>Tarifa</td><td>Tarifa estándar</td><td>Flexible · cancela gratis hasta 48 h antes</td></tr><tr><td>Puntos</td><td>Canjear puntos</td><td>Usar 4.200 puntos · ahorra 42,00 €</td></tr><tr><td>Botón final</td><td>Continuar</td><td>Confirmar reserva</td></tr></tbody></table></div>',
+     summary:"26 textos de interfaz"},
+    {id:"ui", name:"Agente de UI", role:"Codifica las pantallas con Albora DS", dur:3600,
+     tools:"Repositorio de Albora DS",
+     logs:["Generando screen/resultados.html","Generando screen/ficha-habitacion.html","Generando screen/checkout.html","Comprobando que solo se usan tokens del sistema","Publicando previsualización"],
+     out:'<h4>Archivos generados</h4><div class="flow"><span>resultados.html</span><span>ficha-habitacion.html</span><span>checkout.html</span></div><h4>Extracto · comparador de tarifas</h4><pre class="code">&lt;fieldset class="al-rate-group"&gt;\n  &lt;legend class="al-title"&gt;Elige tu tarifa&lt;/legend&gt;\n  &lt;al-rate-option\n    name="rate" value="flexible" checked\n    price="219" currency="EUR"\n    title="Flexible"\n    detail="Cancela gratis hasta 48 h antes"&gt;\n  &lt;/al-rate-option&gt;\n  &lt;al-rate-option\n    name="rate" value="non-refundable"\n    price="189" currency="EUR"\n    title="No reembolsable"\n    detail="Pagas ahora y ahorras 30 €/noche"&gt;\n  &lt;/al-rate-option&gt;\n&lt;/fieldset&gt;</pre>',
+     summary:"3 pantallas, 100 % con tokens"},
+    {id:"qa", name:"Revisor QA", role:"Revisa accesibilidad y coherencia", dur:2400,
+     tools:"Pantallas generadas, reglas de Albora DS",
+     logs:["Contraste de color: AA en 48/48 pares","Áreas táctiles ≥ 44 px","Precio tachado sin texto alternativo → corregido","Tokens fuera del sistema: 0"],
+     out:'<h4>Resultado</h4><ul><li><span class="chip ok">Superado</span> Contraste AA en todos los textos</li><li><span class="chip ok">Superado</span> Áreas táctiles de 44 px o más</li><li><span class="chip ok">Superado</span> 0 colores o tamaños fuera del sistema</li><li><span class="chip warn">Corregido</span> El precio tachado no se leía con lector de pantalla; se añadió «antes 249 €».</li></ul>',
+     summary:"Accesibilidad AA, 1 corrección automática"},
+    {id:"deliver", name:"Agente de entrega", role:"Devuelve el trabajo al ticket", dur:1800,
+     tools:"Jira / Trello, Figma",
+     logs:["Creando página «ALB-482 · v0» en Figma","Comentando en el ticket","Moviendo a «Revisión diseño»","Asignando a Laura Gómez (diseñadora)"],
+     out:'<h4>Publicado</h4><ul><li>Comentario con resumen, preguntas y enlaces.</li><li>Ticket movido a «Revisión diseño» y asignado a Laura Gómez.</li><li>Página v0 en Figma usando la librería Albora DS.</li></ul>',
+     summary:"Ticket actualizado y asignado"}
+  ];
+
+  // ---------- Helpers ----------
+  function $(s,r){return (r||document).querySelector(s)}
+  function $all(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function esc(s){return s}
+
+  // ---------- Tabs ----------
+  function showTab(name){
+    ["demo","sistema","arquitectura"].forEach(function(t){
+      $("#view-"+t).hidden = (t!==name);
+      $("#tab-"+t).setAttribute("aria-selected", t===name ? "true":"false");
+    });
+    try{localStorage.setItem("albora-tab",name)}catch(e){}
+  }
+  $all(".tabs button").forEach(function(b){b.addEventListener("click",function(){showTab(b.dataset.tab)})});
+  var initial = (location.hash||"").replace("#","");
+  if(["demo","sistema","arquitectura"].indexOf(initial)>-1) showTab(initial);
+
+  // ---------- Source toggle ----------
+  function setSrc(src){
+    $("#srcJira").setAttribute("aria-pressed", src==="jira");
+    $("#srcTrello").setAttribute("aria-pressed", src==="trello");
+    $("#ticketPanel").classList.toggle("trello", src==="trello");
+    $("#tType").textContent = src==="jira" ? "Historia" : "Tarjeta";
+    $("#tCol").textContent = src==="jira" ? "Diseño · Nuevo" : "Lista: Diseño · Nuevo";
+    $("#tAssignee").textContent = src==="jira" ? "Asignado a: Estudio Norte" : "Miembros: Estudio Norte";
+    $("#triggerNote").innerHTML = src==="jira"
+      ? 'En producción esto se dispara solo: al crear la incidencia con la etiqueta <span class="mono">diseño</span>, Jira envía un webhook al orquestador.'
+      : 'En producción esto se dispara solo: al mover la tarjeta a la lista <span class="mono">Diseño · Nuevo</span>, Trello envía un webhook al orquestador.';
+    $("#newCol").textContent = src==="jira" ? "Revisión diseño" : "Lista: Revisión diseño";
+  }
+  $all(".seg button").forEach(function(b){b.addEventListener("click",function(){setSrc(b.dataset.src)})});
+
+  // ---------- Pipeline render ----------
+  var pipe = $("#pipe");
+  AGENTS.forEach(function(a,i){
+    var li = document.createElement("li");
+    li.className="agent"; li.dataset.state="idle"; li.id="ag-"+a.id;
+    li.innerHTML =
+      '<span class="dot">'+(i+1)+'</span>'+
+      '<span class="a-name">'+a.name+'</span>'+
+      '<span class="a-state chip">En espera</span>'+
+      '<span class="a-role">'+a.role+'</span>'+
+      '<div class="a-detail"><div class="log"></div>'+
+      '<button class="out-toggle" type="button" hidden aria-expanded="false">Ver resultado</button>'+
+      '<div class="out" hidden>'+a.out+'</div></div>';
+    pipe.appendChild(li);
+    var tg = $(".out-toggle",li), out=$(".out",li);
+    tg.addEventListener("click",function(){
+      out.hidden = !out.hidden;
+      tg.setAttribute("aria-expanded", String(!out.hidden));
+      tg.textContent = out.hidden ? "Ver resultado" : "Ocultar resultado";
+    });
+  });
+
+  function setAgent(a, state){
+    var li = $("#ag-"+a.id); li.dataset.state = state;
+    var st = $(".a-state",li);
+    if(state==="running"){st.textContent="Trabajando";st.className="a-state chip col"}
+    if(state==="done"){
+      st.textContent="Hecho";st.className="a-state chip ok";
+      $(".dot",li).textContent="✓";
+      var tg=$(".out-toggle",li); tg.hidden=false; tg.textContent="Ver resultado · "+a.summary;
+    }
+    if(state==="idle"){st.textContent="En espera";st.className="a-state chip";$(".log",li).innerHTML="";$(".out-toggle",li).hidden=true;$(".out",li).hidden=true;$(".dot",li).textContent=AGENTS.indexOf(a)+1}
+  }
+
+  // ---------- Run ----------
+  var timers=[], running=false, t0=0, clockTimer=null;
+  function clearAll(){timers.forEach(clearTimeout);timers=[];clearInterval(clockTimer)}
+  function fmt(ms){var s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+  var TOTAL = AGENTS.reduce(function(s,a){return s+a.dur},0);
+  // Simulated real-world duration shown on clock: scale demo seconds to ~minutes
+  function reset(){
+    clearAll(); running=false;
+    AGENTS.forEach(function(a){setAgent(a,"idle")});
+    $("#bar").style.width="0";$("#clock").textContent="00:00";
+    $("#pipeState").textContent="En espera";$("#pipeState").className="chip";
+    $("#deliverables").hidden=true;$("#emptyState").hidden=false;
+  }
+  function finish(){
+    running=false; clearInterval(clockTimer);
+    $("#bar").style.width="100%";
+    $("#clock").textContent="06:42";
+    $("#pipeState").textContent="Completado";$("#pipeState").className="chip ok";
+    $("#runBtn").disabled=false;$("#runBtn").textContent="Volver a lanzar";
+    $("#skipBtn").disabled=false;
+    renderScreens();
+    $("#emptyState").hidden=true;$("#deliverables").hidden=false;
+  }
+  function run(){
+    reset(); running=true;
+    $("#runBtn").disabled=true;$("#skipBtn").disabled=false;
+    $("#pipeState").textContent="En curso";$("#pipeState").className="chip col";
+    t0=Date.now();
+    clockTimer=setInterval(function(){
+      var el=Date.now()-t0; // demo ms → simulated: TOTAL ms ≈ 6:42
+      $("#clock").textContent=fmt(Math.min(el/TOTAL,1)*402000);
+    },200);
+    var at=0;
+    AGENTS.forEach(function(a,i){
+      timers.push(setTimeout(function(){setAgent(a,"running")},at));
+      var step=a.dur/(a.logs.length+1);
+      a.logs.forEach(function(line,j){
+        timers.push(setTimeout(function(){
+          var d=document.createElement("div");d.textContent=line;$(".log",$("#ag-"+a.id)).appendChild(d);
+        },at+step*(j+0.6)));
+      });
+      at+=a.dur;
+      timers.push(setTimeout(function(){
+        setAgent(a,"done");
+        $("#bar").style.width=Math.round((i+1)/AGENTS.length*100)+"%";
+        if(i===AGENTS.length-1) finish();
+      },at));
+    });
+  }
+  function skip(){
+    clearAll();
+    AGENTS.forEach(function(a){
+      setAgent(a,"idle");
+      var log=$(".log",$("#ag-"+a.id));
+      a.logs.forEach(function(l){var d=document.createElement("div");d.textContent=l;log.appendChild(d)});
+      setAgent(a,"done");
+    });
+    finish();
+    $("#results").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  $("#runBtn").addEventListener("click",run);
+  $("#skipBtn").addEventListener("click",skip);
+
+  // ---------- Design state (lo que generan y editan los agentes) ----------
+  var NIGHTS=3, TAX=9;
+  var DEFAULT_DESIGN = {
+    theme:{cta:"pine",radius:"md",density:"comfortable"},
+    results:{title:"7 habitaciones disponibles",subtitle:"Precio total de la estancia, impuestos incluidos",priceMode:"total",showRating:false,
+      filters:[{label:"Vista mar",on:true},{label:"Desayuno incluido",on:false},{label:"Cancelación gratis",on:false}],banner:null},
+    rooms:[
+      {id:"sup",name:"Doble Superior vista mar",img:"sea",badge:"Mejor precio",perk:"Desayuno incluido",night:189,rating:4.7,reviews:312,specs:"28 m² · cama de matrimonio o dos camas · planta 4–7",amenities:["Balcón al mar","Desayuno buffet","Wifi gratis","Cafetera"]},
+      {id:"dlx",name:"Deluxe vista ciudad",img:"room",badge:"",perk:"Cancelación gratis hasta 10 nov",night:204,rating:4.5,reviews:198,specs:"32 m² · cama king · zona de trabajo",amenities:["Escritorio","Desayuno buffet","Wifi gratis","Minibar"]},
+      {id:"jst",name:"Junior Suite con terraza",img:"suite",badge:"Albora Club",perk:"Late check-out para socios",night:287,rating:4.9,reviews:87,specs:"45 m² · terraza privada · salón",amenities:["Terraza de 12 m²","Bañera exenta","Desayuno buffet","Acceso al spa"]}
+    ],
+    room:{rateTitle:"Elige tu tarifa",rateOrder:["flexible","nonref"],defaultRate:"flexible",
+      rates:{flexible:{name:"Flexible",detail:"Cancela gratis hasta 48 h antes · pagas en el hotel",extra:30},nonref:{name:"No reembolsable",detail:"Pagas ahora y ahorras 30 €/noche",extra:0}},
+      recommendation:"Recomendamos Flexible porque tu llegada es en menos de 30 días.",cta:"Continuar",banner:null},
+    checkout:{title:"Confirma tu reserva",fields:[{label:"Nombre y apellidos",value:"Marta Ruiz Ortega"},{label:"Correo electrónico",value:"marta.ruiz@correo.es"},{label:"Teléfono",value:"+34 612 345 678"}],
+      showPoints:true,pointsLabel:"Usar 4.200 puntos Albora Club",pointsValue:42,cta:"Confirmar reserva",banner:null},
+    confirm:{title:"¡Reserva confirmada!",message:"Te hemos enviado la confirmación por correo. Te esperamos el 12 de noviembre."}
+  };
+  function clone(o){return JSON.parse(JSON.stringify(o))}
+
+  // Valida lo que devuelve un agente: solo valores que existen en Albora DS
+  function pick(v,allowed,fb){return allowed.indexOf(v)>-1?v:fb}
+  function str(v,fb,max){return (typeof v==="string"&&v.trim())?v.trim().slice(0,max||160):fb}
+  function num(v,fb,min,max){v=Number(v);return isFinite(v)&&v>=min&&v<=max?Math.round(v*10)/10:fb}
+  function banner(v,fb){
+    if(v===null) return null;
+    if(v&&typeof v==="object"&&typeof v.text==="string"&&v.text.trim()) return {text:v.text.trim().slice(0,140),tone:pick(v.tone,["sun","pine"],"sun")};
+    return fb===undefined?null:fb;
+  }
+  function sanitize(c,p){
+    c=c||{}; var o=clone(p);
+    var t=c.theme||{};
+    o.theme={cta:pick(t.cta,["pine","sun","ink"],p.theme.cta),radius:pick(t.radius,["sm","md","lg"],p.theme.radius),density:pick(t.density,["comfortable","compact"],p.theme.density)};
+    var r=c.results||{};
+    o.results.title=str(r.title,p.results.title,60);
+    o.results.subtitle=str(r.subtitle,p.results.subtitle,90);
+    o.results.priceMode=pick(r.priceMode,["total","night"],p.results.priceMode);
+    o.results.showRating=typeof r.showRating==="boolean"?r.showRating:p.results.showRating;
+    if(Array.isArray(r.filters)&&r.filters.length){o.results.filters=r.filters.slice(0,5).map(function(f){return {label:str(f&&f.label,"Filtro",24),on:!!(f&&f.on)}})}
+    if("banner" in r) o.results.banner=banner(r.banner,p.results.banner);
+    if(Array.isArray(c.rooms)&&c.rooms.length){
+      o.rooms=c.rooms.slice(0,4).map(function(x,i){
+        var b=p.rooms[i]||p.rooms[0]; x=x||{};
+        return {id:str(x.id,b.id+"-"+i,12),name:str(x.name,b.name,40),img:pick(x.img,["sea","room","suite"],b.img),badge:typeof x.badge==="string"?x.badge.slice(0,22):b.badge,
+          perk:str(x.perk,b.perk,48),night:Math.round(num(x.night,b.night,40,2000)),rating:num(x.rating,b.rating,1,5),reviews:Math.round(num(x.reviews,b.reviews,0,99999)),
+          specs:str(x.specs,b.specs,80),amenities:Array.isArray(x.amenities)&&x.amenities.length?x.amenities.slice(0,6).map(function(a){return str(a,"",28)}).filter(Boolean):b.amenities};
+      });
+    }
+    var m=c.room||{};
+    o.room.rateTitle=str(m.rateTitle,p.room.rateTitle,40);
+    if(Array.isArray(m.rateOrder)&&m.rateOrder.length===2&&m.rateOrder.indexOf("flexible")>-1&&m.rateOrder.indexOf("nonref")>-1) o.room.rateOrder=m.rateOrder.slice();
+    o.room.defaultRate=pick(m.defaultRate,["flexible","nonref"],p.room.defaultRate);
+    ["flexible","nonref"].forEach(function(k){
+      var src=(m.rates||{})[k]||{}, b=p.room.rates[k];
+      o.room.rates[k]={name:str(src.name,b.name,28),detail:str(src.detail,b.detail,80),extra:Math.round(num(src.extra,b.extra,0,500))};
+    });
+    o.room.recommendation=typeof m.recommendation==="string"?m.recommendation.slice(0,120):p.room.recommendation;
+    o.room.cta=str(m.cta,p.room.cta,24);
+    if("banner" in m) o.room.banner=banner(m.banner,p.room.banner);
+    var k=c.checkout||{};
+    o.checkout.title=str(k.title,p.checkout.title,40);
+    if(Array.isArray(k.fields)&&k.fields.length) o.checkout.fields=k.fields.slice(0,6).map(function(f){return {label:str(f&&f.label,"Campo",32),value:typeof(f&&f.value)==="string"?f.value.slice(0,40):""}});
+    o.checkout.showPoints=typeof k.showPoints==="boolean"?k.showPoints:p.checkout.showPoints;
+    o.checkout.pointsLabel=str(k.pointsLabel,p.checkout.pointsLabel,48);
+    o.checkout.pointsValue=Math.round(num(k.pointsValue,p.checkout.pointsValue,0,500));
+    o.checkout.cta=str(k.cta,p.checkout.cta,28);
+    if("banner" in k) o.checkout.banner=banner(k.banner,p.checkout.banner);
+    var f=c.confirm||{};
+    o.confirm.title=str(f.title,p.confirm.title,40);
+    o.confirm.message=str(f.message,p.confirm.message,140);
+    return o;
+  }
+
+  // ---------- Versiones ----------
+  var versions=[], viewIdx=0, approvedIdx=-1, mode="screens";
+  var proto={step:0,room:null,rate:null,points:true,hot:false};
+  function current(){return versions[viewIdx].design}
+  function latestIdx(){return versions.length-1}
+
+  // ---------- Render helpers ----------
+  function h(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function eur(n){var s=n.toFixed(2).replace(".",",");return s+" €"}
+  function eur0(n){return Math.round(n)+" €"}
+  function alStyle(d){
+    var r={sm:["6px","10px"],md:["12px","18px"],lg:["18px","26px"]}[d.theme.radius];
+    var c={pine:["var(--al-pine)","#FFFFFF"],sun:["var(--al-sun)","#1A2421"],ink:["var(--al-ink)","#FFFFFF"]}[d.theme.cta];
+    return '--al-r-md:'+r[0]+';--al-r-lg:'+r[1]+';--al-cta:'+c[0]+';--al-cta-fg:'+c[1];
+  }
+  function bannerHtml(b){return b?'<div class="al-banner '+b.tone+'">'+h(b.text)+'</div>':""}
+  var STATUS='<div class="al-status"><span>9:41</span><span>●●● 5G</span></div>';
+  function rateOf(d,room,id){var r=d.room.rates[id];return {id:id,name:r.name,detail:r.detail,price:room.night+r.extra}}
+  function roomById(d,id){for(var i=0;i<d.rooms.length;i++){if(d.rooms[i].id===id)return d.rooms[i]}return d.rooms[0]}
+
+  function sResults(d){
+    var R=d.results;
+    return STATUS+
+      '<div class="al-bar"><span class="al-logo">Albora</span></div>'+
+      '<div class="al-search"><small>Albora Mar · Valencia</small><span>12–15 nov · 3 noches · 2 adultos</span></div>'+
+      '<div class="al-chips">'+R.filters.map(function(f){return '<span class="al-chip'+(f.on?' on':'')+'">'+h(f.label)+'</span>'}).join("")+'</div>'+
+      bannerHtml(R.banner)+
+      '<div style="padding:0 16px 8px"><h3 class="al-h">'+h(R.title)+'</h3><p class="al-sub">'+h(R.subtitle)+'</p></div>'+
+      '<div class="al-list">'+d.rooms.map(function(r){
+        var total=r.night*NIGHTS;
+        var main = R.priceMode==="total" ? eur0(total)+' <small>total</small>' : eur0(r.night)+' <small>/noche</small>';
+        var second = R.priceMode==="total" ? eur0(r.night)+'/noche' : eur0(total)+' total · 3 noches';
+        return '<button class="al-card" data-act="room:'+h(r.id)+'" aria-label="Ver '+h(r.name)+'"><div class="al-img img-'+r.img+'">'+(r.badge?'<span class="al-badge">'+h(r.badge)+'</span>':'')+'</div>'+
+          '<div class="al-card-b"><b style="font-size:14px">'+h(r.name)+'</b>'+
+          (R.showRating?'<span class="al-rating"><b>★ '+String(r.rating).replace(".",",")+'</b> · '+r.reviews+' opiniones</span>':'')+
+          '<span class="al-perk">'+h(r.perk)+'</span>'+
+          '<div class="al-row"><span class="al-sub">'+second+'</span><span class="al-price">'+main+'</span></div></div></button>';
+      }).join("")+'</div>';
+  }
+  function sRoom(d,roomId,rateId){
+    var r=roomById(d,roomId), M=d.room, sel=rateId||M.defaultRate;
+    var rates=M.rateOrder.map(function(id){return rateOf(d,r,id)});
+    var cur=rateOf(d,r,sel);
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="back" aria-label="Volver" style="width:28px">‹</button><b>'+h(r.name)+'</b></div>'+
+      '<div class="al-img al-hero img-'+r.img+'">'+(r.badge?'<span class="al-badge">'+h(r.badge)+'</span>':'')+'</div>'+
+      '<div class="al-sec"><h3 class="al-h">'+h(r.name)+'</h3><p class="al-sub">'+h(r.specs)+'</p>'+
+        (d.results.showRating?'<span class="al-rating"><b>★ '+String(r.rating).replace(".",",")+'</b> · '+r.reviews+' opiniones</span>':'')+
+        '<div class="al-amen">'+r.amenities.map(function(a){return '<span>'+h(a)+'</span>'}).join("")+'</div></div>'+
+      '<div class="al-sec"><b style="font-size:15px">'+h(M.rateTitle)+'</b>'+bannerHtml(M.banner)+
+        rates.map(function(x){return '<button class="al-rate'+(x.id===sel?' on':'')+'" data-act="rate:'+x.id+'" role="radio" aria-checked="'+(x.id===sel)+'"><span class="al-radio"></span><b>'+h(x.name)+'</b><b>'+eur0(x.price)+'</b><small>'+h(x.detail)+'</small></button>'}).join("")+
+        (M.recommendation?'<p class="al-legal">Precio por noche. '+h(M.recommendation)+'</p>':'<p class="al-legal">Precio por noche.</p>')+'</div>'+
+      '<div class="al-sticky"><div><div class="al-price">'+eur0(cur.price*NIGHTS)+' <small>3 noches</small></div><span class="al-sub">Impuestos incluidos</span></div><button class="al-btn sm" data-act="next" style="width:auto">'+h(M.cta)+'</button></div>';
+  }
+  function totals(d,roomId,rateId,usePoints){
+    var r=roomById(d,roomId), rate=rateOf(d,r,rateId||d.room.defaultRate);
+    var stay=rate.price*NIGHTS, pts=(d.checkout.showPoints&&usePoints)?d.checkout.pointsValue:0;
+    return {room:r,rate:rate,stay:stay,pts:pts,total:stay+TAX-pts};
+  }
+  function sCheckout(d,roomId,rateId,usePoints){
+    var C=d.checkout, t=totals(d,roomId,rateId,usePoints);
+    var legal = t.rate.id==="flexible" ? 'Pagas '+eur(t.total)+' en el hotel. Cancela gratis hasta el 10 nov a las 23:59.' : 'Se cargarán '+eur(t.total)+' ahora. Esta tarifa no admite cancelación.';
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="back" aria-label="Volver" style="width:28px">‹</button><b>'+h(C.title)+'</b></div>'+
+      '<div class="al-steps" aria-label="Paso 3 de 3"><i class="on"></i><i class="on"></i><i class="on"></i></div>'+
+      '<div class="al-sec" style="margin-top:4px"><b style="font-size:15px">Tus datos</b>'+bannerHtml(C.banner)+
+        C.fields.map(function(f){return '<div class="al-field"><label>'+h(f.label)+'</label><div class="al-input">'+h(f.value)+'</div></div>'}).join("")+'</div>'+
+      '<div class="al-sec">'+
+        (C.showPoints?'<div class="al-points"><span><b>'+h(C.pointsLabel)+'</b><br>Ahorra '+eur(C.pointsValue)+'</span><button class="al-switch'+(usePoints?'':' off')+'" data-act="points" role="switch" aria-checked="'+usePoints+'" aria-label="Usar puntos"></button></div>':'')+
+        '<div class="al-sum"><div><span>'+h(t.rate.name)+' · 3 noches × '+eur0(t.rate.price)+'</span><span>'+eur(t.stay)+'</span></div><div><span>Tasa turística (2 × 3 noches)</span><span>'+eur(TAX)+'</span></div>'+
+        (t.pts?'<div style="color:#2D7A4E"><span>Puntos Albora Club</span><span>−'+eur(t.pts)+'</span></div>':'')+
+        '<div class="tot"><span>Total</span><span>'+eur(t.total)+'</span></div></div>'+
+        '<p class="al-legal">'+legal+'</p></div>'+
+      '<div class="al-sticky"><button class="al-btn" data-act="confirm">'+h(C.cta)+'</button></div>';
+  }
+  function sConfirm(d,roomId,rateId,usePoints){
+    var t=totals(d,roomId,rateId,usePoints), F=d.confirm;
+    return STATUS+'<div class="al-confirm"><div class="al-check">✓</div><h3 class="al-h">'+h(F.title)+'</h3><p class="al-sub">'+h(F.message)+'</p>'+
+      '<span class="al-code">Localizador ALB-7Q2K</span>'+
+      '<div class="al-sum"><div><span>'+h(t.room.name)+'</span></div><div><span>12–15 nov · 2 adultos</span></div><div><span>Tarifa '+h(t.rate.name)+'</span></div><div class="tot"><span>Total</span><span>'+eur(t.total)+'</span></div></div>'+
+      '<button class="al-btn ghost" data-act="restart">Volver al inicio del prototipo</button></div>';
+  }
+
+  // ---------- Vistas ----------
+  var STEPS=[
+    {name:"Resultados",hint:"Toca una habitación para ver su ficha."},
+    {name:"Ficha y tarifas",hint:"Cambia de tarifa y mira cómo se actualiza el total. Después pulsa el botón inferior."},
+    {name:"Checkout",hint:"Activa o desactiva los puntos para ver el total. Confirma para terminar."},
+    {name:"Confirmación",hint:"Fin del flujo. Este estado no estaba en el brief: lo añadió el arquitecto UX para cerrar el prototipo."}
+  ];
+  function phone(inner,extraCls,d){return '<div class="phone'+(extraCls||"")+'"><div class="al'+(d.theme.density==="compact"?' compact':'')+'" style="'+alStyle(d)+'">'+inner+'</div></div>'}
+  function renderViewer(fresh){
+    var d=current(), v=$("#viewer"), fx=fresh?" fresh":"";
+    if(mode==="screens"){
+      var r0=d.rooms[0].id;
+      var list=[["1 · Resultados","precio "+(d.results.priceMode==="total"?"total visible":"por noche"),sResults(d)],["2 · Ficha y tarifas","comparador en la ficha",sRoom(d,r0,null)],["3 · Checkout",d.checkout.showPoints?"con puntos Albora Club":"sin puntos",sCheckout(d,r0,null,true)]];
+      v.innerHTML='<div class="screens">'+list.map(function(s){
+        return '<div class="screen-col"><div class="lbl"><b>'+s[0]+'</b><span style="color:var(--muted)">'+s[1]+'</span></div>'+phone(s[2],fx,d).replace('<div class="phone','<div inert class="phone')+'</div>';
+      }).join("")+'</div>';
+    } else {
+      if(!proto.room) proto.room=d.rooms[0].id;
+      if(!d.rooms.some(function(r){return r.id===proto.room})) proto.room=d.rooms[0].id;
+      var s=proto.step, inner = s===0?sResults(d):s===1?sRoom(d,proto.room,proto.rate):s===2?sCheckout(d,proto.room,proto.rate,proto.points):sConfirm(d,proto.room,proto.rate,proto.points);
+      v.innerHTML='<div class="proto">'+
+        '<div class="proto-side left"><span class="proto-step">Paso '+(s+1)+' de 4</span><h3>'+STEPS[s].name+'</h3><p>'+STEPS[s].hint+'</p></div>'+
+        '<div id="protoPhone">'+phone(inner,(proto.hot?" hot":"")+fx,d)+'</div>'+
+        '<div class="proto-side right">'+
+          '<div class="proto-dots">'+STEPS.map(function(x,i){return '<button type="button" data-step="'+i+'" aria-label="Ir a '+x.name+'" aria-current="'+(i===s)+'"></button>'}).join("")+'</div>'+
+          '<div class="proto-nav"><button type="button" class="btn" data-nav="-1"'+(s===0?' disabled':'')+'>Anterior</button><button type="button" class="btn" data-nav="1"'+(s===3?' disabled':'')+'>Siguiente</button></div>'+
+          '<label class="hot-toggle"><input type="checkbox" id="hotToggle"'+(proto.hot?' checked':'')+'> Mostrar zonas interactivas</label>'+
+          '<button type="button" class="btn" data-act-reset="1">Reiniciar prototipo</button>'+
+        '</div></div>';
+    }
+  }
+  function go(step){proto.step=Math.max(0,Math.min(3,step));renderViewer();var al=$("#protoPhone .al");if(al)al.scrollTop=0}
+  $("#viewer").addEventListener("click",function(e){
+    var nav=e.target.closest("[data-nav]"); if(nav){go(proto.step+Number(nav.dataset.nav));return}
+    var st=e.target.closest("[data-step]"); if(st){go(Number(st.dataset.step));return}
+    if(e.target.closest("[data-act-reset]")){proto={step:0,room:null,rate:null,points:true,hot:proto.hot};renderViewer();return}
+    var a=e.target.closest("[data-act]"); if(!a||mode!=="proto") return;
+    var act=a.dataset.act;
+    if(act.indexOf("room:")===0){proto.room=act.slice(5);proto.rate=null;go(1)}
+    else if(act.indexOf("rate:")===0){var al=$("#protoPhone .al"),y=al.scrollTop;proto.rate=act.slice(5);renderViewer();$("#protoPhone .al").scrollTop=y}
+    else if(act==="next"){go(2)}
+    else if(act==="back"){go(proto.step-1)}
+    else if(act==="points"){var al2=$("#protoPhone .al"),y2=al2.scrollTop;proto.points=!proto.points;renderViewer();$("#protoPhone .al").scrollTop=y2}
+    else if(act==="confirm"){go(3)}
+    else if(act==="restart"){proto.room=null;proto.rate=null;proto.points=true;go(0)}
+  });
+  $("#viewer").addEventListener("change",function(e){if(e.target.id==="hotToggle"){proto.hot=e.target.checked;renderViewer()}});
+  $all("[data-mode]").forEach(function(b){b.addEventListener("click",function(){
+    mode=b.dataset.mode;
+    $all("[data-mode]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+    renderViewer();
+  })});
+
+  function renderVersions(){
+    $("#versions").innerHTML=versions.map(function(v,i){return '<button type="button" data-ver="'+i+'" aria-pressed="'+(i===viewIdx)+'"'+(i===approvedIdx?' class="approved"':'')+'>v'+i+'</button>'}).join("");
+    $("#oldNote").hidden = viewIdx===latestIdx();
+    $("#approveVer").textContent="v"+viewIdx;
+    $("#verCount").textContent=versions.length+(versions.length===1?" versión":" versiones");
+    $("#history").innerHTML=versions.slice().reverse().map(function(v){
+      return '<li><span class="v">v'+v.n+'</span><b>'+h(v.summary)+'</b>'+
+        (v.request?'<span class="req">«'+h(v.request)+'»</span>':'')+
+        (v.changes&&v.changes.length?'<ul>'+v.changes.map(function(c){return '<li>'+h(c)+'</li>'}).join("")+'</ul>':'')+'</li>';
+    }).join("");
+  }
+  $("#versions").addEventListener("click",function(e){var b=e.target.closest("[data-ver]");if(!b)return;viewIdx=Number(b.dataset.ver);renderVersions();renderViewer()});
+  $("#toLatest").addEventListener("click",function(){viewIdx=latestIdx();renderVersions();renderViewer()});
+
+  var rendered=false;
+  function renderScreens(){
+    if(rendered) return; rendered=true;
+    versions=[{n:0,design:clone(DEFAULT_DESIGN),summary:"Propuesta inicial de los agentes",request:"",changes:[]}];
+    viewIdx=0;
+    renderVersions(); renderViewer(); renderSuggest();
+  }
+
+  // ---------- Iteración con agentes ----------
+  var SUGGEST=["Muestra la valoración de cada habitación","Pon primero la tarifa no reembolsable","Botón principal en color Sol","Quita el teléfono del checkout","Añade un aviso de oferta en el listado","Muestra el precio por noche en vez del total"];
+  function renderSuggest(){$("#suggest").innerHTML=SUGGEST.map(function(s){return '<button type="button">'+s+'</button>'}).join("")}
+  $("#suggest").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||locked)return;$("#changeInput").value=b.textContent;$("#changeInput").focus()});
+
+  var sample=null, locked=false, ctl=null;
+  (async function(){
+    try{ sample = window.claude && window.claude.use ? await window.claude.use("sample") : null }catch(e){ sample=null }
+    var m=$("#aiMode");
+    if(sample){m.textContent="Agentes conectados a Claude";m.className="mode-pill live"}
+    else{m.textContent="Modo demo: cambios predefinidos";m.className="mode-pill"}
+  })();
+  // Sin conexión: un intérprete local de cambios frecuentes
+  function localAgent(req,d){
+    var q=req.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""), n=clone(d), ch=[], ag={};
+    function A(){for(var i=0;i<arguments.length;i++)ag[arguments[i]]=1}
+    var neg=/quita|elimina|oculta|sin |borra|no muestres/.test(q);
+    if(/valorac|rating|estrella|opinion|resena/.test(q)){n.results.showRating=!neg;ch.push(neg?"Se oculta la valoración":"Valoración y número de opiniones en listado y ficha");A("ux","ui")}
+    if(/no reembolsable/.test(q)&&/primer|antes|arriba|orden|destac/.test(q)){n.room.rateOrder=["nonref","flexible"];n.room.defaultRate="nonref";n.room.recommendation="La opción más económica aparece primero.";ch.push("Tarifa no reembolsable primero y preseleccionada");A("ux","copy","ui")}
+    else if(/flexible/.test(q)&&/primer|antes|arriba|orden|destac/.test(q)){n.room.rateOrder=["flexible","nonref"];n.room.defaultRate="flexible";ch.push("Tarifa flexible primero y preseleccionada");A("ux","ui")}
+    if(/boton|cta|accion/.test(q)||/color/.test(q)){
+      if(/sol|amarill|dorad|ocre/.test(q)){n.theme.cta="sun";ch.push("Botón principal con el token Sol");A("ui","qa")}
+      else if(/oscur|negro|tinta/.test(q)){n.theme.cta="ink";ch.push("Botón principal con el token Tinta");A("ui","qa")}
+      else if(/verde|pino/.test(q)){n.theme.cta="pine";ch.push("Botón principal con el token Pino");A("ui")}
+    }
+    if(/telefono/.test(q)&&neg){n.checkout.fields=n.checkout.fields.filter(function(f){return !/tel/i.test(f.label)});ch.push("Campo de teléfono eliminado del checkout");A("ux","ui")}
+    if(/punto/.test(q)&&neg){n.checkout.showPoints=false;ch.push("Se oculta el pago con puntos");A("ux","ui")}
+    if(/aviso|banner|oferta|promo/.test(q)&&!neg){n.results.banner={text:"Reserva directa: desayuno gratis y el mejor precio garantizado.",tone:"sun"};ch.push("Aviso de oferta sobre el listado");A("copy","ui")}
+    if(/por noche/.test(q)){n.results.priceMode="night";n.results.subtitle="Precio por noche, impuestos incluidos";ch.push("Listado con precio por noche y el total como dato secundario");A("ux","copy","ui")}
+    else if(/precio total|el total/.test(q)&&!/por noche/.test(q)){n.results.priceMode="total";n.results.subtitle="Precio total de la estancia, impuestos incluidos";ch.push("Listado con precio total");A("ux","ui")}
+    if(/redonde|esquina|radio/.test(q)){n.theme.radius=/menos|recto|cuadrad/.test(q)?"sm":"lg";ch.push(n.theme.radius==="sm"?"Radios más pequeños (r-sm)":"Radios más amplios (r-lg)");A("ui")}
+    if(/compact|densidad|mas habitaciones/.test(q)){n.theme.density="compact";ch.push("Tarjetas más compactas para ver más habitaciones");A("ux","ui")}
+    if(!ch.length) return null;
+    A("qa");
+    return {summary:ch.length===1?ch[0]:"Se aplican "+ch.length+" cambios",changes:ch,agents:Object.keys(ag),question:null,state:n};
+  }
+  var AG_NAMES={ux:"Arquitecto UX",copy:"Redactor UX",ui:"Agente de UI",qa:"Revisor QA"};
+  function showWork(html){var w=$("#work");w.hidden=false;w.innerHTML=html}
+  function busy(on){$("#applyBtn").disabled=on;$("#changeInput").disabled=on;$("#stopBtn").hidden=!on||!sample}
+  $("#stopBtn").addEventListener("click",function(){if(ctl)ctl.abort()});
+
+  function buildPrompt(req,d){
+    return "Eres el equipo de agentes de diseño de Hoteles Albora (Arquitecto UX, Redactor UX, Agente de UI y Revisor QA). "+
+    "Recibes el estado JSON de un flujo de reserva móvil (listado de habitaciones, ficha con tarifas, checkout y confirmación) y una petición de cambio de la diseñadora. Aplica SOLO lo que se pide.\n\n"+
+    "Reglas del sistema de diseño Albora DS:\n"+
+    "- Mantén exactamente la misma estructura y las mismas claves del JSON.\n"+
+    "- Valores permitidos: theme.cta pine|sun|ink; theme.radius sm|md|lg; theme.density comfortable|compact; rooms[].img sea|room|suite; results.priceMode total|night; room.rateOrder es una permutación de [\"flexible\",\"nonref\"]; room.defaultRate flexible|nonref; los banner son null o {\"text\":string,\"tone\":\"sun\"|\"pine\"}.\n"+
+    "- rooms[].night es el precio por noche de la tarifa no reembolsable (entero, en euros). rates[].extra es el suplemento por noche. Los totales los calcula la página: no los añadas.\n"+
+    "- Máximo 4 habitaciones y 6 campos en el checkout. Textos en español, tono cercano y claro, breves.\n"+
+    "- Si algo de la petición no se puede hacer con estas reglas (un color nuevo, un componente que no existe), no lo inventes: explícalo en \"question\".\n\n"+
+    "Responde SOLO con JSON con esta forma:\n"+
+    "{\"summary\":\"una frase en español\",\"changes\":[\"cambio breve\", ...máx 5],\"agents\":[subconjunto de \"ux\",\"copy\",\"ui\",\"qa\"],\"question\":null o \"pregunta o aviso breve\",\"state\":{...estado completo actualizado}}\n\n"+
+    "Estado actual:\n"+JSON.stringify(d)+"\n\nPetición de la diseñadora:\n"+req;
+  }
+
+  $("#changeForm").addEventListener("submit",async function(e){
+    e.preventDefault();
+    if(locked) return;
+    var req=$("#changeInput").value.trim();
+    if(!req){showWork('<span class="q">Escribe qué quieres cambiar o elige una sugerencia.</span>');return}
+    var base=versions[latestIdx()].design;
+    busy(true);
+    showWork('<b>Los agentes están trabajando…</b><div class="work-agents"><span class="chip col">Analizando la petición</span></div>');
+    var res=null, note="";
+    if(sample){
+      ctl=new AbortController();
+      try{
+        res=await sample.json(buildPrompt(req,base),{modelTier:"quick",signal:ctl.signal,cache:false});
+      }catch(err){
+        if(err&&err.code==="cancelled"){busy(false);showWork("Cambio cancelado.");return}
+        if(err&&(err.code==="not_granted"||err.code==="sampling_disabled"||err.code==="not_declared"||err.code==="capability_disabled")){sample=null;$("#aiMode").textContent="Modo demo: cambios predefinidos";$("#aiMode").className="mode-pill"}
+        note="No se pudo contactar con Claude; se usó el modo demo.";
+        res=null;
+      }
+      if(res&&!(res.state&&typeof res.state==="object")) res=null;
+    }
+    if(!res) res=localAgent(req,base);
+    busy(false);
+    if(!res){
+      showWork('<span class="q">'+(note?h(note)+" ":"")+'En modo demo los agentes entienden cambios como los de las sugerencias: valoración, orden de tarifas, color del botón, campos del checkout, aviso de oferta, precio por noche, radios o densidad.</span>');
+      return;
+    }
+    var next=sanitize(res.state,base);
+    var changes=Array.isArray(res.changes)?res.changes.slice(0,5).map(function(c){return String(c).slice(0,140)}):[];
+    if(JSON.stringify(next)===JSON.stringify(base)){
+      showWork('<span class="q">'+h(res.question||"Los agentes no han encontrado nada que cambiar con esa petición dentro de Albora DS.")+'</span>');
+      return;
+    }
+    var n=versions.length;
+    versions.push({n:n,design:next,summary:str(res.summary,"Cambios aplicados",140),request:req,changes:changes});
+    viewIdx=n; renderVersions(); renderViewer(true);
+    var ags=(Array.isArray(res.agents)?res.agents:[]).filter(function(a){return AG_NAMES[a]});
+    if(ags.indexOf("qa")<0) ags.push("qa");
+    showWork('<b>v'+n+' lista.</b> '+h(versions[n].summary)+
+      '<div class="work-agents">'+ags.map(function(a){return '<span class="chip ok">'+AG_NAMES[a]+' ✓</span>'}).join("")+'</div>'+
+      (res.question?'<span class="q">'+h(String(res.question).slice(0,240))+'</span>':'')+
+      (note?'<span class="time">'+h(note)+'</span>':''));
+    $("#changeInput").value="";
+    $("#c1").checked=$("#c2").checked=$("#c3").checked=false;
+  });
+
+  // ---------- Aprobación y envío a desarrollo ----------
+  function toast(msg,warn){var t=$("#toast");t.textContent=msg;t.className="toast"+(warn?" warn":"");t.hidden=false}
+  function setLocked(on){
+    locked=on;
+    $("#composer").classList.toggle("locked",on);
+    $("#changeInput").disabled=on;$("#applyBtn").disabled=on;
+    $("#lockChip").hidden=!on;
+  }
+  $("#reviewForm").addEventListener("submit",function(e){
+    e.preventDefault();
+    var done=["#c1","#c2","#c3"].every(function(id){return $(id).checked});
+    if(!done){toast("Marca los tres puntos de la lista antes de aprobar.",true);return}
+    approvedIdx=viewIdx; var v=versions[viewIdx], d=v.design;
+    setLocked(true); renderVersions();
+    $("#reviewState").textContent="Aprobado · v"+v.n;$("#reviewState").className="chip ok";
+    $("#newCol").textContent=$("#srcTrello").getAttribute("aria-pressed")==="true"?"Lista: Listo para desarrollo":"Listo para desarrollo";
+    $("#reviewForm").hidden=true;
+    var ho=$("#handoff"); ho.hidden=false;
+    ho.innerHTML='<div class="toast">Versión v'+v.n+' aprobada y enviada a desarrollo.</div>'+
+      '<p class="muted-s">En producción, el agente de entrega haría esto automáticamente:</p>'+
+      '<ul><li>Mueve ALB-482 a <b>Listo para desarrollo</b> y lo asigna al equipo web de Albora.</li>'+
+      '<li>Abre la solicitud de cambios <span class="mono">design/alb-482 → main</span> con 3 pantallas y '+v.n+' iteraciones registradas.</li>'+
+      '<li>Adjunta la especificación: componentes usados, tokens, textos y criterios de aceptación.</li>'+
+      '<li>Actualiza la página de Figma a «ALB-482 · v'+v.n+' aprobada».</li></ul>'+
+      '<pre class="code">'+h(JSON.stringify({ticket:"ALB-482",version:"v"+v.n,tokens:{cta:d.theme.cta,radius:d.theme.radius,density:d.theme.density},pantallas:["resultados","ficha-habitacion","checkout","confirmacion"],componentes:["RoomCard","Chip","RateOption","PriceSummary","Stepper","Input","PointsToggle","Button"]},null,2))+'</pre>'+
+      '<button type="button" class="btn" id="reopenBtn">Reabrir revisión</button>';
+    $("#reopenBtn").addEventListener("click",function(){
+      approvedIdx=-1; setLocked(false); renderVersions();
+      ho.hidden=true; $("#reviewForm").hidden=false; $("#toast").hidden=true;
+      $("#reviewState").textContent="Pendiente";$("#reviewState").className="chip warn";
+      $("#newCol").textContent=$("#srcTrello").getAttribute("aria-pressed")==="true"?"Lista: Revisión diseño":"Revisión diseño";
+    });
+  });
+
+  // ---------- DS tab ----------
+  var SW=[["Pino","--al-pine","#1E4A42","Acción principal"],["Pino 700","--al-pine-700","#163832","Hover y pulsado"],["Pino 50","--al-pine-50","#E7EFEC","Selección"],["Sol","--al-sun","#E2A63B","Beneficios, Club"],["Sol 50","--al-sun-50","#FBF1DD","Fondos de Club"],["Piedra","--al-stone","#F4F2EE","Fondo base"],["Tinta","--al-ink","#1A2421","Texto principal"],["Tinta 60","--al-ink-60","#5E6B66","Texto secundario"],["Línea","--al-line","#E2E0DA","Bordes"],["Éxito","--al-success","#2D7A4E","Confirmaciones"],["Error","--al-error","#B3412E","Errores"]];
+  $("#swatches").innerHTML=SW.map(function(s){return '<div class="sw"><i style="background:'+s[2]+'"></i><div><b>'+s[0]+'</b><code>'+s[1]+'</code><code>'+s[2]+' · '+s[3]+'</code></div></div>'}).join("");
+  var SP=[["s1",4],["s2",8],["s3",12],["s4",16],["s5",24]];
+  $("#spaces").innerHTML=SP.map(function(s){return '<div><i style="width:'+s[1]+'px;height:'+s[1]+'px"></i>'+s[0]+' · '+s[1]+'</div>'}).join("")+
+    '<div><i style="width:40px;height:40px;border-radius:6px;opacity:.35"></i>r-sm · 6</div><div><i style="width:40px;height:40px;border-radius:12px;opacity:.35"></i>r-md · 12</div><div><i style="width:40px;height:40px;border-radius:18px;opacity:.35"></i>r-lg · 18</div>';
+
+  // ---------- Arch table ----------
+  var IO={brief:["Ticket o tarjeta y adjuntos","Brief estructurado + preguntas abiertas"],ctx:["Brief","Hallazgos, tickets previos, componentes disponibles"],ux:["Brief + contexto","Flujo, historias de usuario, criterios de aceptación"],copy:["Flujo + guía de tono","Textos de interfaz"],ui:["Flujo + textos","Pantallas en código con Albora DS"],qa:["Pantallas","Informe de accesibilidad y correcciones"],deliver:["Todo lo anterior","Comentario, cambio de estado, página en Figma"]};
+  $("#agentTable").innerHTML=AGENTS.map(function(a){return '<tr><td><b>'+a.name+'</b></td><td>'+IO[a.id][0]+'</td><td>'+IO[a.id][1]+'</td><td>'+a.tools+'</td></tr>'}).join("");
+})();
+</script>
+
+</body>
+</html>

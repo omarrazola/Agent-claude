@@ -1,0 +1,31 @@
+{
+  "name": "albora-design-agents",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agentes de diseño UX/UI conectados a Jira y Trello para Hoteles Albora (caso de ejemplo).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "demo:local": "tsx scripts/run-local.ts fixtures/jira-issue-created.json",
+    "demo:trello": "tsx scripts/run-local.ts fixtures/trello-card-moved.json",
+    "iterate": "tsx scripts/iterate.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
+    "@google/genai": "^2.30.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

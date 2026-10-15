@@ -1,0 +1,32 @@
+{
+  "webhookEvent": "jira:issue_created",
+  "issue": {
+    "key": "ALB-482",
+    "fields": {
+      "summary": "Rediseñar el flujo de reserva en móvil",
+      "labels": ["diseño", "ecommerce"],
+      "reporter": { "displayName": "Marta Ruiz" },
+      "attachment": [
+        { "filename": "analytics_reservas_Q3.pdf" },
+        { "filename": "capturas_flujo_actual.zip" }
+      ],
+      "description": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Contexto. El 71 % de las reservas directas empiezan en móvil, pero la conversión móvil es la mitad que en escritorio. Recepción recibe muchas llamadas de clientes que no entienden las tarifas." }] },
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Qué necesitamos:" }] },
+          {
+            "type": "bulletList",
+            "content": [
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Listado de habitaciones más claro, con precio total visible." }] }] },
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Comparar tarifa flexible y no reembolsable sin salir de la ficha." }] }] },
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Checkout más corto, con opción de pagar con puntos Albora Club." }] }] }
+            ]
+          },
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Fecha objetivo: revisión con negocio el 30 de octubre." }] }
+        ]
+      }
+    }
+  }
+}

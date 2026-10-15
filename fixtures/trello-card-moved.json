@@ -1,0 +1,16 @@
+{
+  "action": {
+    "type": "updateCard",
+    "memberCreator": { "fullName": "Marta Ruiz" },
+    "data": {
+      "card": {
+        "id": "66f1a2b3c4d5e6f708192a3b",
+        "shortLink": "k7Qm2xPa",
+        "name": "Check-in online desde el móvil",
+        "desc": "Contexto. En temporada alta la cola de recepción supera los 20 minutos entre las 15:00 y las 17:00.\n\nQué necesitamos:\n- Que el huésped pueda hacer el check-in desde el móvil 48 h antes.\n- Subir documento de identidad y firmar el registro.\n- Indicar hora de llegada y peticiones especiales.\n\nFecha objetivo: 15 de noviembre."
+      },
+      "listBefore": { "name": "Backlog" },
+      "listAfter": { "name": "Diseño · Nuevo" }
+    }
+  }
+}

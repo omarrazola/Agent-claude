@@ -600,6 +600,416 @@ button{font:inherit;cursor:pointer}
 @keyframes arrow-bounce {
   from { transform: translateX(0); }
   to { transform: translateX(4px); }
+/* =========================================================
+   Lienzo Visual de Red y Transmisión de Tareas Multi-Agente
+   ========================================================= */
+.orch-canvas-wrapper {
+  background: #080808;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.orch-canvas-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #0D0D0D;
+  border-bottom: 1px solid #1E1E1E;
+  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.orch-canvas-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+}
+.orch-canvas-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11.5px;
+  color: #AFAFAF;
+}
+.orch-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* Viewport with dark cyber dot grid */
+.orch-viewport {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-height: 350px;
+  background-color: #060606;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px),
+    linear-gradient(180deg, rgba(39, 110, 241, 0.04) 0%, transparent 100%);
+  background-size: 24px 24px, 100% 100%;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+  cursor: grab;
+}
+.orch-viewport:active {
+  cursor: grabbing;
+}
+.orch-board {
+  position: relative;
+  min-width: 1460px;
+  height: 350px;
+  padding: 30px 40px 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* SVG layer for circuit tracks */
+.orch-svg-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.orch-wire-base {
+  fill: none;
+  stroke: #1E1E1E;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+.orch-wire-laser {
+  fill: none;
+  stroke: #276EF1;
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-dasharray: 8 6;
+  animation: laser-dash 1s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(39, 110, 241, 0.8));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.orch-wire-laser.active {
+  opacity: 1;
+}
+.orch-wire-done {
+  fill: none;
+  stroke: #0E8345;
+  stroke-width: 3.5px;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(14, 131, 69, 0.5));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.orch-wire-done.done {
+  opacity: 1;
+}
+@keyframes laser-dash {
+  to { stroke-dashoffset: -28; }
+}
+
+/* Nodes track */
+.orch-nodes-track {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 65px;
+  align-items: center;
+  width: 100%;
+}
+
+/* Individual Agent Node Card */
+.orch-node {
+  width: 148px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Satellite subagents orbiting above the node */
+.orch-satellites {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 32px;
+}
+.orch-satellite {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #141414;
+  border: 1.5px solid #292929;
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-size: 12px;
+  color: #757575;
+  transition: all 0.25s ease;
+}
+.orch-satellite.active {
+  background: #276EF1;
+  border-color: #FFFFFF;
+  color: #FFFFFF;
+  transform: scale(1.22);
+  box-shadow: 0 0 12px rgba(39, 110, 241, 0.8);
+  animation: sat-pulse 1.2s infinite alternate;
+}
+@keyframes sat-pulse {
+  from { box-shadow: 0 0 6px rgba(39, 110, 241, 0.5); }
+  to { box-shadow: 0 0 16px rgba(39, 110, 241, 0.9); }
+}
+.orch-satellite.done {
+  background: #0E8345;
+  border-color: #0E8345;
+  color: #FFFFFF;
+  transform: scale(1);
+}
+
+/* Central Node Core */
+.orch-node-core {
+  width: 100%;
+  background: #141414;
+  border: 2px solid #292929;
+  border-radius: 14px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 5px;
+  position: relative;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.orch-node[data-state="running"] .orch-node-core {
+  border-color: #276EF1;
+  background: linear-gradient(180deg, #1A2133 0%, #11141C 100%);
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 10px 30px rgba(39, 110, 241, 0.35), 0 0 0 2px rgba(39, 110, 241, 0.2);
+}
+.orch-node[data-state="done"] .orch-node-core {
+  border-color: #0E8345;
+  background: #141414;
+  box-shadow: 0 6px 20px rgba(14, 131, 69, 0.15);
+}
+
+.orch-node-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #0A0A0A;
+  border: 1.5px solid #292929;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  position: relative;
+  transition: all 0.25s ease;
+}
+.orch-node[data-state="running"] .orch-node-icon-wrapper {
+  background: #276EF1;
+  border-color: #FFFFFF;
+  box-shadow: 0 0 16px rgba(39, 110, 241, 0.8);
+}
+.orch-node[data-state="done"] .orch-node-icon-wrapper {
+  background: #0E8345;
+  border-color: #0E8345;
+  color: #FFFFFF;
+}
+
+.orch-node-badge-num {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #545454;
+}
+.orch-node[data-state="running"] .orch-node-badge-num {
+  color: #276EF1;
+}
+.orch-node[data-state="done"] .orch-node-badge-num {
+  color: #0E8345;
+}
+
+.orch-node-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #FFFFFF;
+  line-height: 1.25;
+}
+.orch-node-role {
+  font-size: 11px;
+  color: #AFAFAF;
+  line-height: 1.3;
+}
+.orch-node-status-pill {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #1E1E1E;
+  color: #757575;
+  margin-top: 3px;
+  transition: all 0.25s ease;
+}
+.orch-node[data-state="running"] .orch-node-status-pill {
+  background: #276EF1;
+  color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(39, 110, 241, 0.6);
+}
+.orch-node[data-state="done"] .orch-node-status-pill {
+  background: rgba(14, 131, 69, 0.2);
+  color: #0E8345;
+}
+
+/* Traveling Task Packet */
+.orch-traveling-packet {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: rgba(10, 10, 10, 0.96);
+  border: 1.5px solid #276EF1;
+  border-radius: 9999px;
+  box-shadow: 0 0 24px rgba(39, 110, 241, 0.8), 0 4px 16px rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  transform: translate(-50%, -50%);
+  transition: none;
+}
+.packet-icon {
+  font-size: 16px;
+  animation: packet-spin 2s linear infinite;
+}
+@keyframes packet-spin {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.packet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.packet-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+.packet-route {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: #689DF8;
+  white-space: nowrap;
+}
+
+/* Shockwave impact ring on arrival */
+.orch-shockwave {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #276EF1;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  z-index: 9;
+}
+.orch-shockwave.fire {
+  animation: shockwave-blast 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+@keyframes shockwave-blast {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; border-color: #276EF1; }
+  100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; border-color: #0E8345; }
+}
+
+/* Live Mission HUD below canvas */
+.orch-mission-hud {
+  background: #0A0A0A;
+  border-top: 1px solid #1E1E1E;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.hud-phase-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.hud-pulse-ring {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #545454;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.hud-pulse-ring.running {
+  background: #276EF1;
+  box-shadow: 0 0 0 0 rgba(39, 110, 241, 0.7);
+  animation: orch-beacon-pulse 1.3s infinite;
+}
+.hud-pulse-ring.done {
+  background: #0E8345;
+  box-shadow: 0 0 8px rgba(14, 131, 69, 0.8);
+}
+.hud-text-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.hud-sub-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #276EF1;
+}
+.hud-main-desc {
+  font-size: 13px;
+  color: #FFFFFF;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hud-packet-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #141414;
+  border: 1px solid #292929;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #AFAFAF;
+}
+.hud-packet-preview strong {
+  color: #FFFFFF;
 }
 
 .out-toggle{margin-top:8px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;padding:0;text-align:left;cursor:pointer}
@@ -1216,13 +1626,81 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       <p class="trigger-note" id="triggerNote">En producción esto se dispara solo: al crear la incidencia con la etiqueta <span class="mono">diseño</span>, Jira envía un webhook al orquestador.</p>
     </div>
 
-    <!-- Pipeline / Orquestador Multi-Agente -->
+    <!-- Pipeline / Orquestador Multi-Agente Visual -->
     <div class="panel" id="orchestratorPanel">
       <div class="panel-h">
         <h2>Orquestador de Agentes</h2>
+        <div class="seg" role="group" aria-label="Modo de visualización del orquestador">
+          <button type="button" id="vmodeCanvas" aria-pressed="true" data-vmode="canvas">🌐 Grafo de Red</button>
+          <button type="button" id="vmodeList" aria-pressed="false" data-vmode="list">📋 Terminal</button>
+        </div>
         <span class="time" id="clock">00:00</span>
         <span class="chip" id="pipeState">En espera</span>
         <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      </div>
+
+      <!-- LIENZO VISUAL: RED MULTI-AGENTE & TRANSMISIÓN DE TAREAS EN VIVO -->
+      <div class="orch-canvas-wrapper" id="orchCanvasWrapper">
+        <div class="orch-canvas-toolbar">
+          <div class="orch-canvas-title">
+            <span class="orch-beacon" id="orchBeaconCanvas"></span>
+            <span>Red Neuronal Multi-Agente · Transmisión de Tareas y Artefactos</span>
+          </div>
+          <div class="orch-canvas-legend">
+            <span><i class="orch-legend-dot" style="background:#545454"></i> En espera</span>
+            <span><i class="orch-legend-dot" style="background:#276EF1"></i> Agente Activo & Satélites</span>
+            <span><i class="orch-legend-dot" style="background:#0E8345"></i> Tarea Completada</span>
+            <span><i class="orch-legend-dot" style="background:#276EF1;box-shadow:0 0 6px #276EF1"></i> Paquete en Tránsito</span>
+          </div>
+        </div>
+
+        <div class="orch-viewport" id="orchViewport">
+          <div class="orch-board" id="orchBoard">
+            <!-- Capa SVG para circuitos y láseres -->
+            <svg class="orch-svg-canvas" id="orchSvgCanvas">
+              <defs>
+                <filter id="laserGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g id="orchCircuitGroup"></g>
+            </svg>
+
+            <!-- Pista de Nodos de los 7 Agentes principales con sus satélites -->
+            <div class="orch-nodes-track" id="orchNodesTrack"></div>
+
+            <!-- Cápsula / Paquete de Tarea que vuela entre los agentes -->
+            <div class="orch-traveling-packet" id="orchTravelingPacket" hidden>
+              <span class="packet-icon" id="packetIcon">📦</span>
+              <div class="packet-info">
+                <span class="packet-label" id="packetLabel">Transfiriendo artefacto...</span>
+                <span class="packet-route" id="packetRoute">Brief ➔ Contexto</span>
+              </div>
+            </div>
+
+            <!-- Onda expansiva / Shockwave en el impacto del paquete -->
+            <div class="orch-shockwave" id="orchShockwave"></div>
+          </div>
+        </div>
+
+        <!-- Barra HUD de Misión y Telemetría del Enjambre -->
+        <div class="orch-mission-hud" id="orchMissionHud">
+          <div class="hud-phase-col">
+            <div class="hud-pulse-ring" id="hudPulseRing"></div>
+            <div class="hud-text-box">
+              <span class="hud-sub-title" id="hudSubTitle">Orquestador Listo</span>
+              <span class="hud-main-desc" id="hudMainDesc">Pulsa «Lanzar agentes» para ver la transmisión de tareas y el flujo entre agentes en vivo.</span>
+            </div>
+          </div>
+          <div class="hud-packet-preview" id="hudPacketPreview">
+            <span>Paquete actual:</span>
+            <strong id="hudPacketName">Ninguno en tránsito</strong>
+          </div>
+        </div>
       </div>
 
       <!-- Telemetría y estado de la orquestación en tiempo real -->
@@ -2146,8 +2624,10 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   loadSavedBrief();
   prepareAgentsForBrief();
 
-  // ---------- Pipeline render ----------
+  // ---------- Pipeline & Visual Multi-Agent Network Graph ----------
   var pipe = $("#pipe");
+
+  // Render text list in pipe
   AGENTS.forEach(function(a,i){
     var li = document.createElement("li");
     li.className = "agent"; li.dataset.state = "idle"; li.id = "ag-" + a.id;
@@ -2208,133 +2688,381 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     });
   });
 
-  function setAgent(a, state){
-    var li = $("#ag-" + a.id);
-    if(!li) return;
-    li.dataset.state = state;
-    var st = $(".a-state", li);
-    var aIdx = AGENTS.indexOf(a);
-    var dotEl = $(".orch-step-dot[data-step='" + aIdx + "']");
+  // ---------- Visual Graph: Nodos Satélite y Circuitos SVG ----------
+  function initVisualGraph(){
+    var track = $("#orchNodesTrack");
+    if(!track) return;
+    track.innerHTML = AGENTS.map(function(a, i){
+      var satellitesHtml = (a.subagents || []).map(function(s, sIdx){
+        return '<div class="orch-satellite" id="vsat-' + a.id + '-' + sIdx + '" title="' + h(s.name) + '">' +
+          '<span class="vsat-icon">' + s.icon + '</span>' +
+        '</div>';
+      }).join("");
 
+      return '<div class="orch-node" id="vnode-' + a.id + '" data-state="idle">' +
+        '<div class="orch-satellites" id="vsat-group-' + a.id + '">' + satellitesHtml + '</div>' +
+        '<div class="orch-node-core">' +
+          '<span class="orch-node-badge-num">' + (i + 1) + '</span>' +
+          '<div class="orch-node-icon-wrapper">' +
+            '<span class="orch-node-icon">' + a.icon + '</span>' +
+          '</div>' +
+          '<div class="orch-node-title">' + h(a.name) + '</div>' +
+          '<div class="orch-node-role">' + h(a.role) + '</div>' +
+          '<div class="orch-node-status-pill" id="vstatus-' + a.id + '">En espera</div>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    setTimeout(updateVisualCircuits, 60);
+  }
+
+  function updateVisualCircuits(){
+    var board = $("#orchBoard");
+    var group = $("#orchCircuitGroup");
+    var svg = $("#orchSvgCanvas");
+    if(!board || !group || !svg) return;
+
+    var bW = board.scrollWidth || 1460;
+    var bH = board.scrollHeight || 350;
+    svg.setAttribute("width", bW);
+    svg.setAttribute("height", bH);
+
+    var pathsHtml = "";
+    for(var i = 0; i < AGENTS.length - 1; i++){
+      var n1 = $("#vnode-" + AGENTS[i].id);
+      var n2 = $("#vnode-" + AGENTS[i + 1].id);
+      if(!n1 || !n2) continue;
+
+      var bRect = board.getBoundingClientRect();
+      var r1 = n1.getBoundingClientRect();
+      var r2 = n2.getBoundingClientRect();
+
+      var x1 = (r1.left - bRect.left) + r1.width / 2;
+      var y1 = (r1.top - bRect.top) + 125;
+      var x2 = (r2.left - bRect.left) + r2.width / 2;
+      var y2 = (r2.top - bRect.top) + 125;
+
+      var dx = x2 - x1;
+      var cx1 = x1 + dx * 0.45;
+      var cy1 = y1 - 32;
+      var cx2 = x1 + dx * 0.55;
+      var cy2 = y2 - 32;
+
+      var d = "M " + x1 + " " + y1 + " C " + cx1 + " " + cy1 + ", " + cx2 + " " + cy2 + ", " + x2 + " " + y2;
+
+      pathsHtml += '<path class="orch-wire-base" id="wire-base-' + i + '" d="' + d + '" />' +
+                   '<path class="orch-wire-laser" id="wire-laser-' + i + '" d="' + d + '" filter="url(#laserGlow)" />' +
+                   '<path class="orch-wire-done" id="wire-done-' + i + '" d="' + d + '" />';
+    }
+    group.innerHTML = pathsHtml;
+  }
+
+  window.addEventListener("resize", function(){
+    if(!$("#orchCanvasWrapper").hidden) updateVisualCircuits();
+  });
+
+  // Mode switcher: Canvas vs Terminal List
+  var vmodeCanvas = $("#vmodeCanvas");
+  var vmodeList = $("#vmodeList");
+  var orchCanvasWrapper = $("#orchCanvasWrapper");
+  var orchTelemetryEl = $("#orchTelemetry");
+
+  function setVisualMode(mode){
+    if(vmodeCanvas) vmodeCanvas.setAttribute("aria-pressed", mode === "canvas" ? "true" : "false");
+    if(vmodeList) vmodeList.setAttribute("aria-pressed", mode === "list" ? "true" : "false");
+    if(orchCanvasWrapper) orchCanvasWrapper.hidden = (mode !== "canvas");
+    if(pipe) pipe.hidden = (mode === "canvas");
+    if(orchTelemetryEl) orchTelemetryEl.hidden = (mode === "canvas");
+    if(mode === "canvas") setTimeout(updateVisualCircuits, 50);
+  }
+
+  if(vmodeCanvas) vmodeCanvas.addEventListener("click", function(){ setVisualMode("canvas"); });
+  if(vmodeList) vmodeList.addEventListener("click", function(){ setVisualMode("list"); });
+
+  initVisualGraph();
+
+  // ---------- Task Packets Generator ----------
+  function getTaskPacketData(fromIdx){
+    var info = getBriefInfo();
+    if(info.isEV){
+      var evPackets = [
+        { icon: "📋", name: "Brief de Recarga · Protocolo OCPP 2.0.1", summary: "Restricciones de potencia y compatibilidad de conectores" },
+        { icon: "🔌", name: "Tokens Base · Conectores CCS2 (150 kW)", summary: "Especificaciones de recarga y medidores de batería" },
+        { icon: "⚙️", name: "Flujo de 5 Fases (Handshake a Desbloqueo)", summary: "Máquina de estados de recarga segura sin dead-ends" },
+        { icon: "💬", name: "Microcopys de Alta Tensión y Precios kWh", summary: "Instrucciones de seguridad y tarifas transparentes" },
+        { icon: "💻", name: "Pantallas con Telemetría de Batería en Vivo", summary: "5 vistas maquetadas con tokens oficiales de Base" },
+        { icon: "🛡️", name: "Auditoría Solar · WCAG AA y Bloqueo", summary: "Contraste en exteriores y feedback de cable bloqueado" },
+        { icon: "🚀", name: "Entrega Final · Figma Base EV + Ticket", summary: "Librería v0 y especificación lista para desarrollo" }
+      ];
+      return evPackets[fromIdx] || { icon: "📦", name: "Artefacto de Recarga", summary: "Datos transferidos" };
+    } else {
+      var mobilityPackets = [
+        { icon: "📐", name: "Brief Estructurado · Matriz de Alcance", summary: "Alcance delimitado: Happy Path, Corner y Casos de Error" },
+        { icon: "🎨", name: "Tokens Base DS · 42 Componentes Oficiales", summary: "Catálogo oficial base.uber.com y patrones previos" },
+        { icon: "⚙️", name: "Matriz de Flujos · 5 Pantallas y Rutas", summary: "Happy Path, retenciones de demanda y tarjeta declinada" },
+        { icon: "✍️", name: "Microcopys · Sentence Case y CTAs 44px", summary: "Textos en voz activa y recuperación guiada con Uber Cash" },
+        { icon: "💻", name: "Pantallas Maquetadas · Tokens W3C", summary: "HTML/CSS semántico con Uber Move y canvas de mapa oscuro" },
+        { icon: "🛡️", name: "Auditoría QA · WCAG AA y Cero Dead-Ends", summary: "48/48 contrastes superados y CTA de escape garantizados" },
+        { icon: "🚀", name: "Entrega Final · Figma Canvas & Ticket", summary: "Flujo completo publicado y listo para revisión de producto" }
+      ];
+      return mobilityPackets[fromIdx] || { icon: "📦", name: "Artefacto de Diseño", summary: "Datos transferidos" };
+    }
+  }
+
+  // ---------- Animación de Vuelo Físico del Paquete de Tarea ----------
+  function transmitTaskPacket(fromIdx, toIdx, packetData){
+    return new Promise(function(resolve){
+      var packet = $("#orchTravelingPacket");
+      var board = $("#orchBoard");
+      var viewport = $("#orchViewport");
+      var shockwave = $("#orchShockwave");
+      if(!packet || !board || !viewport){ resolve(); return; }
+
+      var fromNode = fromIdx >= 0 ? $("#vnode-" + AGENTS[fromIdx].id) : null;
+      var toNode = toIdx < AGENTS.length ? $("#vnode-" + AGENTS[toIdx].id) : null;
+
+      var bRect = board.getBoundingClientRect();
+      var x1 = 30, y1 = 125;
+      if(fromNode){
+        var fRect = fromNode.getBoundingClientRect();
+        x1 = (fRect.left - bRect.left) + fRect.width / 2;
+        y1 = (fRect.top - bRect.top) + 125;
+      }
+
+      var x2 = x1 + 140, y2 = y1;
+      if(toNode){
+        var tRect = toNode.getBoundingClientRect();
+        x2 = (tRect.left - bRect.left) + tRect.width / 2;
+        y2 = (tRect.top - bRect.top) + 125;
+      }
+
+      // Activar circuito láser en SVG
+      var laserPath = fromIdx >= 0 ? $("#wire-laser-" + fromIdx) : null;
+      if(laserPath) laserPath.classList.add("active");
+
+      // Cargar información del paquete
+      $("#packetIcon").textContent = packetData.icon || "📦";
+      $("#packetLabel").textContent = packetData.name || "Artefacto en tránsito";
+      var fromTitle = fromNode ? AGENTS[fromIdx].name : "Ticket Jira";
+      var toTitle = toNode ? AGENTS[toIdx].name : "Entrega Final";
+      $("#packetRoute").textContent = fromTitle + " ➔ " + toTitle;
+      $("#hudPacketName").textContent = packetData.name;
+      $("#hudSubTitle").textContent = "Transmisión de Artefacto: " + fromTitle + " ➔ " + toTitle;
+      $("#hudMainDesc").textContent = "Viajando: «" + packetData.name + "» (" + (packetData.summary || 'Procesando entrega') + ")...";
+
+      packet.hidden = false;
+
+      var duration = 740;
+      var startTime = performance.now();
+      var dx = x2 - x1;
+      var cx1 = x1 + dx * 0.45;
+      var cy1 = y1 - 32;
+      var cx2 = x1 + dx * 0.55;
+      var cy2 = y2 - 32;
+
+      function step(now){
+        var elapsed = now - startTime;
+        var p = Math.min(elapsed / duration, 1);
+        // Easing cubic suave
+        var t = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+
+        var curX = Math.pow(1 - t, 3) * x1 + 3 * Math.pow(1 - t, 2) * t * cx1 + 3 * (1 - t) * Math.pow(t, 2) * cx2 + Math.pow(t, 3) * x2;
+        var curY = Math.pow(1 - t, 3) * y1 + 3 * Math.pow(1 - t, 2) * t * cy1 + 3 * (1 - t) * Math.pow(t, 2) * cy2 + Math.pow(t, 3) * y2;
+
+        packet.style.left = curX + "px";
+        packet.style.top = curY + "px";
+
+        // Auto-seguimiento suave de cámara
+        var targetScroll = curX - (viewport.clientWidth / 2);
+        if(Math.abs(viewport.scrollLeft - targetScroll) > 10){
+          viewport.scrollLeft = targetScroll;
+        }
+
+        if(p < 1 && running){
+          requestAnimationFrame(step);
+        } else {
+          packet.hidden = true;
+          if(laserPath) laserPath.classList.remove("active");
+          if(fromIdx >= 0){
+            var donePath = $("#wire-done-" + fromIdx);
+            if(donePath) donePath.classList.add("done");
+          }
+
+          // Shockwave impacto en el nodo destino
+          if(shockwave){
+            shockwave.style.left = x2 + "px";
+            shockwave.style.top = y2 + "px";
+            shockwave.classList.remove("fire");
+            void shockwave.offsetWidth;
+            shockwave.classList.add("fire");
+          }
+          resolve();
+        }
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  // ---------- Control de Estados (Visual Canvas + Lista Sincronizados) ----------
+  function setAgent(a, state){
+    var aIdx = AGENTS.indexOf(a);
+
+    // 1. Nodo visual en el Grafo de Red
+    var vnode = $("#vnode-" + a.id);
+    var vstatus = $("#vstatus-" + a.id);
+    if(vnode){
+      vnode.dataset.state = state;
+      if(state === "running"){
+        if(vstatus) vstatus.textContent = "⚡ Trabajando";
+        // Auto-pan viewport toward active node
+        var vp = $("#orchViewport");
+        if(vp){
+          var vRect = vnode.getBoundingClientRect();
+          var bRect = $("#orchBoard").getBoundingClientRect();
+          var nodeCenter = (vRect.left - bRect.left) + vRect.width / 2;
+          vp.scrollLeft = nodeCenter - (vp.clientWidth / 2);
+        }
+      } else if(state === "done"){
+        if(vstatus) vstatus.textContent = "✓ Completado";
+      } else {
+        if(vstatus) vstatus.textContent = "En espera";
+      }
+    }
+
+    // 2. Tarjeta en lista detallada
+    var li = $("#ag-" + a.id);
+    if(li){
+      li.dataset.state = state;
+      var st = $(".a-state", li);
+      if(state === "running"){
+        if(st){ st.textContent = "⚡ Trabajando"; st.className = "a-state chip col"; }
+        $(".dot", li).textContent = aIdx + 1;
+      } else if(state === "done"){
+        if(st){ st.textContent = "✓ Hecho"; st.className = "a-state chip ok"; }
+        $(".dot", li).textContent = "✓";
+        var actEl = $("#act-" + a.id); if(actEl) actEl.hidden = true;
+        var tg = $(".out-toggle", li); if(tg){ tg.hidden = false; tg.textContent = "Ver resultado · " + a.summary; }
+      } else {
+        if(st){ st.textContent = "En espera"; st.className = "a-state chip"; }
+        $(".dot", li).textContent = aIdx + 1;
+        $(".log", li).innerHTML = "";
+        var actEl2 = $("#act-" + a.id); if(actEl2) actEl2.hidden = true;
+        var hoEl = $("#handoff-" + a.id); if(hoEl) hoEl.hidden = true;
+        var tg2 = $(".out-toggle", li); if(tg2) tg2.hidden = true;
+        var out = $(".out", li); if(out) out.hidden = true;
+        var cnt = $("#subcnt-" + a.id); if(cnt) cnt.textContent = "0/" + (a.subagents ? a.subagents.length : 3) + " completados";
+        if(a.subagents){
+          a.subagents.forEach(function(s, sIdx){
+            var sp = $("#sub-" + a.id + "-" + sIdx);
+            if(sp){ sp.dataset.status = "pending"; var b = $(".sub-state-badge", sp); if(b) b.textContent = "En cola"; }
+            var vsat = $("#vsat-" + a.id + "-" + sIdx);
+            if(vsat) vsat.className = "orch-satellite";
+          });
+        }
+      }
+    }
+
+    // 3. Mini-dots en telemetría
+    var dotEl = $(".orch-step-dot[data-step='" + aIdx + "']");
+    if(dotEl){
+      if(state === "running") dotEl.className = "orch-step-dot active";
+      else if(state === "done") dotEl.className = "orch-step-dot done";
+      else dotEl.className = "orch-step-dot";
+    }
+
+    // 4. HUD central
     if(state === "running"){
-      if(st){ st.textContent = "⚡ Trabajando"; st.className = "a-state chip col"; }
-      $(".dot", li).textContent = aIdx + 1;
-      if(dotEl){ dotEl.className = "orch-step-dot active"; }
       $("#orchBeacon").className = "orch-beacon running";
+      $("#orchBeaconCanvas").className = "orch-beacon running";
+      $("#hudPulseRing").className = "hud-pulse-ring running";
+      $("#hudSubTitle").textContent = "Fase " + (aIdx + 1) + " · " + a.name;
+      $("#hudMainDesc").textContent = "Coordinando 3 subagentes y sintetizando artefactos de " + a.name + "...";
       $("#orchStatusText").textContent = "Orquestando: " + a.name + " (" + (aIdx + 1) + "/7)";
       $("#orchActionPhase").textContent = "Fase " + (aIdx + 1) + " · " + a.name;
       $("#orchActionLabel").textContent = "Ejecutando subagentes de " + a.name + "...";
-      try {
-        li.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      } catch(e){}
-    }
-    if(state === "done"){
-      if(st){ st.textContent = "✓ Hecho"; st.className = "a-state chip ok"; }
-      $(".dot", li).textContent = "✓";
-      if(dotEl){ dotEl.className = "orch-step-dot done"; }
-      var actEl = $("#act-" + a.id);
-      if(actEl) actEl.hidden = true;
-      var tg = $(".out-toggle", li);
-      if(tg){ tg.hidden = false; tg.textContent = "Ver resultado · " + a.summary; }
-    }
-    if(state === "idle"){
-      if(st){ st.textContent = "En espera"; st.className = "a-state chip"; }
-      $(".dot", li).textContent = aIdx + 1;
-      if(dotEl){ dotEl.className = "orch-step-dot"; }
-      $(".log", li).innerHTML = "";
-      var actEl = $("#act-" + a.id);
-      if(actEl) actEl.hidden = true;
-      var hoEl = $("#handoff-" + a.id);
-      if(hoEl) hoEl.hidden = true;
-      var tg = $(".out-toggle", li); if(tg) tg.hidden = true;
-      var out = $(".out", li); if(out) out.hidden = true;
-      var cnt = $("#subcnt-" + a.id);
-      if(cnt) cnt.textContent = "0/" + (a.subagents ? a.subagents.length : 3) + " completados";
-      if(a.subagents){
-        a.subagents.forEach(function(s, sIdx){
-          var sp = $("#sub-" + a.id + "-" + sIdx);
-          if(sp){
-            sp.dataset.status = "pending";
-            var badge = $(".sub-state-badge", sp);
-            if(badge) badge.textContent = "En cola";
-          }
-        });
-      }
     }
   }
 
   function setSubagentState(agent, subIdx, state, actionText){
-    var pill = $("#sub-" + agent.id + "-" + subIdx);
-    if(!pill) return;
-    pill.dataset.status = state;
-    var badge = $(".sub-state-badge", pill);
     var sub = agent.subagents && agent.subagents[subIdx];
     var subName = sub ? sub.name : ("Subagente " + (subIdx + 1));
     var subIcon = sub ? sub.icon : "⚡";
 
-    if(state === "running"){
-      if(badge) badge.textContent = "⚡ Ejecutando";
-      var actEl = $("#act-" + agent.id);
-      if(actEl) actEl.hidden = false;
-      var tagEl = $("#act-tag-" + agent.id);
-      if(tagEl) tagEl.textContent = subIcon + " " + subName + ":";
-      var descEl = $("#act-desc-" + agent.id);
-      if(descEl) descEl.textContent = actionText || (sub ? sub.action : "Procesando tarea...");
+    // 1. Satélite visual en el Grafo
+    var vsat = $("#vsat-" + agent.id + "-" + subIdx);
+    if(vsat){
+      if(state === "running") vsat.className = "orch-satellite active";
+      else if(state === "done") vsat.className = "orch-satellite done";
+      else vsat.className = "orch-satellite";
+    }
 
+    // 2. Subagente en la lista detallada
+    var pill = $("#sub-" + agent.id + "-" + subIdx);
+    if(pill){
+      pill.dataset.status = state;
+      var badge = $(".sub-state-badge", pill);
+      if(state === "running"){
+        if(badge) badge.textContent = "⚡ Ejecutando";
+        var actEl = $("#act-" + agent.id);
+        if(actEl) actEl.hidden = false;
+        var tagEl = $("#act-tag-" + agent.id);
+        if(tagEl) tagEl.textContent = subIcon + " " + subName + ":";
+        var descEl = $("#act-desc-" + agent.id);
+        if(descEl) descEl.textContent = actionText || (sub ? sub.action : "Procesando tarea...");
+
+        var log = $(".log", $("#ag-" + agent.id));
+        if(log){
+          var elMs = Date.now() - t0;
+          var timeStr = "[" + fmt(elMs) + "." + Math.floor((elMs % 1000) / 100) + "]";
+          var div = document.createElement("div");
+          div.className = "log-entry";
+          div.innerHTML = '<span class="log-time">' + timeStr + '</span> ' +
+            '<span class="log-sub">' + subIcon + ' ' + h(subName) + ':</span> ' +
+            '<span class="log-msg">' + h(actionText || (sub ? sub.action : 'Ejecutando...')) + '</span>';
+          log.appendChild(div);
+          log.scrollTop = log.scrollHeight;
+        }
+      } else if(state === "done"){
+        if(badge) badge.textContent = "✓ Hecho";
+        var completed = 0;
+        if(agent.subagents){
+          agent.subagents.forEach(function(s, idx){
+            var p = $("#sub-" + agent.id + "-" + idx);
+            if(p && p.dataset.status === "done") completed++;
+          });
+          var cnt = $("#subcnt-" + agent.id);
+          if(cnt) cnt.textContent = completed + "/" + agent.subagents.length + " completados";
+        }
+      }
+    }
+
+    // 3. HUD en tiempo real
+    if(state === "running"){
+      $("#hudSubTitle").textContent = agent.name + " › " + subName;
+      $("#hudMainDesc").textContent = actionText || (sub ? sub.action : "Ejecutando acción...");
       $("#orchActionIcon").textContent = subIcon;
       $("#orchActionPhase").textContent = agent.name + " › " + subName;
       $("#orchActionLabel").textContent = actionText || (sub ? sub.action : "Ejecutando acción...");
-
-      var log = $(".log", $("#ag-" + agent.id));
-      if(log){
-        var elMs = Date.now() - t0;
-        var timeStr = "[" + fmt(elMs) + "." + Math.floor((elMs % 1000) / 100) + "]";
-        var div = document.createElement("div");
-        div.className = "log-entry";
-        div.innerHTML = '<span class="log-time">' + timeStr + '</span> ' +
-          '<span class="log-sub">' + subIcon + ' ' + h(subName) + ':</span> ' +
-          '<span class="log-msg">' + h(actionText || (sub ? sub.action : 'Ejecutando...')) + '</span>';
-        log.appendChild(div);
-        log.scrollTop = log.scrollHeight;
-      }
-    } else if(state === "done"){
-      if(badge) badge.textContent = "✓ Hecho";
-      var completed = 0;
-      if(agent.subagents){
-        agent.subagents.forEach(function(s, idx){
-          var p = $("#sub-" + agent.id + "-" + idx);
-          if(p && p.dataset.status === "done") completed++;
-        });
-        var cnt = $("#subcnt-" + agent.id);
-        if(cnt) cnt.textContent = completed + "/" + agent.subagents.length + " completados";
-      }
     }
   }
 
-  async function animateAgentSubagents(agent, nextAgent){
+  async function animateAgentSubagents(agent, nextAgent, agentIdx){
     setAgent(agent, "running");
     var subs = agent.subagents || [];
     for(var sIdx = 0; sIdx < subs.length; sIdx++){
       if(!running) return;
       var sub = subs[sIdx];
       setSubagentState(agent, sIdx, "running", sub.action);
-      await new Promise(function(r){ timers.push(setTimeout(r, 440)); });
+      await new Promise(function(r){ timers.push(setTimeout(r, 460)); });
       setSubagentState(agent, sIdx, "done");
     }
 
     setAgent(agent, "done");
 
+    // Vuelo físico del paquete de tarea hacia el siguiente agente
     if(nextAgent && running){
-      var ho = $("#handoff-" + agent.id);
-      var hoTxt = $("#handoff-txt-" + agent.id);
-      if(ho && hoTxt){
-        hoTxt.textContent = "Handoff: transfiriendo artefactos a " + nextAgent.name + "...";
-        ho.hidden = false;
-        $("#orchActionIcon").textContent = "🔄";
-        $("#orchActionPhase").textContent = "Handoff de artefactos";
-        $("#orchActionLabel").textContent = "Transfiriendo especificaciones de " + agent.name + " a " + nextAgent.name + "...";
-        await new Promise(function(r){ timers.push(setTimeout(r, 340)); });
-      }
+      var packetData = getTaskPacketData(agentIdx);
+      await transmitTaskPacket(agentIdx, agentIdx + 1, packetData);
     }
   }
 
@@ -2342,6 +3070,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   var timers=[], running=false, t0=0, clockTimer=null;
   function clearAll(){timers.forEach(clearTimeout);timers=[];clearInterval(clockTimer)}
   function fmt(ms){var s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+
   function reset(){
     clearAll(); running=false; rendered=false;
     AGENTS.forEach(function(a){setAgent(a,"idle")});
@@ -2349,13 +3078,23 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     $("#pipeState").textContent="En espera";$("#pipeState").className="chip";
     $("#orchTelemetry").className="orch-telemetry";
     $("#orchBeacon").className="orch-beacon";
+    $("#orchBeaconCanvas").className="orch-beacon";
+    $("#hudPulseRing").className="hud-pulse-ring";
+    $("#hudSubTitle").textContent="Orquestador Listo";
+    $("#hudMainDesc").textContent="Pulsa «Lanzar agentes» para ver la transmisión de tareas y el flujo entre agentes en vivo.";
+    $("#hudPacketName").textContent="Ninguno en tránsito";
     $("#orchStatusText").textContent="Pipeline preparado · 7 agentes y 21 subagentes listos";
     $("#orchActionIcon").textContent="🤖";
     $("#orchActionPhase").textContent="Orquestación:";
     $("#orchActionLabel").textContent="Pulsa «Lanzar agentes» para iniciar la orquestación y ver las acciones en tiempo real.";
     $all(".orch-step-dot").forEach(function(d){ d.className="orch-step-dot"; });
+    $all(".orch-wire-done").forEach(function(w){ w.classList.remove("done"); });
+    $all(".orch-wire-laser").forEach(function(w){ w.classList.remove("active"); });
+    $("#orchTravelingPacket").hidden = true;
+    $("#orchViewport").scrollLeft = 0;
     $("#deliverables").hidden=true;$("#emptyState").hidden=false;
   }
+
   function finish(){
     running=false; clearInterval(clockTimer);
     $("#bar").style.width="100%";
@@ -2363,11 +3102,17 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     $("#pipeState").textContent="Completado";$("#pipeState").className="chip ok";
     $("#orchTelemetry").className="orch-telemetry done";
     $("#orchBeacon").className="orch-beacon done";
+    $("#orchBeaconCanvas").className="orch-beacon done";
+    $("#hudPulseRing").className="hud-pulse-ring done";
+    $("#hudSubTitle").textContent="Orquestación Completada · Éxito";
+    $("#hudMainDesc").textContent="7 agentes y 21 subagentes entregaron el flujo completo con 100% tokens de Uber Base DS.";
+    $("#hudPacketName").textContent="📦 Entregado en Figma y Jira";
     $("#orchStatusText").textContent="✓ Orquestación completada · 7 agentes y 21 subagentes finalizaron el flujo";
     $("#orchActionIcon").textContent="✅";
     $("#orchActionPhase").textContent="Entrega finalizada";
     $("#orchActionLabel").textContent="Flujo generado y validado con 100% de componentes y tokens de Uber Base DS.";
     $all(".orch-step-dot").forEach(function(d){ d.className="orch-step-dot done"; });
+    $all(".orch-wire-done").forEach(function(w){ w.classList.add("done"); });
     $("#runBtn").disabled=false;$("#runBtn").textContent="Volver a lanzar";
     $("#skipBtn").disabled=false;
 
@@ -2487,12 +3232,19 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       })();
     }
 
-    // Ejecución animada de los 7 agentes y sus 21 subagentes
+    // Vuelo inicial: Del Ticket al Agente 1 (Analista de brief)
+    await transmitTaskPacket(-1, 0, {
+      icon: "📋",
+      name: "Ticket " + info.key + " · Requisitos Entrantes",
+      summary: "Prioridad " + info.priority + " recibida desde Jira/Trello"
+    });
+
+    // Ejecución animada de los 7 agentes y transmisión de tareas entre ellos
     for(var i = 0; i < AGENTS.length; i++){
       if(!running) return;
       var a = AGENTS[i];
       var nextA = AGENTS[i + 1] || null;
-      await animateAgentSubagents(a, nextA);
+      await animateAgentSubagents(a, nextA, i);
       $("#bar").style.width = Math.round(((i + 1) / AGENTS.length) * 100) + "%";
     }
 
@@ -2543,6 +3295,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       }
       setAgent(a, "done");
     });
+    $all(".orch-wire-done").forEach(function(w){ w.classList.add("done"); });
     finish();
     $("#results").scrollIntoView({behavior:"smooth",block:"start"});
   }

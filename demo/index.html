@@ -632,6 +632,16 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .flow-node-card.dimmed{opacity:0.35}
 .flow-node-card.highlight{box-shadow:0 0 0 3px var(--accent), 0 10px 28px rgba(0,0,0,0.18)}
 
+/* ===== 🎨 Integración y Sincronización con Figma ===== */
+.figma-sync-box{background:var(--surface);border:1.5px solid #276EF1;border-radius:10px;padding:14px 16px;display:grid;gap:8px;box-shadow:0 4px 16px rgba(39,110,241,0.08);margin-bottom:12px}
+.figma-input{font-family:inherit;font-size:13px;border:1px solid var(--line);background:var(--sunken);color:var(--fg);padding:8px 12px;border-radius:6px;outline:none;transition:border-color .15s,background .15s}
+.figma-input:focus{border-color:#000000;background:var(--surface);box-shadow:0 0 0 2px rgba(0,0,0,0.1)}
+.figma-select{font-family:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--sunken);color:var(--fg);padding:8px 10px;border-radius:6px;outline:none;cursor:pointer}
+.figma-export-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:14px}
+.figma-export-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;transition:all .2s}
+.figma-export-card:hover{border-color:#000000;box-shadow:0 4px 14px rgba(0,0,0,0.08)}
+.figma-badge-btn{border:1px solid #E2E2E2;background:#FFFFFF;color:#000000;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:all .15s}
+.figma-badge-btn:hover{background:#000000;color:#FFFFFF;border-color:#000000}
 
 .composer{margin-top:20px;padding:16px;display:grid;gap:12px}
 .composer-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -799,7 +809,37 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       <div class="composer panel" id="composer">
         <div class="composer-h">
           <h2>Pedir cambios a los agentes</h2>
+          <button type="button" class="btn sm" id="btnToggleFigmaSync" style="font-size:12px;gap:6px">🎨 Vincular con Figma</button>
           <span class="mode-pill" id="aiMode">Comprobando conexión…</span>
+        </div>
+        <div class="figma-sync-box" id="figmaSyncBox" hidden>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:16px">🎨</span>
+              <b style="font-size:13.5px">Sincronización con Figma (Figma ➔ Agente)</b>
+              <span class="chip" style="font-size:11px">Figma REST Sync</span>
+            </div>
+            <button type="button" class="btn sm" id="btnCloseFigmaSync">✕ Cerrar</button>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin:0">Pega el enlace de la pantalla o frame modificado en Figma (ej. clic derecho en el Frame en Figma › <i>Copy link to selection</i>). Los agentes detectarán los cambios y actualizarán el flujo respetando Uber Base DS.</p>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center">
+            <input type="url" id="figmaSyncUrl" placeholder="https://www.figma.com/design/:file_key/:nombre?node-id=402-12" class="figma-input" />
+            <select id="figmaSyncStep" class="figma-select">
+              <option value="auto">Detectar pantalla automática</option>
+              <option value="1">Paso 1: Selección inicial</option>
+              <option value="2">Paso 2: Opciones y preferencias</option>
+              <option value="3">Paso 3: Punto de recogida y pago</option>
+              <option value="4">Paso 4: Seguimiento en mapa</option>
+              <option value="5">Paso 5: Conductor en camino</option>
+              <option value="new">➕ Insertar como nueva pantalla</option>
+            </select>
+            <button type="button" class="btn primary sm" id="figmaSyncSubmitBtn">📥 Sincronizar con el Agente</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="figmaSyncNotes" placeholder="Notas del cambio en Figma (ej: He añadido opción de viajar con mascotas y botón en rojo)" class="figma-input" style="flex:1;min-width:260px;font-size:12px;padding:6px 10px" />
+            <input type="password" id="figmaSyncToken" placeholder="Figma Token (opcional)" class="figma-input" style="width:170px;font-size:12px;padding:6px 10px" />
+          </div>
+          <div id="figmaSyncStatus" style="font-size:12.5px;padding:6px 10px;border-radius:6px" hidden></div>
         </div>
         <form id="changeForm" class="composer-row">
           <label for="changeInput" class="sr">Describe el cambio</label>
@@ -2337,6 +2377,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       '<span class="al-logo" style="font-size:18px">Uber</span>'+
       '<span style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px">'+
         stateTag +
+        '<button type="button" class="figma-badge-btn" data-figma-step="'+(idx+1)+'" title="Vincular con Figma">🎨 Figma</button>'+
         '<span style="font-size:12px;color:#545454;font-weight:600">'+h(scr.navTitle || ("Paso " + (idx+1)))+'</span>'+
       '</span>'+
       '</div>' + stepsDots;
@@ -2609,6 +2650,135 @@ export default function UberBaseFlow() {
     return JSON.stringify(tokens, null, 2);
   }
 
+  function generateFigmaCanvasSvg(screens, d){
+    var frameW = 375, frameH = 812;
+    var gap = 60, padX = 60, padY = 80;
+    var totalW = padX * 2 + screens.length * frameW + (screens.length - 1) * gap;
+    var totalH = padY * 2 + frameH + 60;
+
+    var svgParts = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+totalW+' '+totalH+'" width="'+totalW+'" height="'+totalH+'">',
+      '<defs>',
+        '<style>',
+          '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap");',
+          'text { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }',
+        '</style>',
+        '<filter id="figma-shadow" x="-5%" y="-5%" width="115%" height="115%">',
+          '<feDropShadow dx="0" dy="8" stdDeviation="16" flood-opacity="0.12"/>',
+        '</filter>',
+      '</defs>',
+      '<rect width="100%" height="100%" fill="#F8F9FA"/>'
+    ];
+
+    screens.forEach(function(s, idx){
+      var x = padX + idx * (frameW + gap);
+      var y = padY;
+      var isErr = s.stateType === "error";
+      var isCorner = s.stateType === "corner_case";
+      var tagColor = isErr ? "#DE1135" : (isCorner ? "#F69E0C" : "#0E8345");
+      var tagBg = isErr ? "#FDF0F2" : (isCorner ? "#FEF6E7" : "#EBF7EE");
+      var badgeText = s.stateBadge || (isErr ? "CASO DE ERROR" : (isCorner ? "CORNER CASE" : "HAPPY PATH"));
+
+      svgParts.push('<g id="Frame_Paso_' + (idx+1) + '" transform="translate(' + x + ',' + y + ')">');
+      svgParts.push('<text x="0" y="-24" font-size="14" font-weight="700" fill="#000000">Paso ' + (idx+1) + ' · ' + h(s.shortName || s.mainTitle || "") + '</text>');
+      svgParts.push('<rect width="375" height="812" rx="36" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#figma-shadow)"/>');
+
+      svgParts.push('<text x="28" y="32" font-size="12" font-weight="700" fill="#000000">9:41</text>');
+      svgParts.push('<text x="345" y="32" text-anchor="end" font-size="11" font-weight="700" fill="#000000">●●● 5G</text>');
+
+      svgParts.push('<text x="24" y="68" font-size="20" font-weight="800" fill="#000000">Uber</text>');
+      svgParts.push('<rect x="250" y="52" width="100" height="22" rx="4" fill="' + tagBg + '"/>');
+      svgParts.push('<text x="300" y="67" text-anchor="middle" font-size="10" font-weight="700" fill="' + tagColor + '">' + h(badgeText) + '</text>');
+
+      var contentY = 100;
+      if(s.showMap){
+        var mm = s.mapMeta || {};
+        svgParts.push('<rect x="20" y="' + contentY + '" width="335" height="150" rx="8" fill="#141414"/>');
+        svgParts.push('<rect x="32" y="' + (contentY + 14) + '" width="110" height="24" rx="4" fill="' + tagColor + '"/>');
+        svgParts.push('<text x="87" y="' + (contentY + 30) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">' + h(mm.badge || "En ruta") + '</text>');
+        svgParts.push('<rect x="280" y="' + (contentY + 14) + '" width="60" height="24" rx="4" fill="rgba(0,0,0,0.8)"/>');
+        svgParts.push('<text x="310" y="' + (contentY + 30) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">' + h(mm.eta || "3 min") + '</text>');
+        svgParts.push('<text x="187" y="' + (contentY + 90) + '" text-anchor="middle" font-size="32">🚗</text>');
+        contentY += 166;
+      }
+
+      svgParts.push('<text x="24" y="' + (contentY + 24) + '" font-size="20" font-weight="700" fill="#000000">' + h(s.mainTitle || s.shortName || "") + '</text>');
+      if(s.mainSubtitle){
+        svgParts.push('<text x="24" y="' + (contentY + 48) + '" font-size="13" fill="#545454">' + h(s.mainSubtitle) + '</text>');
+        contentY += 32;
+      }
+      contentY += 36;
+
+      if(s.banner && s.banner.text){
+        svgParts.push('<rect x="20" y="' + contentY + '" width="335" height="38" rx="6" fill="' + tagBg + '" stroke="' + tagColor + '" stroke-width="1"/>');
+        svgParts.push('<text x="32" y="' + (contentY + 24) + '" font-size="12" font-weight="600" fill="' + tagColor + '">' + h(s.banner.text.slice(0, 48)) + '</text>');
+        contentY += 50;
+      }
+
+      if(Array.isArray(s.items) && s.items.length){
+        s.items.slice(0, 2).forEach(function(it){
+          svgParts.push('<rect x="20" y="' + contentY + '" width="335" height="54" rx="8" fill="#FFFFFF" stroke="' + (it.highlight ? '#000000' : '#E2E2E2') + '" stroke-width="' + (it.highlight ? '2' : '1') + '"/>');
+          svgParts.push('<text x="36" y="' + (contentY + 32) + '" font-size="14" font-weight="700" fill="#000000">' + h(it.title) + '</text>');
+          if(it.price) svgParts.push('<text x="335" y="' + (contentY + 32) + '" text-anchor="end" font-size="14" font-weight="700" fill="#000000">' + h(it.price) + '</text>');
+          contentY += 64;
+        });
+      }
+
+      var btnBg = (isErr || s.ctaVariant === "negative") ? "#DE1135" : "#000000";
+      svgParts.push('<rect x="20" y="730" width="335" height="54" rx="8" fill="' + btnBg + '"/>');
+      svgParts.push('<text x="187" y="763" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF">' + h(s.cta || "Continuar") + ' ➔</text>');
+
+      svgParts.push('</g>');
+    });
+
+    svgParts.push('</svg>');
+    return svgParts.join("\n");
+  }
+
+  function generateFigmaPluginScript(screens){
+    return '// === Generador para Consola de Figma Desktop ===\n' +
+      '// Ve a: Plugins › Development › Open Console en Figma Desktop y pega este script:\n' +
+      '(async () => {\n' +
+      '  const screens = ' + JSON.stringify(screens, null, 2) + ';\n' +
+      '  await figma.loadFontAsync({ family: "Inter", style: "Regular" });\n' +
+      '  await figma.loadFontAsync({ family: "Inter", style: "Bold" });\n\n' +
+      '  let startX = Math.round(figma.viewport.center.x - ((screens.length * 420) / 2));\n' +
+      '  let startY = Math.round(figma.viewport.center.y);\n\n' +
+      '  screens.forEach((scr, idx) => {\n' +
+      '    const frame = figma.createFrame();\n' +
+      '    frame.name = scr.step + ". " + (scr.shortName || scr.mainTitle || "Pantalla " + (idx + 1));\n' +
+      '    frame.resize(375, 812);\n' +
+      '    frame.x = startX + idx * 420;\n' +
+      '    frame.y = startY;\n' +
+      '    frame.cornerRadius = 36;\n' +
+      '    frame.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];\n' +
+      '    frame.strokes = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];\n' +
+      '    frame.strokeWeight = 4;\n\n' +
+      '    const title = figma.createText();\n' +
+      '    title.characters = scr.mainTitle || scr.shortName || "Pantalla";\n' +
+      '    title.fontSize = 18;\n' +
+      '    title.fontName = { family: "Inter", style: "Bold" };\n' +
+      '    title.x = 24; title.y = 80;\n' +
+      '    frame.appendChild(title);\n\n' +
+      '    const btn = figma.createFrame();\n' +
+      '    btn.resize(327, 54);\n' +
+      '    btn.x = 24; btn.y = 720; btn.cornerRadius = 8;\n' +
+      '    const isNeg = scr.stateType === "error" || scr.ctaVariant === "negative";\n' +
+      '    btn.fills = [{ type: "SOLID", color: isNeg ? { r: 0.87, g: 0.07, b: 0.21 } : { r: 0, g: 0, b: 0 } }];\n' +
+      '    const btnText = figma.createText();\n' +
+      '    btnText.characters = (scr.cta || "Continuar") + " ➔";\n' +
+      '    btnText.fontName = { family: "Inter", style: "Bold" };\n' +
+      '    btnText.fontSize = 14;\n' +
+      '    btnText.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];\n' +
+      '    btnText.x = 24; btnText.y = 18;\n' +
+      '    btn.appendChild(btnText);\n' +
+      '    frame.appendChild(btn);\n\n' +
+      '    figma.currentPage.appendChild(frame);\n' +
+      '  });\n' +
+      '  figma.notify("✓ " + screens.length + " pantallas de Uber Base creadas en el lienzo de Figma.");\n' +
+      '})();';
+  }
+
   function renderHandoverView(d){
     var screens = (Array.isArray(d.screens) && d.screens.length > 0) ? d.screens : [
       { step: 1, shortName: "1 · Selección", stateType: "happy_path", mainTitle: "Selección de servicio", mainSubtitle: "Tarifa garantizada", cta: "Continuar" }
@@ -2617,17 +2787,63 @@ export default function UberBaseFlow() {
     var reactCode = generateReactBaseUiCode(screens, d);
     var mermaidCode = generateMermaidCode(screens);
     var figmaTokens = generateFigmaTokens(d);
+    var figmaPluginCode = generateFigmaPluginScript(screens);
 
     return '<div class="handover-box">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">'+
         '<div>'+
-          '<h3 style="font-size:20px;margin:0;font-weight:700">Handover Técnico para Desarrollo y QA</h3>'+
-          '<p style="color:var(--muted);font-size:13px;margin:4px 0 0">Componentes de Uber Base Design System (baseui), arquitectura de estados y tokens de diseño.</p>'+
+          '<h3 style="font-size:20px;margin:0;font-weight:700">Handover Técnico para Desarrollo, QA y Diseño</h3>'+
+          '<p style="color:var(--muted);font-size:13px;margin:4px 0 0">Componentes de Uber Base Design System (baseui), arquitectura de estados, exportación a Canva de Figma y tokens de diseño.</p>'+
         '</div>'+
         '<div class="ho-tabs" role="tablist">'+
+          '<button type="button" class="ho-tab-btn '+(activeHoTab==="figma"?"active":"")+'" data-ho-tab="figma">🎨 Exportar a Canva de Figma</button>'+
           '<button type="button" class="ho-tab-btn '+(activeHoTab==="react"?"active":"")+'" data-ho-tab="react">⚛️ React (@uber/baseui)</button>'+
           '<button type="button" class="ho-tab-btn '+(activeHoTab==="mermaid"?"active":"")+'" data-ho-tab="mermaid">📊 Diagrama de Flujo (Mermaid)</button>'+
           '<button type="button" class="ho-tab-btn '+(activeHoTab==="tokens"?"active":"")+'" data-ho-tab="tokens">🎨 Figma Tokens JSON</button>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="ho-tab-content" data-content="figma" '+(activeHoTab==="figma"?"":"hidden")+'>'+
+        '<div style="margin-bottom:12px">'+
+          '<h4 style="margin:0;font-size:16px;font-weight:700">Exportación Directa al Canva de Figma</h4>'+
+          '<p style="font-size:13px;color:var(--muted);margin:4px 0 0">Lleva este flujo de pantallas de Uber Base directamente a tu lienzo de Figma sin necesidad de plugins de pago.</p>'+
+        '</div>'+
+        '<div class="figma-export-grid">'+
+          '<div class="figma-export-card">'+
+            '<div>'+
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:22px">📋</span><b style="font-size:15px">Copiar y Pegar en Canva (1-Click)</b></div>'+
+              '<p style="font-size:12.5px;color:var(--muted);margin:0;line-height:1.4">Copia los frames vectoriales (375x812) con tokens oficiales, textos y botones Base. En Figma presiona <b>Ctrl+V</b> (o <b>Cmd+V</b>) en el lienzo.</p>'+
+            '</div>'+
+            '<button type="button" class="btn primary" data-copy-figma-canvas="1" style="width:100%">📋 Copiar flujo para pegar en Figma (Ctrl+V)</button>'+
+          '</div>'+
+
+          '<div class="figma-export-card">'+
+            '<div>'+
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:22px">💾</span><b style="font-size:15px">Descargar Archivo SVG para Canva</b></div>'+
+              '<p style="font-size:12.5px;color:var(--muted);margin:0;line-height:1.4">Descarga un único archivo vectorial con todos los frames listos para arrastrar y soltar (drag & drop) directamente en cualquier página de Figma.</p>'+
+            '</div>'+
+            '<button type="button" class="btn" data-download-figma-svg="1" style="width:100%">💾 Descargar flow_canvas.svg</button>'+
+          '</div>'+
+
+          '<div class="figma-export-card">'+
+            '<div>'+
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:22px">⚡</span><b style="font-size:15px">Script para Consola Figma (Auto-Layout)</b></div>'+
+              '<p style="font-size:12.5px;color:var(--muted);margin:0;line-height:1.4">Ejecuta este script en Figma Desktop (<i>Plugins › Development › Open Console</i>) para generar frames nativos con Auto Layout real.</p>'+
+            '</div>'+
+            '<button type="button" class="btn" data-copy-target="figmaPluginScriptPre" style="width:100%">📋 Copiar Script de Consola</button>'+
+          '</div>'+
+
+          '<div class="figma-export-card" style="border-color:#276EF1">'+
+            '<div>'+
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:22px">🔗</span><b style="font-size:15px">Sincronizar Cambios desde Figma</b></div>'+
+              '<p style="font-size:12.5px;color:var(--muted);margin:0;line-height:1.4">¿Has hecho ajustes en Figma? Pásale el enlace de la pantalla al agente para que absorba el cambio y actualice el flujo en vivo.</p>'+
+            '</div>'+
+            '<button type="button" class="btn primary" id="hoOpenFigmaSync" style="width:100%">🔗 Abrir Sincronizador de Figma</button>'+
+          '</div>'+
+        '</div>'+
+        '<div style="margin-top:16px">'+
+          '<span style="font-size:12px;color:var(--muted);font-weight:600">Código del script para Figma Desktop Console:</span>'+
+          '<pre class="code-preview" id="figmaPluginScriptPre" style="margin-top:6px;max-height:220px">'+h(figmaPluginCode)+'</pre>'+
         '</div>'+
       '</div>'+
 
@@ -2763,7 +2979,10 @@ export default function UberBaseFlow() {
         '<div class="flow-node-header">'+
           '<div class="flow-node-topline">'+
             '<span class="state-badge-tag ' + stType + '">' + h(stBadge) + '</span>'+
-            '<span class="flow-node-num">Paso ' + (idx + 1) + ' / ' + total + '</span>'+
+            '<div style="display:flex;align-items:center;gap:6px">'+
+              '<button type="button" class="figma-badge-btn" data-figma-step="' + (idx + 1) + '" title="Vincular con Figma">🎨 Figma</button>'+
+              '<span class="flow-node-num">Paso ' + (idx + 1) + ' / ' + total + '</span>'+
+            '</div>'+
           '</div>'+
           '<h4 class="flow-node-title">' + h(s.shortName || s.mainTitle || ("Paso " + (idx + 1))) + '</h4>'+
           '<div class="flow-node-sub">' + h(s.mainSubtitle || s.stateDesc || "") + '</div>'+
@@ -3361,6 +3580,68 @@ export default function UberBaseFlow() {
       return;
     }
 
+    // Acciones de Figma Canvas Export y Sincronización
+    var figmaCopyBtn = e.target.closest("[data-copy-figma-canvas]");
+    if(figmaCopyBtn){
+      var curD = current();
+      var scrList = (Array.isArray(curD && curD.screens) && curD.screens.length > 0) ? curD.screens : getFlowScreens(curD);
+      var svgCanvas = generateFigmaCanvasSvg(scrList, curD);
+      navigator.clipboard.writeText(svgCanvas).then(function(){
+        var origText = figmaCopyBtn.textContent;
+        figmaCopyBtn.textContent = "✓ ¡Copiado! Pega en Figma con Ctrl+V";
+        figmaCopyBtn.style.background = "#0E8345";
+        setTimeout(function(){
+          figmaCopyBtn.textContent = origText;
+          figmaCopyBtn.style.background = "";
+        }, 3000);
+      });
+      return;
+    }
+
+    var figmaDlBtn = e.target.closest("[data-download-figma-svg]");
+    if(figmaDlBtn){
+      var curD2 = current();
+      var scrList2 = (Array.isArray(curD2 && curD2.screens) && curD2.screens.length > 0) ? curD2.screens : getFlowScreens(curD2);
+      var svgCanvas2 = generateFigmaCanvasSvg(scrList2, curD2);
+      var blob2 = new Blob([svgCanvas2], { type: "image/svg+xml;charset=utf-8" });
+      var url2 = URL.createObjectURL(blob2);
+      var dlLink2 = document.createElement("a");
+      dlLink2.href = url2;
+      dlLink2.download = "uber_base_figma_flow_canvas.svg";
+      document.body.appendChild(dlLink2);
+      dlLink2.click();
+      document.body.removeChild(dlLink2);
+      URL.revokeObjectURL(url2);
+      return;
+    }
+
+    if(e.target.closest("#hoOpenFigmaSync")){
+      var syncBox = $("#figmaSyncBox");
+      if(syncBox){
+        syncBox.hidden = false;
+        populateFigmaStepSelector();
+        syncBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        $("#figmaSyncUrl").focus();
+      }
+      return;
+    }
+
+    var figmaStepBtn = e.target.closest("[data-figma-step]");
+    if(figmaStepBtn){
+      var stepNum = figmaStepBtn.dataset.figmaStep;
+      var syncBox2 = $("#figmaSyncBox");
+      if(syncBox2){
+        syncBox2.hidden = false;
+        populateFigmaStepSelector();
+        var sel = $("#figmaSyncStep");
+        if(sel) sel.value = String(stepNum);
+        syncBox2.scrollIntoView({ behavior: "smooth", block: "center" });
+        var urlInput = $("#figmaSyncUrl");
+        if(urlInput) urlInput.focus();
+      }
+      return;
+    }
+
     // Acciones interactivas del prototipo
     var a=e.target.closest("[data-act]"); if(!a||mode!=="proto") return;
     var act=a.dataset.act;
@@ -3700,9 +3981,123 @@ export default function UberBaseFlow() {
   $("#spaces").innerHTML=SP.map(function(s){return '<div><i style="width:'+s[1]+'px;height:'+s[1]+'px"></i>'+s[0]+' · '+s[1]+'</div>'}).join("")+
     '<div><i style="width:40px;height:40px;border-radius:4px;opacity:.35"></i>4px · sm</div><div><i style="width:40px;height:40px;border-radius:8px;opacity:.35"></i>8px · md</div><div><i style="width:40px;height:40px;border-radius:12px;opacity:.35"></i>12px · lg</div><div><i style="width:40px;height:40px;border-radius:9999px;opacity:.35"></i>Pill · 9999px</div>';
 
-  // ---------- Arch table ----------
-  var IO={brief:["Ticket o tarjeta y adjuntos","Brief estructurado + preguntas abiertas"],ctx:["Brief","Hallazgos, tickets previos, componentes de Uber Base"],ux:["Brief + contexto","Flujo, historias de usuario, criterios de aceptación"],copy:["Flujo + guía de tono Uber Base","Textos de interfaz"],ui:["Flujo + textos","Pantallas en código con Uber Base DS"],qa:["Pantallas","Informe de accesibilidad WCAG AA y correcciones"],deliver:["Todo lo anterior","Comentario, cambio de estado, página en Figma"]};
-  $("#agentTable").innerHTML=AGENTS.map(function(a){return '<tr><td><b>'+a.name+'</b></td><td>'+IO[a.id][0]+'</td><td>'+IO[a.id][1]+'</td><td>'+a.tools+'</td></tr>'}).join("");
+  // ---------- Figma Sync Initialization ----------
+  var btnToggleFigma = $("#btnToggleFigmaSync");
+  var btnCloseFigma = $("#btnCloseFigmaSync");
+  var figmaBox = $("#figmaSyncBox");
+
+  function populateFigmaStepSelector(){
+    var sel = $("#figmaSyncStep");
+    if(!sel) return;
+    var curD = current();
+    var screens = (Array.isArray(curD && curD.screens) && curD.screens.length > 0) ? curD.screens : getFlowScreens(curD);
+    var curVal = sel.value;
+    var opts = '<option value="auto">Detectar pantalla automática</option>';
+    screens.forEach(function(s, idx){
+      opts += '<option value="' + (idx+1) + '">Paso ' + (idx+1) + ': ' + h(s.shortName || s.mainTitle || "") + '</option>';
+    });
+    opts += '<option value="new">➕ Insertar como nueva pantalla</option>';
+    sel.innerHTML = opts;
+    if(curVal) sel.value = curVal;
+  }
+
+  if(btnToggleFigma && figmaBox){
+    btnToggleFigma.addEventListener("click", function(){
+      figmaBox.hidden = !figmaBox.hidden;
+      if(!figmaBox.hidden){
+        populateFigmaStepSelector();
+        var urlInp = $("#figmaSyncUrl");
+        if(urlInp) urlInp.focus();
+      }
+    });
+  }
+  if(btnCloseFigma && figmaBox){
+    btnCloseFigma.addEventListener("click", function(){
+      figmaBox.hidden = true;
+    });
+  }
+
+  var figmaSubmitBtn = $("#figmaSyncSubmitBtn");
+  if(figmaSubmitBtn){
+    figmaSubmitBtn.addEventListener("click", async function(){
+      var urlInput = $("#figmaSyncUrl");
+      var stepSel = $("#figmaSyncStep");
+      var notesInput = $("#figmaSyncNotes");
+      var tokenInput = $("#figmaSyncToken");
+      var statusEl = $("#figmaSyncStatus");
+
+      var figmaUrl = urlInput ? urlInput.value.trim() : "";
+      if(!figmaUrl){
+        if(statusEl){
+          statusEl.hidden = false;
+          statusEl.style.background = "#FDF0F2";
+          statusEl.style.color = "#DE1135";
+          statusEl.innerHTML = "⚠️ Por favor, introduce la URL del frame o pantalla de Figma (ej. https://www.figma.com/design/.../...?node-id=402-12)";
+        }
+        return;
+      }
+
+      figmaSubmitBtn.disabled = true;
+      if(statusEl){
+        statusEl.hidden = false;
+        statusEl.style.background = "#EFF4FE";
+        statusEl.style.color = "#174EA6";
+        statusEl.innerHTML = '<span class="pulse">🔄</span> Conectando con Figma e integrando cambios en el flujo de diseño...';
+      }
+
+      try {
+        var res = await fetch("/api/figma/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            figmaUrl: figmaUrl,
+            targetStep: stepSel.value === "auto" ? null : (stepSel.value === "new" ? "new" : Number(stepSel.value)),
+            notes: notesInput ? notesInput.value.trim() : "",
+            figmaToken: tokenInput ? tokenInput.value.trim() : undefined,
+            currentState: current()
+          })
+        });
+
+        var data = await res.json();
+        if(data && data.ok && data.result){
+          var newDesign = data.result.state || current();
+          if(data.result.summary){
+            newDesign.summary = data.result.summary;
+          }
+          versions.push({
+            n: versions.length,
+            design: newDesign,
+            summary: "Sincronizado desde Figma: " + (data.fileName || data.fileKey),
+            request: "Figma: " + figmaUrl,
+            changes: data.result.changes || ["Pantalla sincronizada con el enlace de Figma"]
+          });
+          viewIdx = latestIdx();
+          renderVersions();
+          renderViewer();
+          populateFigmaStepSelector();
+
+          if(statusEl){
+            statusEl.style.background = "#EBF7EE";
+            statusEl.style.color = "#0E8345";
+            statusEl.innerHTML = "✓ ¡Sincronizado con éxito! El flujo se ha actualizado con la pantalla modificada en Figma.";
+          }
+        } else {
+          throw new Error(data.error || "No se pudo procesar el enlace de Figma");
+        }
+      } catch(err){
+        if(statusEl){
+          statusEl.style.background = "#FDF0F2";
+          statusEl.style.color = "#DE1135";
+          statusEl.innerHTML = "❌ Error en sincronización: " + h(err.message || String(err));
+        }
+      } finally {
+        figmaSubmitBtn.disabled = false;
+      }
+    });
+  }
+
+  // Populate initially
+  populateFigmaStepSelector();
 })();
 </script>
 

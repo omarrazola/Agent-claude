@@ -485,6 +485,248 @@ app.post("/api/llm/iterate", async (req, res) => {
   }
 });
 
+// --- Integración Bidireccional con Figma (Sync & Export) ---
+interface FigmaUrlParsed {
+  fileKey: string;
+  nodeId: string;
+  rawNodeId: string;
+  fileName?: string;
+}
+
+function parseFigmaUrl(url: string): FigmaUrlParsed | null {
+  try {
+    const trimmed = url.trim();
+    const match = trimmed.match(/(?:file|design)\/([a-zA-Z0-9]+)(?:\/([^?#]+))?/);
+    if (!match) return null;
+    const fileKey = match[1];
+    const fileName = match[2] ? decodeURIComponent(match[2].replace(/-/g, " ")) : undefined;
+
+    let nodeId = "";
+    let rawNodeId = "";
+    const nodeMatch = trimmed.match(/[?&]node-id=([a-zA-Z0-9%_-]+)/);
+    if (nodeMatch) {
+      rawNodeId = decodeURIComponent(nodeMatch[1]);
+      nodeId = rawNodeId.replace(/-/g, ":");
+    }
+
+    return { fileKey, nodeId, rawNodeId, fileName };
+  } catch {
+    return null;
+  }
+}
+
+function generateFigmaPluginScript(screens: any[]): string {
+  return `// === Generador Automático de Canvas para Figma ===
+// Instrucciones en Figma Desktop:
+// 1. Ve a: Plugins › Development › Open Console (o nuevo plugin de desarrollo)
+// 2. Pega este código y presiona Enter.
+// 3. Los frames con Auto Layout y tokens de Uber Base aparecerán alineados en tu lienzo.
+(async () => {
+  const screens = ${JSON.stringify(screens, null, 2)};
+  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+  await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+
+  let startX = Math.round(figma.viewport.center.x - ((screens.length * 420) / 2));
+  let startY = Math.round(figma.viewport.center.y);
+
+  screens.forEach((scr, idx) => {
+    const frame = figma.createFrame();
+    frame.name = scr.step + ". " + (scr.shortName || scr.mainTitle || "Pantalla " + (idx + 1));
+    frame.resize(375, 812);
+    frame.x = startX + idx * 420;
+    frame.y = startY;
+    frame.cornerRadius = 36;
+    frame.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+    frame.strokes = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
+    frame.strokeWeight = 4;
+
+    const tag = figma.createText();
+    tag.characters = (scr.stateBadge || (scr.stateType === "error" ? "CASO DE ERROR" : scr.stateType === "corner_case" ? "CORNER CASE" : "HAPPY PATH")).toUpperCase();
+    tag.fontSize = 11;
+    tag.fontName = { family: "Inter", style: "Bold" };
+    const isErr = scr.stateType === "error";
+    const isWarn = scr.stateType === "corner_case";
+    tag.fills = [{ type: "SOLID", color: isErr ? { r: 0.87, g: 0.07, b: 0.21 } : (isWarn ? { r: 0.96, g: 0.62, b: 0.05 } : { r: 0.05, g: 0.51, b: 0.27 }) }];
+    tag.x = 24;
+    tag.y = 54;
+    frame.appendChild(tag);
+
+    const title = figma.createText();
+    title.characters = scr.mainTitle || scr.shortName || "Pantalla";
+    title.fontSize = 19;
+    title.fontName = { family: "Inter", style: "Bold" };
+    title.x = 24;
+    title.y = 80;
+    title.resize(327, 26);
+    frame.appendChild(title);
+
+    if (scr.mainSubtitle) {
+      const sub = figma.createText();
+      sub.characters = scr.mainSubtitle;
+      sub.fontSize = 13;
+      sub.fontName = { family: "Inter", style: "Regular" };
+      sub.fills = [{ type: "SOLID", color: { r: 0.33, g: 0.33, b: 0.33 } }];
+      sub.x = 24;
+      sub.y = 114;
+      sub.resize(327, 36);
+      frame.appendChild(sub);
+    }
+
+    const btn = figma.createFrame();
+    btn.resize(327, 54);
+    btn.x = 24;
+    btn.y = 718;
+    btn.cornerRadius = 8;
+    const isNeg = scr.stateType === "error" || scr.ctaVariant === "negative";
+    btn.fills = [{ type: "SOLID", color: isNeg ? { r: 0.87, g: 0.07, b: 0.21 } : { r: 0, g: 0, b: 0 } }];
+    const btnText = figma.createText();
+    btnText.characters = scr.cta || "Continuar";
+    btnText.fontName = { family: "Inter", style: "Bold" };
+    btnText.fontSize = 15;
+    btnText.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+    btnText.x = 24;
+    btnText.y = 18;
+    btn.appendChild(btnText);
+    frame.appendChild(btn);
+
+    figma.currentPage.appendChild(frame);
+  });
+
+  figma.notify("✓ " + screens.length + " pantallas de Uber Base creadas exitosamente en el lienzo de Figma.");
+})();`;
+}
+
+// Sincronizar cambios desde un enlace de pantalla de Figma hacia el Agente
+app.post("/api/figma/sync", async (req, res) => {
+  try {
+    const { figmaUrl, targetStep, notes, currentState, figmaToken } = req.body ?? {};
+    if (!figmaUrl) {
+      res.status(400).json({ error: "Falta 'figmaUrl' con el enlace de la pantalla o frame en Figma" });
+      return;
+    }
+
+    const parsed = parseFigmaUrl(figmaUrl);
+    if (!parsed) {
+      res.status(400).json({
+        error: "El enlace no es una URL válida de Figma. Formato esperado: https://www.figma.com/design/:file_key/:nombre?node-id=402-12"
+      });
+      return;
+    }
+
+    const token = figmaToken || config.figma.accessToken;
+    let figmaData: any = null;
+    let previewImageUrl: string | null = null;
+
+    if (token && parsed.nodeId) {
+      try {
+        log.info(`Consultando Figma REST API: fileKey=${parsed.fileKey}, nodeId=${parsed.nodeId}`);
+        const figmaRes = await fetch(`https://api.figma.com/v1/files/${parsed.fileKey}/nodes?ids=${parsed.nodeId}`, {
+          headers: { "X-Figma-Token": token }
+        });
+        if (figmaRes.ok) {
+          const figmaJson = (await figmaRes.json()) as any;
+          figmaData = figmaJson?.nodes?.[parsed.nodeId];
+        }
+
+        const imgRes = await fetch(`https://api.figma.com/v1/images/${parsed.fileKey}?ids=${parsed.nodeId}&format=png`, {
+          headers: { "X-Figma-Token": token }
+        });
+        if (imgRes.ok) {
+          const imgJson = (await imgRes.json()) as any;
+          previewImageUrl = imgJson?.images?.[parsed.nodeId] || null;
+        }
+      } catch (fErr) {
+        log.warn("Figma API no disponible (usando contexto y procesamiento del agente):", fErr);
+      }
+    }
+
+    const targetDesc = (typeof targetStep === "number" && targetStep >= 1)
+      ? `Aplica los cambios específicamente a la Pantalla ${targetStep}.`
+      : (targetStep === "new" ? "Inserta esta pantalla como una nueva pantalla en el flujo." : "Detecta automáticamente qué pantalla del flujo debe actualizarse según los nombres de capas, nodos y notas del diseñador.");
+
+    const system = "Eres el equipo de agentes de diseño autónomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y QA) aplicando el sistema de diseño oficial Base Design System (tokens base.uber.com). " +
+      "Tu objetivo es sincronizar e incluir los cambios diseñados en Figma por la diseñadora dentro del flujo de pantallas existente de la aplicación. " +
+      "Devuelve EXCLUSIVAMENTE un objeto JSON válido con las claves: summary, changes, agents, state. No incluyas texto fuera del JSON. " +
+      "En 'state.screens' debes devolver el array completo con todas las pantallas del flujo actualizado, asegurando que cada pantalla conserve o actualice: step, shortName, stateType, stateBadge, stateDesc, navTitle, mainTitle, mainSubtitle, showMap, mapMeta, heroImage, items, cards, banner, cta, ctaVariant, ctaTargetStep, secondaryCta.";
+
+    const userPrompt = `La diseñadora ha realizado ajustes en Figma y solicita incluir los cambios en el flujo de producto.\n` +
+      `- Enlace de Figma: ${figmaUrl}\n` +
+      `- File Key: ${parsed.fileKey}\n` +
+      `- Node ID: ${parsed.nodeId || "No especificado (archivo general)"}\n` +
+      `- Nombre de la pantalla / frame en Figma: ${parsed.fileName || "Sin título específico"}\n` +
+      `- Pantalla de destino en el flujo: ${targetDesc}\n` +
+      `- Notas y cambios explicados por el diseñador: ${notes || "Sincronizar y adaptar la pantalla a las modificaciones hechas en Figma"}\n` +
+      (figmaData ? `- Metadatos extraídos de la API de Figma: ${JSON.stringify(figmaData).slice(0, 3000)}\n` : "") +
+      (previewImageUrl ? `- Preview PNG de Figma disponible en: ${previewImageUrl}\n` : "") +
+      `\nEstado actual del flujo de pantallas:\n${JSON.stringify(currentState, null, 2)}`;
+
+    const text = await complete({ system, user: userPrompt, maxTokens: 16000 });
+    let json: any;
+    try {
+      json = extractJson(text);
+    } catch (parseErr) {
+      log.warn("Figma sync: reparando JSON devuelto por el modelo...");
+      let repaired = text.trim();
+      const first = repaired.indexOf("{");
+      if (first !== -1) {
+        repaired = repaired.slice(first);
+        let openBraces = 0, openBrackets = 0;
+        for (let i = 0; i < repaired.length; i++) {
+          if (repaired[i] === "{") openBraces++;
+          else if (repaired[i] === "}") openBraces--;
+          else if (repaired[i] === "[") openBrackets++;
+          else if (repaired[i] === "]") openBrackets--;
+        }
+        while (openBrackets > 0) { repaired += "]"; openBrackets--; }
+        while (openBraces > 0) { repaired += "}"; openBraces--; }
+        json = JSON.parse(repaired);
+      } else {
+        throw parseErr;
+      }
+    }
+
+    if (previewImageUrl && json?.state?.screens) {
+      const stepIdx = (typeof targetStep === "number" && targetStep >= 1) ? (targetStep - 1) : 0;
+      if (json.state.screens[stepIdx]) {
+        json.state.screens[stepIdx].heroImage = {
+          url: previewImageUrl,
+          alt: `Diseño sincronizado desde Figma (${parsed.fileName || "Nodo " + parsed.nodeId})`,
+          caption: `Sincronizado con Figma: ${parsed.fileName || parsed.fileKey}`
+        };
+      }
+    }
+
+    res.json({
+      ok: true,
+      fileKey: parsed.fileKey,
+      nodeId: parsed.nodeId,
+      fileName: parsed.fileName,
+      previewImageUrl,
+      result: json
+    });
+  } catch (err) {
+    log.error("Error en /api/figma/sync:", err);
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+// Exportar pantallas y tokens listos para el lienzo de Figma
+app.post("/api/figma/export", async (req, res) => {
+  try {
+    const { screens, d } = req.body ?? {};
+    const screensList = Array.isArray(screens) && screens.length > 0 ? screens : (Array.isArray(d?.screens) ? d.screens : []);
+    const pluginScript = generateFigmaPluginScript(screensList);
+
+    res.json({
+      ok: true,
+      screensCount: screensList.length,
+      pluginScript
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 app.post("/api/runs/:key/approve", async (req, res) => {
   try {
     const run = await approve(req.params.key);

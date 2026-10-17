@@ -600,6 +600,7 @@ button{font:inherit;cursor:pointer}
 @keyframes arrow-bounce {
   from { transform: translateX(0); }
   to { transform: translateX(4px); }
+}
 /* =========================================================
    Lienzo Visual de Red y Transmisión de Tareas Multi-Agente
    ========================================================= */
@@ -3551,11 +3552,16 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   }
 
   // ---------- Versiones ----------
-  var versions=[], viewIdx=0, approvedIdx=-1, mode="screens";
+  var versions=[{n:0,design:clone(DEFAULT_DESIGN),summary:"Propuesta inicial de diseño · Uber Base DS",request:"",changes:[]}], viewIdx=0, approvedIdx=-1, mode="screens";
   var proto={step:0,room:null,rate:null,points:true,hot:false,editingMode:false,history:[0]};
   var activeHoTab="react";
-  function current(){return versions[viewIdx].design}
-  function latestIdx(){return versions.length-1}
+  function current(){
+    if(!versions || versions.length === 0 || !versions[viewIdx] || !versions[viewIdx].design){
+      return DEFAULT_DESIGN;
+    }
+    return versions[viewIdx].design;
+  }
+  function latestIdx(){return Math.max(0, versions.length-1)}
 
   // ---------- Render helpers ----------
   function h(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -4395,7 +4401,7 @@ export default function UberBaseFlow() {
   var flowResizeHandler = null;
 
   function getFlowScreens(d){
-    if(Array.isArray(d.screens) && d.screens.length > 0){
+    if(d && Array.isArray(d.screens) && d.screens.length > 0){
       return d.screens;
     }
     return [

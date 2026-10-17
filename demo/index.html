@@ -575,6 +575,64 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .proto-sim-bar{display:flex;gap:6px;margin:0 16px 10px}
 .proto-sim-bar .btn{font-size:11px;padding:4px 8px;border-radius:6px}
 
+/* ===== 🗺️ Mapa de Flujo de Pantallas & Conectores Visuales ===== */
+.flow-container{background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;gap:0;box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+.flow-header{padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.flow-title-group h3{margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.flow-title-group p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.flow-audit-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 20px;background:var(--sunken);border-bottom:1px solid var(--line);font-size:12.5px}
+.flow-audit-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:9999px;font-weight:600;background:var(--surface);border:1px solid var(--line);color:var(--fg)}
+.flow-audit-badge.ok{background:#EBF7EE;color:#0E8345;border-color:#B8E4C3}
+.flow-toolbar{padding:10px 20px;display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px}
+.flow-zoom-controls{display:inline-flex;gap:4px;background:var(--sunken);padding:3px;border-radius:8px}
+.flow-zoom-btn{border:0;background:transparent;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--fg);transition:all .15s}
+.flow-zoom-btn:hover{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.flow-legend{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.flow-legend-item{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.flow-legend-dot{width:16px;height:4px;border-radius:2px}
+.flow-viewport{position:relative;overflow-x:auto;overflow-y:hidden;min-height:640px;background-color:#F8F9FA;background-image:radial-gradient(#D3D7DC 1.2px, transparent 1.2px);background-size:24px 24px;cursor:grab;scrollbar-width:thin}
+.flow-viewport:active{cursor:grabbing}
+.flow-board{position:relative;min-width:max-content;padding:50px 40px 140px;transition:transform 0.15s ease-out;transform-origin:0 0}
+.flow-svg-layer{position:absolute;top:0;left:0;pointer-events:none;z-index:1;overflow:visible}
+.flow-nodes-row{display:flex;gap:90px;align-items:flex-start;position:relative;z-index:2}
+.flow-node-card{width:290px;flex-shrink:0;background:#FFFFFF;border-radius:12px;border:2px solid #E2E2E2;box-shadow:0 4px 16px rgba(0,0,0,0.06);display:flex;flex-direction:column;transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);position:relative}
+.flow-node-card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,0.14)}
+.flow-node-card.happy_path{border-color:#0E8345}
+.flow-node-card.corner_case{border-color:#F69E0C}
+.flow-node-card.error{border-color:#DE1135}
+.flow-node-header{padding:12px 14px;border-bottom:1px solid #E2E2E2;background:#FAFAFA;border-radius:10px 10px 0 0;display:flex;flex-direction:column;gap:4px}
+.flow-node-topline{display:flex;justify-content:space-between;align-items:center}
+.flow-node-num{font-family:var(--f-mono);font-size:11.5px;font-weight:700;color:#545454}
+.flow-node-title{font-size:14.5px;font-weight:700;color:#000000;margin:0;line-height:1.3}
+.flow-node-sub{font-size:12px;color:#545454;line-height:1.35}
+.flow-mini-preview{padding:12px 14px;background:#FFFFFF;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #F0F0F0}
+.flow-mini-map{height:84px;background:#141414;border-radius:6px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#FFFFFF;border:1px solid #222222}
+.flow-mini-items{display:flex;flex-direction:column;gap:5px}
+.flow-mini-item{background:#F6F6F6;border-radius:6px;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;font-size:11.5px;border:1px solid #EAEAEA}
+.flow-mini-item.highlight{border-color:#000000;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.flow-mini-banner{padding:5px 8px;border-radius:6px;font-size:11px;font-weight:600;line-height:1.3}
+.flow-mini-banner.negative{background:#FDF0F2;color:#DE1135;border:1px solid #F8C3CA}
+.flow-mini-banner.warning{background:#FEF6E7;color:#B25E00;border:1px solid #FCE4B8}
+.flow-mini-banner.sun{background:#EFF4FE;color:#174EA6;border:1px solid #C8DAFC}
+.flow-routes-panel{padding:10px 14px;background:#FAFAFA;display:flex;flex-direction:column;gap:6px;font-size:11.5px;border-bottom:1px solid #E2E2E2}
+.flow-route-badge{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:6px;font-weight:600;background:#FFFFFF;border:1px solid #E2E2E2}
+.flow-route-badge.primary{border-color:#B8E4C3;color:#0E8345;background:#F4FAF5}
+.flow-route-badge.error-route{border-color:#F8C3CA;color:#DE1135;background:#FDF4F5}
+.flow-route-badge.secondary{border-color:#E2E2E2;color:#545454;background:#FFFFFF}
+.flow-node-footer{padding:10px 14px;background:#FFFFFF;display:flex;justify-content:center}
+.flow-edge-path{fill:none;stroke-linecap:round;transition:stroke-width 0.2s, opacity 0.2s, stroke 0.2s;pointer-events:stroke;cursor:pointer}
+.flow-edge-path:hover{stroke-width:4.5px !important;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25))}
+.flow-edge-path.highlight{stroke-width:4px !important;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.25));opacity:1 !important}
+.flow-edge-path.dimmed{opacity:0.12 !important}
+.flow-edge-label{pointer-events:none;font-family:var(--f-hotel);font-size:11px;font-weight:700}
+.flow-edge-label rect{fill:#FFFFFF;stroke-width:1px;rx:4px;ry:4px}
+.flow-edge-label text{dominant-baseline:middle;text-anchor:middle}
+.flow-edge-label.highlight text{font-weight:800}
+.flow-edge-label.dimmed{opacity:0.12}
+.flow-node-card.dimmed{opacity:0.35}
+.flow-node-card.highlight{box-shadow:0 0 0 3px var(--accent), 0 10px 28px rgba(0,0,0,0.18)}
+
+
 .composer{margin-top:20px;padding:16px;display:grid;gap:12px}
 .composer-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .composer-h h2{font-size:15px;font-weight:600;margin-right:auto}
@@ -722,6 +780,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       <div class="viewer-bar">
         <div class="seg" role="group" aria-label="Modo de vista">
           <button id="modeScreens" aria-pressed="true" data-mode="screens">Pantallas</button>
+          <button id="modeFlow" aria-pressed="false" data-mode="flow">🗺️ Mapa de Flujo</button>
           <button id="modeProto" aria-pressed="false" data-mode="proto">Prototipo</button>
           <button id="modeHandover" aria-pressed="false" data-mode="handover">📦 Handover & Código</button>
         </div>
@@ -2614,6 +2673,418 @@ export default function UberBaseFlow() {
     '</div>';
   }
 
+  var flowZoom = 1.0;
+  var flowResizeHandler = null;
+
+  function getFlowScreens(d){
+    if(Array.isArray(d.screens) && d.screens.length > 0){
+      return d.screens;
+    }
+    return [
+      { step: 1, shortName: "1 · Selección de servicio", stateType: "happy_path", stateBadge: "HAPPY PATH", stateDesc: "Selección de tipo de trayecto y tarifa cerrada.", mainTitle: "Elige tu servicio de viaje", mainSubtitle: "Tarifa garantizada sin sorpresas", cta: "Confirmar UberX", ctaTargetStep: 2, items: [{ title: "UberX", price: "12,40 €", highlight: true }, { title: "Uber Comfort", price: "16,20 €" }] },
+      { step: 2, shortName: "2 · Opciones y preferencias", stateType: "happy_path", stateBadge: "HAPPY PATH", stateDesc: "Personalización de viaje inmediato o programado.", mainTitle: "Opciones de trayecto", mainSubtitle: "Viaje silencioso y temperatura", cta: "Continuar al pago", ctaTargetStep: 3, secondaryCta: { text: "Volver a vehículos", targetStep: 1 } },
+      { step: 3, shortName: "3 · Punto de recogida y pago", stateType: "happy_path", stateBadge: "HAPPY PATH", stateDesc: "Confirmación de punto de encuentro y pasarela de cobro.", mainTitle: "Punto de recogida y pago", mainSubtitle: "Parking Exprés · Puerta 2", cta: "Solicitar ahora", ctaTargetStep: 4, secondaryCta: { text: "Cambiar método", targetStep: 2 } },
+      { step: 4, shortName: "4 · Seguimiento en mapa", stateType: "corner_case", stateBadge: "CORNER CASE", stateDesc: "Gestión de tráfico denso y visualización de telemetría GPS.", mainTitle: "Seguimiento en mapa y radar", mainSubtitle: "Conductor en aproximación", showMap: true, mapMeta: { eta: "3 min", badge: "Tráfico denso en acceso", driverName: "Carlos M.", vehicle: "Toyota Corolla" }, cta: "Ver detalles de llegada", ctaTargetStep: 5 },
+      { step: 5, shortName: "5 · Conductor en camino", stateType: "happy_path", stateBadge: "HAPPY PATH", stateDesc: "Vehículo en punto de recogida con PIN de verificación.", mainTitle: "Conductor en el punto de encuentro", mainSubtitle: "Código de seguridad: 4821", cta: "Finalizar viaje y valorar", ctaTargetStep: 1 }
+    ];
+  }
+
+  function renderFlowCanvas(d){
+    var screens = getFlowScreens(d);
+    var total = screens.length;
+
+    var happyCount = 0, cornerCount = 0, errorCount = 0;
+    var deadEnds = [];
+
+    screens.forEach(function(s, idx){
+      var t = s.stateType || "happy_path";
+      if(t === "error") errorCount++;
+      else if(t === "corner_case") cornerCount++;
+      else happyCount++;
+
+      var hasPrimary = (typeof s.ctaTargetStep === "number" && s.ctaTargetStep >= 1) || (idx < total - 1) || (idx === total - 1);
+      if(!hasPrimary) deadEnds.push(idx + 1);
+    });
+
+    var auditHtml = deadEnds.length === 0
+      ? '<span class="flow-audit-badge ok">✅ Integridad 100%: 0 callejones sin salida · Todas las rutas cuentan con salida y retorno</span>'
+      : '<span class="flow-audit-badge" style="background:#FDF0F2;color:#DE1135">⚠️ Rutas sin salida en pasos: ' + deadEnds.join(", ") + '</span>';
+
+    var nodesHtml = screens.map(function(s, idx){
+      var stType = s.stateType || "happy_path";
+      var stBadge = s.stateBadge || (stType === "error" ? "CASO DE ERROR" : stType === "corner_case" ? "CORNER CASE" : "HAPPY PATH");
+      var targetStep = (typeof s.ctaTargetStep === "number" && s.ctaTargetStep >= 1) ? s.ctaTargetStep : (idx < total - 1 ? (idx + 2) : 1);
+      var ctaLabel = s.cta || (idx < total - 1 ? "Continuar" : "Reiniciar flujo");
+
+      var miniContent = "";
+      if(s.showMap){
+        var mm = s.mapMeta || {};
+        miniContent += '<div class="flow-mini-map">'+
+          '<div style="position:absolute;top:6px;left:6px;font-size:10px;background:rgba(0,0,0,0.75);padding:2px 6px;border-radius:4px;color:#fff;font-weight:700">🗺️ ' + h(mm.badge || "En ruta") + '</div>'+
+          '<div style="position:absolute;top:6px;right:6px;font-size:12px;background:rgba(0,0,0,0.85);padding:2px 6px;border-radius:4px;color:#fff;font-weight:700;font-family:var(--f-hotel-d)">' + h(mm.eta || "3 min") + '</div>'+
+          '<div style="font-size:24px">🚗</div>'+
+          '<div style="position:absolute;bottom:4px;left:6px;right:6px;font-size:9.5px;color:#AFAFAF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ' + h(mm.driverName || "Conductor") + ' · ' + h(mm.vehicle || "Vehículo") + '</div>'+
+        '</div>';
+      } else if(s.heroImage && s.heroImage.url){
+        miniContent += '<div style="height:70px;border-radius:6px;overflow:hidden;background:#141414;position:relative">'+
+          '<img src="' + h(s.heroImage.url) + '" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.outerHTML=\'<div style=\\\'height:100%;display:grid;place-items:center;color:#fff;font-size:11px\\\'>🖼️ Imagen ilustrativa</div>\'">'+
+        '</div>';
+      }
+
+      if(s.banner && s.banner.text){
+        var bTone = s.banner.tone || (stType === "error" ? "negative" : stType === "corner_case" ? "warning" : "sun");
+        miniContent += '<div class="flow-mini-banner ' + bTone + '">' + (stType === "error" ? "⚠️ " : "ℹ️ ") + h(s.banner.text) + '</div>';
+      }
+
+      if(Array.isArray(s.items) && s.items.length){
+        miniContent += '<div class="flow-mini-items">';
+        s.items.slice(0, 2).forEach(function(it){
+          miniContent += '<div class="flow-mini-item ' + (it.highlight ? 'highlight' : '') + '">'+
+            '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px">' + h(it.title) + '</span>'+
+            (it.price ? '<b style="font-size:11.5px">' + h(it.price) + '</b>' : '')+
+          '</div>';
+        });
+        miniContent += '</div>';
+      }
+
+      var secRouteHtml = "";
+      if(s.secondaryCta && s.secondaryCta.text){
+        var secTarget = (typeof s.secondaryCta.targetStep === "number" && s.secondaryCta.targetStep >= 1) ? s.secondaryCta.targetStep : 1;
+        secRouteHtml = '<div class="flow-route-badge secondary" title="Disparador alternativo / retorno">'+
+          '<span>↩️ ' + h(s.secondaryCta.text) + '</span>'+
+          '<b style="font-family:var(--f-mono)">➔ Paso ' + secTarget + '</b>'+
+        '</div>';
+      }
+
+      var isErr = (stType === "error" || s.ctaVariant === "negative");
+      var routeCls = isErr ? "flow-route-badge error-route" : "flow-route-badge primary";
+
+      return '<div class="flow-node-card ' + stType + '" id="flow-node-' + idx + '" data-node-idx="' + idx + '">'+
+        '<div class="flow-node-header">'+
+          '<div class="flow-node-topline">'+
+            '<span class="state-badge-tag ' + stType + '">' + h(stBadge) + '</span>'+
+            '<span class="flow-node-num">Paso ' + (idx + 1) + ' / ' + total + '</span>'+
+          '</div>'+
+          '<h4 class="flow-node-title">' + h(s.shortName || s.mainTitle || ("Paso " + (idx + 1))) + '</h4>'+
+          '<div class="flow-node-sub">' + h(s.mainSubtitle || s.stateDesc || "") + '</div>'+
+        '</div>'+
+        '<div class="flow-mini-preview">' +
+          '<div style="font-size:10px;color:#999;display:flex;justify-content:space-between"><span>9:41</span><span>●●● 5G</span></div>'+
+          miniContent +
+        '</div>'+
+        '<div class="flow-routes-panel">'+
+          '<div style="font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.04em">Conexiones de navegación:</div>'+
+          '<div class="' + routeCls + '" title="Acción principal del usuario">'+
+            '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">➔ ' + h(ctaLabel) + '</span>'+
+            '<b style="font-family:var(--f-mono)">➔ Paso ' + targetStep + '</b>'+
+          '</div>'+
+          secRouteHtml +
+        '</div>'+
+        '<div class="flow-node-footer">'+
+          '<button type="button" class="base-btn size-compact" style="width:100%" data-jump-step="' + idx + '">▶️ Probar en prototipo interactivo</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+    return '<div class="flow-container">'+
+      '<div class="flow-header">'+
+        '<div class="flow-title-group">'+
+          '<h3>🗺️ Mapa de Flujo de Pantallas & Recorridos</h3>'+
+          '<p>Inspección integral de la experiencia con conectores visuales de Happy Path, Corner Cases y Casos de Error.</p>'+
+        '</div>'+
+        '<div class="flow-legend">'+
+          '<span class="flow-legend-item"><i class="flow-legend-dot" style="background:#0E8345"></i> Happy Path</span>'+
+          '<span class="flow-legend-item"><i class="flow-legend-dot" style="background:#F69E0C"></i> Corner Case</span>'+
+          '<span class="flow-legend-item"><i class="flow-legend-dot" style="background:#DE1135"></i> Caso de Error</span>'+
+          '<span class="flow-legend-item"><i class="flow-legend-dot" style="background:#545454;border-top:1px dashed #545454"></i> Retorno / Bifurcación</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="flow-audit-bar">'+
+        '<span class="flow-audit-badge"><b>' + total + '</b> pantallas</span>'+
+        '<span class="flow-audit-badge" style="color:#0E8345">🟢 <b>' + happyCount + '</b> Happy Path</span>'+
+        '<span class="flow-audit-badge" style="color:#B25E00">🟡 <b>' + cornerCount + '</b> Corner Cases</span>'+
+        '<span class="flow-audit-badge" style="color:#DE1135">🔴 <b>' + errorCount + '</b> Casos de Error</span>'+
+        auditHtml +
+      '</div>'+
+      '<div class="flow-toolbar">'+
+        '<div style="font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px">'+
+          '<span>💡 Haz clic en cualquier pantalla o pulsa <b>«Probar en prototipo interactivo»</b> para probarla en vivo. Pasa el cursor sobre un nodo para iluminar sus rutas.</span>'+
+        '</div>'+
+        '<div class="flow-zoom-controls">'+
+          '<button type="button" class="flow-zoom-btn" id="flowZoomOut" title="Reducir zoom">🔍 −</button>'+
+          '<button type="button" class="flow-zoom-btn" id="flowZoomReset" title="Zoom original 100%">100%</button>'+
+          '<button type="button" class="flow-zoom-btn" id="flowZoomIn" title="Aumentar zoom">🔍 ＋</button>'+
+          '<button type="button" class="flow-zoom-btn" id="flowZoomFit" title="Ajustar al ancho visible">↔️ Ajustar</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="flow-viewport" id="flowViewport">'+
+        '<div class="flow-board" id="flowBoard">'+
+          '<svg class="flow-svg-layer" id="flowSvgLayer">'+
+            '<defs>'+
+              '<marker id="flow-arr-happy" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M 0 1 L 8 4.5 L 0 8 z" fill="#0E8345"/></marker>'+
+              '<marker id="flow-arr-corner" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M 0 1 L 8 4.5 L 0 8 z" fill="#F69E0C"/></marker>'+
+              '<marker id="flow-arr-error" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M 0 1 L 8 4.5 L 0 8 z" fill="#DE1135"/></marker>'+
+              '<marker id="flow-arr-sec" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M 0 1 L 8 4.5 L 0 8 z" fill="#545454"/></marker>'+
+            '</defs>'+
+            '<g id="flowSvgEdges"></g>'+
+            '<g id="flowSvgLabels"></g>'+
+          '</svg>'+
+          '<div class="flow-nodes-row" id="flowNodesRow">'+
+            nodesHtml +
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function updateFlowConnectors(){
+    var board = $("#flowBoard");
+    var svg = $("#flowSvgLayer");
+    var edgesGroup = $("#flowSvgEdges");
+    var labelsGroup = $("#flowSvgLabels");
+    if(!board || !svg || !edgesGroup || !labelsGroup) return;
+
+    var d = current();
+    var screens = getFlowScreens(d);
+    var total = screens.length;
+
+    var bW = board.scrollWidth;
+    var bH = board.scrollHeight;
+    svg.setAttribute("width", bW);
+    svg.setAttribute("height", bH);
+    svg.style.width = bW + "px";
+    svg.style.height = bH + "px";
+
+    edgesGroup.innerHTML = "";
+    labelsGroup.innerHTML = "";
+
+    function getRel(el){
+      var bRect = board.getBoundingClientRect();
+      var eRect = el.getBoundingClientRect();
+      return {
+        left: (eRect.left - bRect.left) / flowZoom,
+        top: (eRect.top - bRect.top) / flowZoom,
+        right: (eRect.right - bRect.left) / flowZoom,
+        bottom: (eRect.bottom - bRect.top) / flowZoom,
+        width: eRect.width / flowZoom,
+        height: eRect.height / flowZoom
+      };
+    }
+
+    var nodePositions = [];
+    var maxBottom = 0;
+    var minTop = 999999;
+
+    screens.forEach(function(_, idx){
+      var nodeEl = $("#flow-node-" + idx);
+      if(nodeEl){
+        var r = getRel(nodeEl);
+        nodePositions[idx] = r;
+        if(r.bottom > maxBottom) maxBottom = r.bottom;
+        if(r.top < minTop) minTop = r.top;
+      }
+    });
+
+    var loopTrackIndex = 0;
+
+    screens.forEach(function(s, idx){
+      var sPos = nodePositions[idx];
+      if(!sPos) return;
+
+      var stType = s.stateType || "happy_path";
+      var strokeColor = stType === "error" ? "#DE1135" : (stType === "corner_case" ? "#F69E0C" : "#0E8345");
+      var markerId = stType === "error" ? "flow-arr-error" : (stType === "corner_case" ? "flow-arr-corner" : "flow-arr-happy");
+
+      // 1. Conexión Principal (CTA)
+      var targetStep1 = (typeof s.ctaTargetStep === "number" && s.ctaTargetStep >= 1) ? s.ctaTargetStep : (idx < total - 1 ? (idx + 2) : 1);
+      var targetIdx = targetStep1 - 1;
+      var tPos = nodePositions[targetIdx];
+
+      if(tPos){
+        var pathD = "";
+        var midX = 0, midY = 0;
+        var ctaLabel = (s.cta || (idx < total - 1 ? "Continuar" : "Reiniciar"));
+
+        if(targetIdx === idx + 1){
+          var startX = sPos.right;
+          var startY = sPos.top + sPos.height * 0.72;
+          var endX = tPos.left;
+          var endY = tPos.top + 50;
+          var dx = endX - startX;
+          var cx1 = startX + dx * 0.5;
+          var cy1 = startY;
+          var cx2 = endX - dx * 0.5;
+          var cy2 = endY;
+
+          pathD = "M " + startX + " " + startY + " C " + cx1 + " " + cy1 + ", " + cx2 + " " + cy2 + ", " + endX + " " + endY;
+          midX = (startX + endX) * 0.5;
+          midY = (startY + endY) * 0.5;
+        } else if(targetIdx < idx){
+          loopTrackIndex++;
+          var startX2 = sPos.left + sPos.width * 0.5;
+          var startY2 = sPos.bottom;
+          var endX2 = tPos.left + tPos.width * 0.5;
+          var endY2 = tPos.bottom + 8;
+          var loopY = maxBottom + 25 + (loopTrackIndex * 26);
+
+          pathD = "M " + startX2 + " " + startY2 +
+                  " C " + startX2 + " " + loopY + ", " +
+                          endX2 + " " + loopY + ", " +
+                          endX2 + " " + endY2;
+          midX = (startX2 + endX2) * 0.5;
+          midY = loopY;
+        } else {
+          var startX3 = sPos.right - 20;
+          var startY3 = sPos.top;
+          var endX3 = tPos.left + 20;
+          var endY3 = tPos.top - 8;
+          var archY = Math.max(10, minTop - 35 - ((targetIdx - idx) * 18));
+
+          pathD = "M " + startX3 + " " + startY3 +
+                  " C " + startX3 + " " + archY + ", " +
+                          endX3 + " " + archY + ", " +
+                          endX3 + " " + endY3;
+          midX = (startX3 + endX3) * 0.5;
+          midY = archY;
+        }
+
+        var pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathEl.setAttribute("d", pathD);
+        pathEl.setAttribute("stroke", strokeColor);
+        pathEl.setAttribute("stroke-width", "2.8");
+        pathEl.setAttribute("marker-end", "url(#" + markerId + ")");
+        pathEl.setAttribute("class", "flow-edge-path flow-edge-from-" + idx + " flow-edge-to-" + targetIdx);
+        if(stType === "error") pathEl.setAttribute("stroke-dasharray", "6,4");
+        edgesGroup.appendChild(pathEl);
+
+        var textWidth = Math.min(160, Math.max(70, ctaLabel.length * 7.5 + 24));
+        var gLabel = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        gLabel.setAttribute("class", "flow-edge-label flow-edge-from-" + idx + " flow-edge-to-" + targetIdx);
+        gLabel.setAttribute("transform", "translate(" + midX + "," + midY + ")");
+        gLabel.innerHTML = '<rect x="' + (-textWidth*0.5) + '" y="-11" width="' + textWidth + '" height="22" stroke="' + strokeColor + '" rx="5"/>' +
+                           '<text fill="' + strokeColor + '">' + h(ctaLabel.length > 20 ? (ctaLabel.slice(0, 18) + '…') : ctaLabel) + '</text>';
+        labelsGroup.appendChild(gLabel);
+      }
+
+      // 2. Conexión Secundaria (si existe secondaryCta)
+      if(s.secondaryCta && s.secondaryCta.text){
+        var secTargetStep = (typeof s.secondaryCta.targetStep === "number" && s.secondaryCta.targetStep >= 1) ? s.secondaryCta.targetStep : 1;
+        var secTargetIdx = secTargetStep - 1;
+        var secPos = nodePositions[secTargetIdx];
+
+        if(secPos){
+          loopTrackIndex++;
+          var sX = sPos.left + sPos.width * 0.75;
+          var sY = sPos.bottom;
+          var eX = secPos.left + secPos.width * 0.25;
+          var eY = secPos.bottom + 8;
+          var loopY2 = maxBottom + 30 + (loopTrackIndex * 26);
+
+          var secPathD = "M " + sX + " " + sY +
+                         " C " + sX + " " + loopY2 + ", " +
+                                 eX + " " + loopY2 + ", " +
+                                 eX + " " + eY;
+          var secMidX = (sX + eX) * 0.5;
+          var secMidY = loopY2;
+
+          var secPathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          secPathEl.setAttribute("d", secPathD);
+          secPathEl.setAttribute("stroke", "#545454");
+          secPathEl.setAttribute("stroke-width", "2.2");
+          secPathEl.setAttribute("stroke-dasharray", "5,4");
+          secPathEl.setAttribute("marker-end", "url(#flow-arr-sec)");
+          secPathEl.setAttribute("class", "flow-edge-path flow-edge-from-" + idx + " flow-edge-to-" + secTargetIdx);
+          edgesGroup.appendChild(secPathEl);
+
+          var secLabel = s.secondaryCta.text;
+          var secTextWidth = Math.min(160, Math.max(70, secLabel.length * 7.5 + 24));
+          var gSecLabel = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          gSecLabel.setAttribute("class", "flow-edge-label flow-edge-from-" + idx + " flow-edge-to-" + secTargetIdx);
+          gSecLabel.setAttribute("transform", "translate(" + secMidX + "," + secMidY + ")");
+          gSecLabel.innerHTML = '<rect x="' + (-secTextWidth*0.5) + '" y="-11" width="' + secTextWidth + '" height="22" stroke="#545454" rx="5"/>' +
+                                '<text fill="#333333">↩️ ' + h(secLabel.length > 18 ? (secLabel.slice(0, 16) + '…') : secLabel) + '</text>';
+          labelsGroup.appendChild(gSecLabel);
+        }
+      }
+    });
+  }
+
+  function applyFlowZoom(){
+    var board = $("#flowBoard");
+    if(board){
+      board.style.transform = "scale(" + flowZoom + ")";
+      var resetBtn = $("#flowZoomReset");
+      if(resetBtn) resetBtn.textContent = Math.round(flowZoom * 100) + "%";
+    }
+    updateFlowConnectors();
+  }
+
+  function initFlowCanvas(){
+    flowZoom = 1.0;
+    setTimeout(function(){
+      updateFlowConnectors();
+    }, 60);
+
+    var bIn = $("#flowZoomIn"), bOut = $("#flowZoomOut"), bReset = $("#flowZoomReset"), bFit = $("#flowZoomFit");
+    if(bIn) bIn.onclick = function(){ flowZoom = Math.min(1.4, flowZoom + 0.12); applyFlowZoom(); };
+    if(bOut) bOut.onclick = function(){ flowZoom = Math.max(0.6, flowZoom - 0.12); applyFlowZoom(); };
+    if(bReset) bReset.onclick = function(){ flowZoom = 1.0; applyFlowZoom(); };
+    if(bFit) bFit.onclick = function(){
+      var vp = $("#flowViewport"), bd = $("#flowBoard");
+      if(vp && bd){
+        var targetZoom = Math.max(0.55, Math.min(1.0, (vp.clientWidth - 40) / (bd.scrollWidth || 1400)));
+        flowZoom = Number(targetZoom.toFixed(2));
+        applyFlowZoom();
+      }
+    };
+
+    $all(".flow-node-card").forEach(function(card){
+      var idx = card.dataset.nodeIdx;
+      card.addEventListener("mouseenter", function(){
+        $all(".flow-edge-path, .flow-edge-label").forEach(function(el){
+          var isRelated = el.classList.contains("flow-edge-from-" + idx) || el.classList.contains("flow-edge-to-" + idx);
+          el.classList.toggle("highlight", isRelated);
+          el.classList.toggle("dimmed", !isRelated);
+        });
+        $all(".flow-node-card").forEach(function(c){
+          if(c !== card){
+            var cIdx = c.dataset.nodeIdx;
+            var connected = $all(".flow-edge-from-" + idx + ".flow-edge-to-" + cIdx + ", .flow-edge-from-" + cIdx + ".flow-edge-to-" + idx).length > 0;
+            if(!connected) c.classList.add("dimmed");
+          }
+        });
+      });
+      card.addEventListener("mouseleave", function(){
+        $all(".flow-edge-path, .flow-edge-label").forEach(function(el){
+          el.classList.remove("highlight", "dimmed");
+        });
+        $all(".flow-node-card").forEach(function(c){ c.classList.remove("dimmed"); });
+      });
+    });
+
+    var container = $("#flowViewport");
+    if(container){
+      container.addEventListener("click", function(e){
+        var jumpBtn = e.target.closest("[data-jump-step]");
+        if(jumpBtn){
+          var st = Number(jumpBtn.dataset.jumpStep);
+          mode = "proto";
+          proto.step = isFinite(st) ? st : 0;
+          $all("[data-mode]").forEach(function(x){
+            x.setAttribute("aria-pressed", String(x.dataset.mode === "proto"));
+          });
+          var sf = $("#stateFilters");
+          if(sf) sf.style.display = "";
+          renderViewer();
+        }
+      });
+    }
+
+    if(flowResizeHandler) window.removeEventListener("resize", flowResizeHandler);
+    flowResizeHandler = function(){ updateFlowConnectors(); };
+    window.addEventListener("resize", flowResizeHandler);
+  }
+
   function phone(inner,extraCls,d){
     var editClass = proto.editingMode ? " proto-edit-active" : "";
     return '<div class="phone'+(extraCls||"")+editClass+'"><div class="al'+(d.theme.density==="compact"?' compact':'')+'" style="'+alStyle(d)+'">'+inner+'</div></div>';
@@ -2624,6 +3095,12 @@ export default function UberBaseFlow() {
 
     if(mode==="handover"){
       v.innerHTML = renderHandoverView(d);
+      return;
+    }
+
+    if(mode==="flow"){
+      v.innerHTML = renderFlowCanvas(d);
+      initFlowCanvas();
       return;
     }
 
@@ -2970,7 +3447,7 @@ export default function UberBaseFlow() {
     mode=b.dataset.mode;
     $all("[data-mode]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
     var sf = $("#stateFilters");
-    if(sf) sf.style.display = (mode === "handover" ? "none" : "");
+    if(sf) sf.style.display = (mode === "handover" || mode === "flow" ? "none" : "");
     renderViewer();
   })});
   $all(".s-filter-btn").forEach(function(b){

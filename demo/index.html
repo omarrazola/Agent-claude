@@ -2375,9 +2375,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       '<div class="al-bar">'+
       (idx > 0 ? '<button class="back" data-act="dyn-back" aria-label="Volver" style="width:28px">‹</button>' : '')+
       '<span class="al-logo" style="font-size:18px">Uber</span>'+
-      '<span style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px">'+
-        stateTag +
-        '<button type="button" class="figma-badge-btn" data-figma-step="'+(idx+1)+'" title="Vincular con Figma">🎨 Figma</button>'+
+      '<span style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end">'+
         '<span style="font-size:12px;color:#545454;font-weight:600">'+h(scr.navTitle || ("Paso " + (idx+1)))+'</span>'+
       '</span>'+
       '</div>' + stepsDots;
@@ -2680,15 +2678,14 @@ export default function UberBaseFlow() {
       var badgeText = s.stateBadge || (isErr ? "CASO DE ERROR" : (isCorner ? "CORNER CASE" : "HAPPY PATH"));
 
       svgParts.push('<g id="Frame_Paso_' + (idx+1) + '" transform="translate(' + x + ',' + y + ')">');
-      svgParts.push('<text x="0" y="-24" font-size="14" font-weight="700" fill="#000000">Paso ' + (idx+1) + ' · ' + h(s.shortName || s.mainTitle || "") + '</text>');
+      svgParts.push('<text x="0" y="-24" font-size="14" font-weight="700" fill="#000000">Paso ' + (idx+1) + ' · ' + h(s.shortName || s.mainTitle || "") + ' (' + h(badgeText) + ')</text>');
       svgParts.push('<rect width="375" height="812" rx="36" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#figma-shadow)"/>');
 
       svgParts.push('<text x="28" y="32" font-size="12" font-weight="700" fill="#000000">9:41</text>');
       svgParts.push('<text x="345" y="32" text-anchor="end" font-size="11" font-weight="700" fill="#000000">●●● 5G</text>');
 
       svgParts.push('<text x="24" y="68" font-size="20" font-weight="800" fill="#000000">Uber</text>');
-      svgParts.push('<rect x="250" y="52" width="100" height="22" rx="4" fill="' + tagBg + '"/>');
-      svgParts.push('<text x="300" y="67" text-anchor="middle" font-size="10" font-weight="700" fill="' + tagColor + '">' + h(badgeText) + '</text>');
+      svgParts.push('<text x="345" y="68" text-anchor="end" font-size="12" font-weight="600" fill="#545454">' + h(s.navTitle || ("Paso " + (idx+1))) + '</text>');
 
       var contentY = 100;
       if(s.showMap){
@@ -3347,7 +3344,10 @@ export default function UberBaseFlow() {
             '<div class="lbl" style="display:flex;flex-direction:column;gap:5px">'+
               '<div style="display:flex;justify-content:space-between;align-items:center">'+
                 '<span class="state-badge-tag '+stType+'">'+h(stBadge)+'</span>'+
-                '<span style="color:var(--muted);font-size:12px;font-family:var(--f-mono)">Paso '+(i+1)+' / '+dynamicScreens.length+'</span>'+
+                '<div style="display:flex;align-items:center;gap:6px">'+
+                  '<button type="button" class="figma-badge-btn" data-figma-step="'+(i+1)+'" title="Vincular con Figma">🎨 Figma</button>'+
+                  '<span style="color:var(--muted);font-size:12px;font-family:var(--f-mono)">Paso '+(i+1)+' / '+dynamicScreens.length+'</span>'+
+                '</div>'+
               '</div>'+
               '<b style="font-size:14.5px">'+h(scr.shortName || ("Paso " + (i+1)))+'</b>'+
               '<div class="state-meta-banner '+stType+'">'+h(stDesc)+'</div>'+
@@ -3365,7 +3365,10 @@ export default function UberBaseFlow() {
 
         v.innerHTML = '<div class="proto">'+
           '<div class="proto-side left">'+
-            '<div style="margin-bottom:6px"><span class="state-badge-tag '+stType+'" style="font-size:12px;padding:3px 10px">'+h(stBadge)+'</span></div>'+
+            '<div style="margin-bottom:6px;display:flex;justify-content:flex-end;align-items:center;gap:8px">'+
+              '<span class="state-badge-tag '+stType+'" style="font-size:12px;padding:3px 10px">'+h(stBadge)+'</span>'+
+              '<button type="button" class="figma-badge-btn" data-figma-step="'+(s+1)+'" title="Vincular esta pantalla con Figma">🎨 Figma</button>'+
+            '</div>'+
             '<span class="proto-step">Paso '+(s+1)+' de '+dynamicScreens.length+'</span>'+
             '<h3 id="protoSideTitle">'+h(curScr.shortName || curScr.mainTitle)+'</h3>'+
             '<div class="state-meta-banner '+stType+'" style="margin-top:8px">'+h(stDesc)+'</div>'+

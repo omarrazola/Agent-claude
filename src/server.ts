@@ -397,9 +397,9 @@ app.post("/api/llm/stream", async (req, res) => {
       return;
     }
 
-    send("agent_step", { id: "brief", name: "Analista de brief", status: "running", log: "Analizando objetivos de negocio y matriz de alcance..." });
-    send("agent_step", { id: "context", name: "Agente de contexto", status: "running", log: "Seleccionando tokens baseui oficiales de Uber Base..." });
-    send("agent_step", { id: "ux", name: "Arquitecto UX", status: "running", log: "Estructurando pantallas, caminos nominales y bifurcaciones de error..." });
+    send("agent_step", { id: "brief", name: "Analista de brief", status: "running", subagent: "Lector de Requisitos", log: "Analizando objetivos de negocio, prioridades y matriz de alcance..." });
+    send("agent_step", { id: "ctx", name: "Agente de contexto", status: "running", subagent: "Base DS Token Crawler", log: "Seleccionando tokens baseui oficiales de Uber Base (base.uber.com)..." });
+    send("agent_step", { id: "ux", name: "Arquitecto UX", status: "running", subagent: "Máquina de Estados", log: "Estructurando pantallas, caminos nominales y bifurcaciones de error sin dead-ends..." });
 
     const userPrompt = buildUserPrompt(key, priority, title, briefText);
     const text = await complete({ system: UBER_BASE_SYSTEM, user: userPrompt, maxTokens: 16000 });
@@ -426,10 +426,10 @@ app.post("/api/llm/stream", async (req, res) => {
       }
     }
 
-    send("agent_step", { id: "copy", name: "Redactor UX", status: "done", log: "Microcopys redactados en sentence case y voz activa de Uber." });
-    send("agent_step", { id: "ui", name: "Agente de UI", status: "done", log: "Componentes Base maquetados con tokens y mapas oscuros." });
-    send("agent_step", { id: "qa", name: "Revisor QA", status: "done", log: "Accesibilidad WCAG AA y resiliencia sin dead-ends auditadas." });
-    send("agent_step", { id: "delivery", name: "Agente de entrega", status: "done", log: "Paquete de entrega publicado." });
+    send("agent_step", { id: "copy", name: "Redactor UX", status: "done", subagent: "Microcopys & CTAs", log: "Microcopys redactados en sentence case y voz activa de Uber Base." });
+    send("agent_step", { id: "ui", name: "Agente de UI", status: "done", subagent: "Maquetador HTML/CSS", log: "Componentes Base maquetados con tokens oficiales y mapas oscuros." });
+    send("agent_step", { id: "qa", name: "Revisor QA", status: "done", subagent: "Auditor WCAG AA", log: "Accesibilidad WCAG AA y resiliencia sin dead-ends auditadas." });
+    send("agent_step", { id: "deliver", name: "Agente de entrega", status: "done", subagent: "Figma AutoLayout Sync", log: "Paquete de entrega publicado con enlaces a Figma y ticket." });
     send("result", { ok: true, result: json });
     res.end();
   } catch (err) {

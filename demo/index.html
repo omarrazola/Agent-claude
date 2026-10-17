@@ -133,21 +133,476 @@ button{font:inherit;cursor:pointer}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .trigger-note{font-size:12.5px;color:var(--muted);padding:0 16px 16px}
 
-/* Pipeline */
-.pipe{list-style:none;margin:0;padding:8px 0}
-.agent{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:4px 12px;padding:12px 16px;position:relative}
-.agent + .agent{border-top:1px solid var(--line)}
-.dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;font-weight:500;background:var(--sunken);color:var(--muted);border:1.5px solid var(--idle)}
-.agent[data-state="running"] .dot{border-color:var(--accent);color:var(--accent);animation:pulse 1.2s ease-in-out infinite}
-.agent[data-state="done"] .dot{background:var(--ok);border-color:var(--ok);color:var(--surface)}
-@keyframes pulse{50%{box-shadow:0 0 0 6px var(--accent-soft)}}
-.a-name{font-weight:600;font-size:14.5px}
-.a-role{color:var(--muted);font-size:13px;grid-column:2}
-.a-state{font-size:12px;align-self:start}
-.a-detail{grid-column:2 / -1;min-width:0}
-.log{margin-top:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted);display:grid;gap:2px}
-.log div::before{content:"› ";color:var(--accent)}
-.out-toggle{margin-top:8px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;padding:0}
+/* =========================================================
+   Pipeline / Orquestador Multi-Agente & Subagentes
+   Animación en Tiempo Real y Telemetría Paso a Paso
+   ========================================================= */
+.orch-telemetry {
+  background: var(--sunken);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.orch-telemetry-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.orch-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.orch-beacon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #545454;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.orch-beacon.running {
+  background: #276EF1;
+  box-shadow: 0 0 0 0 rgba(39, 110, 241, 0.7);
+  animation: orch-beacon-pulse 1.4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+.orch-beacon.done {
+  background: #0E8345;
+  box-shadow: 0 0 6px rgba(14, 131, 69, 0.6);
+}
+@keyframes orch-beacon-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(39, 110, 241, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(39, 110, 241, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(39, 110, 241, 0); }
+}
+.orch-status-text {
+  color: var(--fg);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+.orch-mini-steps {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.orch-step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+.orch-step-dot.active {
+  background: #276EF1;
+  border-color: #276EF1;
+  color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(39, 110, 241, 0.55);
+  transform: scale(1.12);
+}
+.orch-step-dot.done {
+  background: #0E8345;
+  border-color: #0E8345;
+  color: #FFFFFF;
+}
+.orch-current-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12.5px;
+  transition: all 0.2s ease;
+}
+.orch-telemetry.running .orch-current-action {
+  border-color: #276EF1;
+  background: linear-gradient(90deg, rgba(39, 110, 241, 0.08) 0%, rgba(39, 110, 241, 0.02) 100%);
+}
+.orch-action-icon {
+  font-size: 17px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+.orch-action-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.orch-action-phase {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #276EF1;
+}
+.orch-action-label {
+  color: var(--fg);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pipeline list & Agent items */
+.pipe {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.agent {
+  padding: 14px 16px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-left: 3px solid transparent;
+}
+.agent + .agent {
+  border-top: 1px solid var(--line);
+}
+.agent[data-state="idle"] {
+  opacity: 0.82;
+}
+.agent[data-state="running"] {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(39, 110, 241, 0.08) 0%, rgba(39, 110, 241, 0.01) 100%);
+  border-left-color: #276EF1;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+.agent[data-state="done"] {
+  opacity: 1;
+  border-left-color: #0E8345;
+}
+
+.agent-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.dot-wrapper {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--sunken);
+  color: var(--muted);
+  border: 1.5px solid var(--idle);
+  position: relative;
+  z-index: 2;
+  transition: all 0.25s ease;
+}
+.agent[data-state="running"] .dot {
+  background: #276EF1;
+  border-color: #276EF1;
+  color: #FFFFFF;
+  box-shadow: 0 0 12px rgba(39, 110, 241, 0.6);
+}
+.agent-pulse-ring {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid #276EF1;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.agent[data-state="running"] .agent-pulse-ring {
+  animation: agent-pulse-expand 1.4s ease-out infinite;
+}
+@keyframes agent-pulse-expand {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+.agent[data-state="done"] .dot {
+  background: #0E8345;
+  border-color: #0E8345;
+  color: #FFFFFF;
+}
+
+.a-title-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.a-title-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.a-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.a-role {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.a-state {
+  font-size: 11.5px;
+  align-self: flex-start;
+}
+
+.a-detail {
+  margin-top: 10px;
+  margin-left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+/* Subagentes Flow */
+.subagents-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.subagents-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.subagents-counter {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--fg);
+}
+.subagents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+}
+.subagent-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sub-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.sub-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.sub-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.sub-state-badge {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--sunken);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Subagent pill states */
+.subagent-pill[data-status="pending"] {
+  opacity: 0.7;
+}
+.subagent-pill[data-status="running"] {
+  border-color: #276EF1;
+  background: rgba(39, 110, 241, 0.12);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(39, 110, 241, 0.25);
+  animation: subagent-pulse-card 1.2s ease-in-out infinite alternate;
+}
+@keyframes subagent-pulse-card {
+  0% { border-color: #276EF1; box-shadow: 0 0 6px rgba(39, 110, 241, 0.2); }
+  100% { border-color: #689DF8; box-shadow: 0 0 14px rgba(39, 110, 241, 0.5); }
+}
+.subagent-pill[data-status="running"] .sub-state-badge {
+  background: #276EF1;
+  color: #FFFFFF;
+  font-weight: 700;
+  animation: sub-badge-flash 1s infinite alternate;
+}
+@keyframes sub-badge-flash {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
+}
+.subagent-pill[data-status="done"] {
+  border-color: #0E8345;
+  background: rgba(14, 131, 69, 0.08);
+  color: var(--fg);
+}
+.subagent-pill[data-status="done"] .sub-state-badge {
+  background: #0E8345;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+/* Active action ticker inside card */
+.agent-live-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #0A0A0A;
+  border: 1px solid #276EF1;
+  border-radius: 6px;
+  font-size: 12px;
+  animation: act-fade-in 0.2s ease-out;
+}
+@keyframes act-fade-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.act-pulse-beacon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #276EF1;
+  flex-shrink: 0;
+  animation: orch-beacon-pulse 1s infinite;
+}
+.act-content {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.act-subagent-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #276EF1;
+  white-space: nowrap;
+}
+.act-desc-text {
+  color: #FFFFFF;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Log lines */
+.log {
+  margin-top: 2px;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.log-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.4;
+  animation: log-slide 0.15s ease-out;
+}
+@keyframes log-slide {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.log-time {
+  color: #545454;
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+.log-sub {
+  color: #276EF1;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.log-msg {
+  color: var(--fg);
+}
+
+/* Visual Handoff between agents */
+.agent-handoff {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(14, 131, 69, 0.08);
+  border: 1px dashed rgba(14, 131, 69, 0.4);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: #0E8345;
+  font-weight: 600;
+  animation: handoff-pulse 1.5s infinite;
+}
+@keyframes handoff-pulse {
+  0% { border-color: rgba(14, 131, 69, 0.3); }
+  50% { border-color: rgba(14, 131, 69, 0.8); background: rgba(14, 131, 69, 0.14); }
+  100% { border-color: rgba(14, 131, 69, 0.3); }
+}
+.handoff-arrow {
+  animation: arrow-bounce 1s infinite alternate;
+}
+@keyframes arrow-bounce {
+  from { transform: translateX(0); }
+  to { transform: translateX(4px); }
+}
+
+.out-toggle{margin-top:8px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;padding:0;text-align:left;cursor:pointer}
 .out{margin-top:10px;background:var(--sunken);border-radius:8px;padding:14px;font-size:13.5px;display:grid;gap:10px;min-width:0}
 .out h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .out ul,.out ol{margin:0;padding-left:18px;display:grid;gap:4px}
@@ -761,14 +1216,41 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       <p class="trigger-note" id="triggerNote">En producción esto se dispara solo: al crear la incidencia con la etiqueta <span class="mono">diseño</span>, Jira envía un webhook al orquestador.</p>
     </div>
 
-    <!-- Pipeline -->
-    <div class="panel">
+    <!-- Pipeline / Orquestador Multi-Agente -->
+    <div class="panel" id="orchestratorPanel">
       <div class="panel-h">
-        <h2>Agentes trabajando</h2>
+        <h2>Orquestador de Agentes</h2>
         <span class="time" id="clock">00:00</span>
         <span class="chip" id="pipeState">En espera</span>
         <div class="progress" aria-hidden="true"><i id="bar"></i></div>
       </div>
+
+      <!-- Telemetría y estado de la orquestación en tiempo real -->
+      <div class="orch-telemetry" id="orchTelemetry">
+        <div class="orch-telemetry-top">
+          <div class="orch-live-badge">
+            <span class="orch-beacon" id="orchBeacon"></span>
+            <span class="orch-status-text" id="orchStatusText">Pipeline preparado · 7 agentes y 21 subagentes listos</span>
+          </div>
+          <div class="orch-mini-steps" id="orchMiniSteps">
+            <span class="orch-step-dot" data-step="0" title="1. Analista de brief">1</span>
+            <span class="orch-step-dot" data-step="1" title="2. Agente de contexto">2</span>
+            <span class="orch-step-dot" data-step="2" title="3. Arquitecto UX">3</span>
+            <span class="orch-step-dot" data-step="3" title="4. Redactor UX">4</span>
+            <span class="orch-step-dot" data-step="4" title="5. Agente de UI">5</span>
+            <span class="orch-step-dot" data-step="5" title="6. Revisor QA">6</span>
+            <span class="orch-step-dot" data-step="6" title="7. Agente de entrega">7</span>
+          </div>
+        </div>
+        <div class="orch-current-action" id="orchCurrentAction">
+          <span class="orch-action-icon" id="orchActionIcon">🤖</span>
+          <div class="orch-action-content">
+            <span class="orch-action-phase" id="orchActionPhase">Orquestación:</span>
+            <span class="orch-action-label" id="orchActionLabel">Pulsa «Lanzar agentes» para iniciar la orquestación y ver las acciones en tiempo real.</span>
+          </div>
+        </div>
+      </div>
+
       <ol class="pipe" id="pipe"></ol>
     </div>
   </div>
@@ -1256,37 +1738,79 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   // ---------- Data ----------
   var AGENTS = [
     {id:"brief", name:"Analista de brief", role:"Entiende la petición y detecta lo que falta", dur:2600,
+     icon:"📋",
      tools:"Ticket, adjuntos",
+     subagents:[
+       {id:"reqs", name:"Lector de Requisitos", icon:"📋", action:"Analizando ticket y adjuntos del proyecto", status:"pending"},
+       {id:"scope", name:"Matriz de Alcance", icon:"🔍", action:"Clasificando alcance: Happy Path, Corner y Casos de Error", status:"pending"},
+       {id:"rules", name:"Validador de Restricciones", icon:"📐", action:"Extrayendo SLA de recogida, tipos de tarifas y reglas de negocio", status:"pending"}
+     ],
      logs:["Leyendo UBER-104 y adjuntos de movilidad","Extrayendo objetivo, tarifas cerradas y tiempos de llegada","Comprobando alineación con Uber Base DS (base.uber.com)","Requisitos de reserva programada verificados"],
      out:'<h4>Brief estructurado · UBER-104</h4><div class="tbl"><table><tbody><tr><th>Objetivo</th><td>Optimizar conversión en selección de vehículo móvil</td></tr><tr><th>Métrica</th><td>Tiempo hasta solicitar viaje y adopción de Uber Reserve</td></tr><tr><th>Alcance</th><td>Selección de viaje, opciones y checkout de recogida</td></tr><tr><th>Sistema</th><td>Uber Base Design System (base.uber.com)</td></tr><tr><th>Fecha</th><td>Revisión con producto el 30 oct</td></tr></tbody></table></div><h4>Preguntas de producto</h4><ul><li>¿Se permite combinar Uber Cash con tarjeta en el mismo viaje?</li><li>¿Se preselecciona Uber Reserve si la fecha es posterior a 2 horas?</li></ul>',
      summary:"Brief estructurado y 2 preguntas de producto"},
     {id:"ctx", name:"Agente de contexto", role:"Reúne todo lo que ya existe", dur:2800,
+     icon:"🎨",
      tools:"Uber Base DS, patrones de movilidad, analítica",
+     subagents:[
+       {id:"tokens", name:"Base DS Token Crawler", icon:"🎨", action:"Consultando base.uber.com (42 componentes oficiales)", status:"pending"},
+       {id:"patterns", name:"Patrones de Movilidad", icon:"🚗", action:"Analizando flujos históricos de UberX, Comfort y tiempos de llegada", status:"pending"},
+       {id:"telemetry", name:"Telemetría & Conectores", icon:"⚡", action:"Mapeando especificaciones de vehículos y métodos de pago", status:"pending"}
+     ],
      logs:["Consultando Uber Base Design System → 42 componentes","Buscando flujos de UberX, Comfort y Black","Analizando tokens oficiales: tipografía Uber Move y radios píldora","Mayor conversión al mostrar hora exacta de llegada"],
      out:'<h4>Hallazgos de contexto · Base DS</h4><ul><li>Mostrar el precio cerrado y tiempo de llegada garantizado reduce el abandono en un 32 %.</li><li>Se reutilizan los componentes PillButton, ProductCard y ToggleSwitch del Base DS.</li><li>La confirmación en un toque con Apple Pay / Uber Cash agiliza el checkout.</li></ul><h4>Componentes disponibles</h4><div class="flow"><span>ProductCard</span><span>PillButton</span><span>PillTag</span><span>SearchInput</span><span>PriceSummary</span><span>ToggleSwitch</span></div>',
      summary:"3 hallazgos y componentes de Uber Base"},
     {id:"ux", name:"Arquitecto UX", role:"Define el flujo, las historias y los criterios", dur:3000,
+     icon:"⚙️",
      tools:"Brief + contexto Base",
+     subagents:[
+       {id:"state_machine", name:"Máquina de Estados", icon:"⚙️", action:"Mapeando transiciones: Selección ➔ Corner ➔ Checkout ➔ Error ➔ Conductor", status:"pending"},
+       {id:"wireframe", name:"Arquitecto de Pantallas", icon:"📱", action:"Diseñando arquitectura de pantallas móviles con rutas de retorno guiadas", status:"pending"},
+       {id:"acceptance", name:"Criterios de Aceptación", icon:"📝", action:"Definiendo historias de usuario y validando zero dead-ends", status:"pending"}
+     ],
      logs:["Mapeando flujo de selección de vehículo","Proponiendo selector con precio cerrado y tiempo de llegada","Escribiendo historias de usuario para pasajeros","Definiendo criterios de aceptación y accesibilidad"],
      out:'<h4>Flujo propuesto · Uber Base</h4><div class="flow"><span>1. Selección de viaje</span><em>→</em><span>2. Opciones y recogida</span><em>→</em><span>3. Confirmación y pago</span></div><h4>Historias de usuario</h4><ol><li>Como pasajero, quiero ver el precio cerrado y los minutos hasta la recogida antes de solicitar.</li><li>Como usuario, quiero alternar entre viaje inmediato y reserva programada (Reserve) sin perder el destino.</li><li>Como usuario, quiero pagar con Uber Cash o Apple Pay en un toque.</li></ol><h4>Criterios de aceptación</h4><ul><li>Tiempos de recogida y tarifa final mostrados de forma destacada en tipografía Uber Move.</li><li>Áreas táctiles ≥ 44 px en todos los botones píldora.</li><li>Confirmación visual inmediata del conductor asignado y código PIN de seguridad.</li></ul>',
      summary:"Flujo de 3 pasos, 3 historias, 3 criterios"},
     {id:"copy", name:"Redactor UX", role:"Escribe los textos con el tono de Uber", dur:2200,
+     icon:"✍️",
      tools:"Guía de tono oficial de Uber",
+     subagents:[
+       {id:"tone", name:"Tono de Voz Uber", icon:"✍️", action:"Aplicando directrices de marca: directo, seguro, cercano y optimista", status:"pending"},
+       {id:"microcopy", name:"Microcopys & CTAs", icon:"💬", action:"Redactando textos de botones de 44px, títulos concisos y tarifas transparentes", status:"pending"},
+       {id:"resilience", name:"Mensajes de Resiliencia", icon:"🛡️", action:"Redactando mensajes empáticos de error con recuperación guiada", status:"pending"}
+     ],
      logs:["Aplicando guía de tono Uber: seguro, directo, cercano y optimista","Redactando textos de interfaz en voz activa y sentence case","Revisando microcopy de confirmación y recogida"],
      out:'<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><table><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Vehículo</td><td>Coche estándar</td><td>UberX · 4 plazas · 4 min de llegada</td></tr><tr><td>Botón acción</td><td>Continuar</td><td>Confirmar viaje con UberX</td></tr><tr><td>Saldo</td><td>Canjear saldo</td><td>Usar Uber Cash · 12,50 € disponibles</td></tr><tr><td>Reserva</td><td>Programar viaje</td><td>Reservar para más tarde</td></tr></tbody></table></div>',
      summary:"26 textos de interfaz en sentence case"},
     {id:"ui", name:"Agente de UI", role:"Codifica las pantallas con Uber Base DS", dur:3600,
+     icon:"💻",
      tools:"Repositorio de Uber Base DS",
+     subagents:[
+       {id:"token_map", name:"Inyector de Tokens", icon:"🏷️", action:"Inyectando tokens W3C: --base-black, --base-negative, --base-positive", status:"pending"},
+       {id:"html_builder", name:"Maquetador HTML/CSS", icon:"💻", action:"Construyendo componentes semánticos, tarjetas de producto y botones píldora", status:"pending"},
+       {id:"dark_map", name:"Canvas de Mapa & Telemetría", icon:"🗺️", action:"Renderizando canvas de mapa con geoposición en tiempo real y ruta estimada", status:"pending"}
+     ],
      logs:["Generando screen/ride-select.html","Generando screen/ride-details.html","Generando screen/ride-confirm.html","Comprobando tokens de base.uber.com","Publicando previsualización con Uber Move y radios píldora"],
      out:'<h4>Archivos generados con Uber Base DS</h4><div class="flow"><span>ride-select.html</span><span>ride-details.html</span><span>ride-confirm.html</span></div><h4>Tokens de base.uber.com</h4><div class="flow"><span>--base-black</span><span>--base-white</span><span>--base-bg-secondary</span><span>--base-r-pill</span><span>--base-font-display</span></div>',
      summary:"3 pantallas, 100 % con tokens de Uber Base"},
     {id:"qa", name:"Revisor QA", role:"Revisa accesibilidad y coherencia", dur:2400,
+     icon:"👁️",
      tools:"Pantallas generadas, reglas de Uber Base DS",
+     subagents:[
+       {id:"wcag", name:"Auditor WCAG AA", icon:"👁️", action:"Auditando contraste de color ≥ 4.5:1 en 48 combinaciones de texto y fondo", status:"pending"},
+       {id:"touch", name:"Validador Áreas Táctiles", icon:"👆", action:"Comprobando áreas táctiles mínimas de 44×44 px en todos los controles", status:"pending"},
+       {id:"no_dead_ends", name:"Auditor de Resiliencia", icon:"🔄", action:"Validando resiliencia: 0 callejones sin salida en estados de error o rechazo", status:"pending"}
+     ],
      logs:["Contraste de color: WCAG AA en 48/48 pares","Áreas táctiles ≥ 44 px en botones píldora","Etiquetas semánticas y lectores de pantalla verificados","Tokens fuera de Uber Base: 0"],
      out:'<h4>Resultado de validación QA</h4><ul><li><span class="chip ok">Superado</span> Contraste AA en textos sobre fondo blanco y gris (#F6F6F6)</li><li><span class="chip ok">Superado</span> Áreas táctiles de 44 px o más en todos los controles</li><li><span class="chip ok">Superado</span> 0 colores, fuentes o radios fuera de base.uber.com</li></ul>',
      summary:"Accesibilidad WCAG AA superada"},
     {id:"deliver", name:"Agente de entrega", role:"Devuelve el trabajo al ticket", dur:1800,
+     icon:"🚀",
      tools:"Jira / Trello, Figma Base Library",
+     subagents:[
+       {id:"figma_sync", name:"Figma AutoLayout Sync", icon:"🎨", action:"Generando estructura de capas de Figma y formato de importación directa", status:"pending"},
+       {id:"publisher", name:"Publicador en Ticket", icon:"📢", action:"Comentando en el ticket con enlaces de previsualización y especificación", status:"pending"},
+       {id:"handover", name:"Handover a Desarrollo", icon:"🚀", action:"Empaquetando artefactos finales, tokens y matriz de estados para desarrollo", status:"pending"}
+     ],
      logs:["Creando página «UBER-104 · v0» en Figma con librería Base","Comentando en el ticket","Moviendo a «Revisión diseño»","Asignando a equipo de diseño de movilidad"],
      out:'<h4>Publicado</h4><ul><li>Comentario con resumen y enlaces en ticket UBER-104.</li><li>Ticket movido a «Revisión diseño».</li><li>Página v0 creada en Figma con componentes de Uber Base DS.</li></ul>',
      summary:"Ticket UBER-104 actualizado y asignado"}
@@ -1429,6 +1953,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   function prepareAgentsForBrief(){
     var info = getBriefInfo();
     // 0: Brief
+    AGENTS[0].subagents = [
+      { id: "reqs", name: "Lector de Requisitos", icon: "📋", action: "Analizando ticket " + info.key + ": " + info.title, status: "pending" },
+      { id: "scope", name: "Matriz de Alcance", icon: "🔍", action: "Clasificando alcance: Happy Path, Corner Cases y Casos de Error", status: "pending" },
+      { id: "rules", name: "Validador de Restricciones", icon: "📐", action: "Prioridad detectada: " + info.priority + " · Extrayendo SLAs y reglas de negocio", status: "pending" }
+    ];
     AGENTS[0].logs = [
       "Leyendo " + info.key + ": " + info.title,
       "Extrayendo requisitos y restricciones del brief",
@@ -1440,6 +1969,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 
     // 1: Contexto
     if(info.isEV){
+      AGENTS[1].subagents = [
+        { id: "tokens", name: "Base DS Token Crawler", icon: "🎨", action: "Consultando base.uber.com para tokens de recarga y medidores de batería", status: "pending" },
+        { id: "patterns", name: "Patrones de Conectores", icon: "🔌", action: "Recuperando especificaciones de conectores CCS2 (150 kW) y Mennekes", status: "pending" },
+        { id: "telemetry", name: "Telemetría OCPP", icon: "⚡", action: "Analizando estándar OCPP 2.0.1 y telemetría de recarga en tiempo real", status: "pending" }
+      ];
       AGENTS[1].logs = [
         "Consultando Uber Base Design System (base.uber.com) → tokens de movilidad",
         "Buscando especificaciones de conectores (CCS2 150 kW, Mennekes)",
@@ -1449,6 +1983,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       AGENTS[1].out = '<h4>Hallazgos de contexto · Uber Base DS</h4><ul><li>El 64 % de los abandonos en recarga rápida se producen por falta de confirmación tras conectar el cable.</li><li>Se reutilizan patrones de componentes de estado para el handshake y telemetría en vivo.</li><li>Se prioriza visibilidad del coste por kWh (0,45 €) y potencia real antes de autorizar.</li></ul><h4>Componentes disponibles en Base</h4><div class="flow"><span>MapCard</span><span>ConnectorBadge</span><span>LiveTelemetry</span><span>BatteryGauge</span><span>PillButton</span></div>';
       AGENTS[1].summary = "3 hallazgos y especificaciones de conectores";
     } else {
+      AGENTS[1].subagents = [
+        { id: "tokens", name: "Base DS Token Crawler", icon: "🎨", action: "Inspeccionando base.uber.com (42 componentes oficiales del sistema Base)", status: "pending" },
+        { id: "patterns", name: "Patrones de Movilidad", icon: "🚗", action: "Recuperando patrones históricos de UberX, Comfort, Reserve y tiempos de llegada", status: "pending" },
+        { id: "telemetry", name: "Telemetría & Conectores", icon: "💳", action: "Mapeando tokens W3C: tipografía Uber Move, paleta monocromática y Uber Pay", status: "pending" }
+      ];
       AGENTS[1].logs = [
         "Consultando Uber Base Design System (base.uber.com) → 42 componentes",
         "Buscando patrones previos en Uber Mobility (UberX, Comfort, Reserve)",
@@ -1461,6 +2000,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 
     // 2: UX
     if(info.isEV){
+      AGENTS[2].subagents = [
+        { id: "state_machine", name: "Máquina de Estados", icon: "⚙️", action: "Mapeando flujo de recarga: Mapa ➔ Conectores ➔ Handshake ➔ Sesión activa ➔ Desbloqueo", status: "pending" },
+        { id: "wireframe", name: "Arquitecto de Pantallas", icon: "📱", action: "Diseñando arquitectura de estados y feedback visual con Uber Base", status: "pending" },
+        { id: "acceptance", name: "Criterios de Aceptación", icon: "📝", action: "Escribiendo historias de usuario para conductor de VE en cada paso", status: "pending" }
+      ];
       AGENTS[2].logs = [
         "Mapeando flujo completo de recarga: Mapa → Conectores → Conexión → Sesión activa → Desbloqueo",
         "Diseñando arquitectura de estados y feedback visual con Uber Base",
@@ -1470,6 +2014,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       AGENTS[2].out = '<h4>Flujo propuesto</h4><div class="flow"><span>1. Mapa y estación</span><em>→</em><span>2. Selección de conector</span><em>→</em><span>3. Conexión y handshake</span><em>→</em><span>4. Sesión activa</span><em>→</em><span>5. Resumen y desbloqueo</span></div><h4>Historias de usuario</h4><ol><li>Como conductor de VE, quiero ver los cargadores libres y la potencia (kW) en el mapa antes de llegar.</li><li>Como conductor, quiero elegir conector y ver la tarifa (€/kWh) antes de enchufar.</li><li>Como usuario, quiero verificar el bloqueo del cable y el handshake de seguridad.</li><li>Como usuario, quiero consultar el % de batería, potencia en kW y coste acumulado en tiempo real.</li><li>Como usuario, quiero desbloquear de forma segura el conector y recibir el ticket final desglosado.</li></ol>';
       AGENTS[2].summary = "Flujo completo de producto con historias y criterios";
     } else {
+      AGENTS[2].subagents = [
+        { id: "state_machine", name: "Máquina de Estados", icon: "⚙️", action: "Mapeando transiciones: Selección (Happy) ➔ Demanda (Corner) ➔ Error ➔ En camino", status: "pending" },
+        { id: "wireframe", name: "Arquitecto de Pantallas", icon: "📱", action: "Diseñando arquitectura de pantallas móviles con rutas de retorno guiadas", status: "pending" },
+        { id: "acceptance", name: "Criterios de Aceptación", icon: "📝", action: "Estructurando recuperación de tarjeta rechazada con Uber Cash (0 dead-ends)", status: "pending" }
+      ];
       AGENTS[2].logs = [
         "Mapeando flujo completo de viaje: Happy Path, Corner Case y Caso de Error",
         "Diseñando Happy Path (Selección, Confirmación, Conductor en camino)",
@@ -1482,6 +2031,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 
     // 3: Copy
     if(info.isEV){
+      AGENTS[3].subagents = [
+        { id: "tone", name: "Tono de Voz Uber", icon: "✍️", action: "Aplicando guía de tono oficial de Uber: seguro, directo, cercano y optimista", status: "pending" },
+        { id: "microcopy", name: "Microcopys & CTAs", icon: "💬", action: "Redactando textos de interfaz: kW, kWh, tarifas y tiempos para las pantallas del flujo", status: "pending" },
+        { id: "resilience", name: "Mensajes de Resiliencia", icon: "🛡️", action: "Optimizando microcopy de seguridad y confirmación de handshake", status: "pending" }
+      ];
       AGENTS[3].logs = [
         "Aplicando guía de tono oficial de Uber: seguro, directo, cercano y optimista",
         "Redactando textos de interfaz: kW, kWh, tarifas y tiempos para las pantallas del flujo",
@@ -1490,18 +2044,28 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       AGENTS[3].out = '<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><table><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Punto</td><td>Cargador 3</td><td>Punto 03 · CCS2 Ultra-rápido (150 kW)</td></tr><tr><td>Tarifa</td><td>0,45 €</td><td>0,45 €/kWh · Sin coste de inicio</td></tr><tr><td>Estado cable</td><td>Enchufado</td><td>Cable bloqueado · Handshake OK</td></tr><tr><td>Botón acción</td><td>Parar</td><td>Finalizar recarga y desbloquear</td></tr></tbody></table></div>';
       AGENTS[3].summary = "28 textos de interfaz en sentence case";
     } else {
+      AGENTS[3].subagents = [
+        { id: "tone", name: "Tono de Voz Uber", icon: "✍️", action: "Aplicando guía de tono oficial de Uber: seguro, directo, cercano y optimista", status: "pending" },
+        { id: "microcopy", name: "Microcopys & CTAs", icon: "💬", action: "Redactando textos de interfaz en voz activa para todas las pantallas del flujo", status: "pending" },
+        { id: "resilience", name: "Mensajes de Resiliencia", icon: "🛡️", action: "Redactando microcopy empático y sin culpabilizar para la pantalla de error", status: "pending" }
+      ];
       AGENTS[3].logs = [
         "Aplicando guía de tono oficial de Uber: seguro, directo, cercano y optimista",
         "Redactando textos de interfaz en voz activa para todas las pantallas del flujo",
         "Redactando microcopy empático y sin culpabilizar para la pantalla de error",
         "Revisando microcopy de confirmación y llamadas a la acción"
       ];
-      AGENTS[3].out = '<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Vehículo</td><td>Coche estándar</td><td>UberX · 4 plazas · 3 min de llegada</td></tr><tr><td>Corner Case</td><td>Demanda alta</td><td>Alta demanda: punto de encuentro a 50m para salir antes</td></tr><tr><td>Caso de Error</td><td>Fallo de pago</td><td>No pudimos cobrar la tarjeta · Reintentar con Uber Cash</td></tr><tr><td>Botón acción</td><td>Continuar</td><td>Confirmar viaje con UberX</td></tr></tbody></table></div>';
+      AGENTS[3].out = '<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><table><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Vehículo</td><td>Coche estándar</td><td>UberX · 4 plazas · 3 min de llegada</td></tr><tr><td>Corner Case</td><td>Demanda alta</td><td>Alta demanda: punto de encuentro a 50m para salir antes</td></tr><tr><td>Caso de Error</td><td>Fallo de pago</td><td>No pudimos cobrar la tarjeta · Reintentar con Uber Cash</td></tr><tr><td>Botón acción</td><td>Continuar</td><td>Confirmar viaje con UberX</td></tr></tbody></table></div>';
       AGENTS[3].summary = "32 textos de interfaz en sentence case para los 3 estados";
     }
 
     // 4: UI
     if(info.isEV){
+      AGENTS[4].subagents = [
+        { id: "token_map", name: "Inyector de Tokens", icon: "🏷️", action: "Inyectando tokens de movilidad: --base-black, --base-white, --base-r-pill", status: "pending" },
+        { id: "html_builder", name: "Maquetador HTML/CSS", icon: "💻", action: "Generando pantallas de recarga con componentes de Uber Base DS", status: "pending" },
+        { id: "dark_map", name: "Canvas de Mapa & Telemetría", icon: "🗺️", action: "Comprobando contraste WCAG AA para lectura bajo luz solar directa", status: "pending" }
+      ];
       AGENTS[4].logs = [
         "Generando screen/mapa-estacion.html",
         "Generando screen/conector-tarifa.html",
@@ -1514,6 +2078,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       AGENTS[4].out = '<h4>Archivos generados con Uber Base DS</h4><div class="flow"><span>mapa-estacion.html</span><span>conector-tarifa.html</span><span>conexion-handshake.html</span><span>sesion-activa.html</span><span>resumen-desbloqueo.html</span></div><h4>Tokens de base.uber.com</h4><div class="flow"><span>--base-black</span><span>--base-white</span><span>--base-bg-secondary</span><span>--base-r-pill</span></div>';
       AGENTS[4].summary = "Pantallas completas con tokens de Uber Base";
     } else {
+      AGENTS[4].subagents = [
+        { id: "token_map", name: "Inyector de Tokens", icon: "🏷️", action: "Inyectando tokens base.uber.com: positive (#0E8345), negative (#DE1135), warning", status: "pending" },
+        { id: "html_builder", name: "Maquetador HTML/CSS", icon: "💻", action: "Generando pantallas completas: ride-select, surge, checkout, error, confirmed", status: "pending" },
+        { id: "dark_map", name: "Canvas de Mapa & Telemetría", icon: "🗺️", action: "Publicando previsualización interactiva con Uber Move y radios 8px", status: "pending" }
+      ];
       AGENTS[4].logs = [
         "Generando 1-ride-select.html (Happy Path)",
         "Generando 2-corner-surge.html (Corner Case: Alta demanda y desvío)",
@@ -1528,11 +2097,21 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     }
 
     // 5: QA
+    AGENTS[5].subagents = [
+      { id: "wcag", name: "Auditor WCAG AA", icon: "👁️", action: "Auditando contraste de color: WCAG AA en 48/48 combinaciones de texto y fondo", status: "pending" },
+      { id: "touch", name: "Validador Áreas Táctiles", icon: "👆", action: "Comprobando áreas táctiles ≥ 44 px en todos los botones y selectores", status: "pending" },
+      { id: "no_dead_ends", name: "Auditor de Resiliencia", icon: "🔄", action: "Verificando resiliencia: la pantalla de error dispone de CTA de recuperación guiada", status: "pending" }
+    ];
     AGENTS[5].logs = ["Contraste de color: WCAG AA en 48/48 pares","Áreas táctiles ≥ 44 px en todos los botones y selectores","Resiliencia: verificación de vías de escape en casos de error","Tokens fuera de Uber Base: 0"];
     AGENTS[5].out = '<h4>Resultado de validación QA y Resiliencia</h4><ul><li><span class="chip ok">Superado</span> Contraste AA en textos sobre fondo blanco y superficies #F6F6F6</li><li><span class="chip ok">Superado</span> Áreas táctiles de 44 px o más en todos los controles</li><li><span class="chip ok">Superado</span> Resiliencia: la pantalla de error dispone de CTA de recuperación guiada sin callejones sin salida</li><li><span class="chip ok">Superado</span> 100% tokens de base.uber.com</li></ul>';
     AGENTS[5].summary = "Accesibilidad WCAG AA y Resiliencia superadas";
 
     // 6: Entrega
+    AGENTS[6].subagents = [
+      { id: "figma_sync", name: "Figma AutoLayout Sync", icon: "🎨", action: "Creando estructura de capas en Figma con librería Uber Base DS", status: "pending" },
+      { id: "publisher", name: "Publicador en Ticket", icon: "📢", action: "Comentando en el ticket " + info.key + " con especificación y matriz de estados", status: "pending" },
+      { id: "handover", name: "Handover a Desarrollo", icon: "🚀", action: "Moviendo a «Revisión diseño» y empaquetando especificación para desarrollo", status: "pending" }
+    ];
     AGENTS[6].logs = [
       "Creando página «" + info.key + " · v0» en Figma con librería Base",
       "Documentando especificación de estados: Happy Path, Error y Corner Case",
@@ -1542,12 +2121,24 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     AGENTS[6].out = '<h4>Publicado para Desarrollo y QA</h4><ul><li>Comentario con resumen y enlaces en ticket ' + h(info.key) + '.</li><li>Especificación completa con criterios de aceptación para nominal, error y casos límite.</li><li>Página v0 creada en Figma con componentes de Uber Base DS.</li></ul>';
     AGENTS[6].summary = "Ticket " + info.key + " entregado con matriz de estados";
 
-    // Refresh outputs in DOM
+    // Refresh outputs & subagents in DOM if pipe already rendered
     AGENTS.forEach(function(a){
       var el = $("#ag-" + a.id);
       if(el){
         var out = $(".out", el);
         if(out) out.innerHTML = a.out;
+        var subGrid = $("#subgrid-" + a.id);
+        if(subGrid && a.subagents){
+          subGrid.innerHTML = a.subagents.map(function(s, sIdx){
+            return '<div class="subagent-pill" data-status="' + (s.status||'pending') + '" id="sub-' + a.id + '-' + sIdx + '">' +
+              '<span class="sub-left">' +
+                '<span class="sub-icon">' + s.icon + '</span>' +
+                '<span class="sub-name">' + h(s.name) + '</span>' +
+              '</span>' +
+              '<span class="sub-state-badge">En cola</span>' +
+            '</div>';
+          }).join('');
+        }
       }
     });
   }
@@ -1559,15 +2150,55 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   var pipe = $("#pipe");
   AGENTS.forEach(function(a,i){
     var li = document.createElement("li");
-    li.className="agent"; li.dataset.state="idle"; li.id="ag-"+a.id;
+    li.className = "agent"; li.dataset.state = "idle"; li.id = "ag-" + a.id;
+    var subagentsHtml = (a.subagents || []).map(function(s, sIdx){
+      return '<div class="subagent-pill" data-status="pending" id="sub-' + a.id + '-' + sIdx + '">' +
+        '<span class="sub-left">' +
+          '<span class="sub-icon">' + s.icon + '</span>' +
+          '<span class="sub-name">' + h(s.name) + '</span>' +
+        '</span>' +
+        '<span class="sub-state-badge">En cola</span>' +
+      '</div>';
+    }).join("");
+
     li.innerHTML =
-      '<span class="dot">'+(i+1)+'</span>'+
-      '<span class="a-name">'+a.name+'</span>'+
-      '<span class="a-state chip">En espera</span>'+
-      '<span class="a-role">'+a.role+'</span>'+
-      '<div class="a-detail"><div class="log"></div>'+
-      '<button class="out-toggle" type="button" hidden aria-expanded="false">Ver resultado</button>'+
-      '<div class="out" hidden>'+a.out+'</div></div>';
+      '<div class="agent-header">' +
+        '<div class="dot-wrapper">' +
+          '<span class="dot">' + (i+1) + '</span>' +
+          '<span class="agent-pulse-ring"></span>' +
+        '</div>' +
+        '<div class="a-title-col">' +
+          '<div class="a-title-top">' +
+            '<span class="a-name">' + a.name + '</span>' +
+            '<span class="a-state chip">En espera</span>' +
+          '</div>' +
+          '<span class="a-role">' + a.role + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="a-detail">' +
+        '<div class="subagents-container">' +
+          '<div class="subagents-heading">' +
+            '<span class="subagents-heading-title">Subagentes en esta fase (' + (a.subagents ? a.subagents.length : 3) + '):</span>' +
+            '<span class="subagents-counter" id="subcnt-' + a.id + '">0/' + (a.subagents ? a.subagents.length : 3) + ' completados</span>' +
+          '</div>' +
+          '<div class="subagents-grid" id="subgrid-' + a.id + '">' + subagentsHtml + '</div>' +
+        '</div>' +
+        '<div class="agent-live-action" id="act-' + a.id + '" hidden>' +
+          '<div class="act-pulse-beacon"></div>' +
+          '<div class="act-content">' +
+            '<span class="act-subagent-tag" id="act-tag-' + a.id + '">Subagente activo:</span>' +
+            '<span class="act-desc-text" id="act-desc-' + a.id + '">Iniciando análisis...</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="log"></div>' +
+        '<div class="agent-handoff" id="handoff-' + a.id + '" hidden>' +
+          '<span class="handoff-arrow">➔</span>' +
+          '<span class="handoff-text" id="handoff-txt-' + a.id + '">Handoff: transfiriendo datos al siguiente agente...</span>' +
+        '</div>' +
+        '<button class="out-toggle" type="button" hidden aria-expanded="false">Ver resultado</button>' +
+        '<div class="out" hidden>' + a.out + '</div>' +
+      '</div>';
+
     pipe.appendChild(li);
     var tg = $(".out-toggle",li), out=$(".out",li);
     tg.addEventListener("click",function(){
@@ -1578,28 +2209,151 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   });
 
   function setAgent(a, state){
-    var li = $("#ag-"+a.id); li.dataset.state = state;
-    var st = $(".a-state",li);
-    if(state==="running"){st.textContent="Trabajando";st.className="a-state chip col"}
-    if(state==="done"){
-      st.textContent="Hecho";st.className="a-state chip ok";
-      $(".dot",li).textContent="✓";
-      var tg=$(".out-toggle",li); tg.hidden=false; tg.textContent="Ver resultado · "+a.summary;
+    var li = $("#ag-" + a.id);
+    if(!li) return;
+    li.dataset.state = state;
+    var st = $(".a-state", li);
+    var aIdx = AGENTS.indexOf(a);
+    var dotEl = $(".orch-step-dot[data-step='" + aIdx + "']");
+
+    if(state === "running"){
+      if(st){ st.textContent = "⚡ Trabajando"; st.className = "a-state chip col"; }
+      $(".dot", li).textContent = aIdx + 1;
+      if(dotEl){ dotEl.className = "orch-step-dot active"; }
+      $("#orchBeacon").className = "orch-beacon running";
+      $("#orchStatusText").textContent = "Orquestando: " + a.name + " (" + (aIdx + 1) + "/7)";
+      $("#orchActionPhase").textContent = "Fase " + (aIdx + 1) + " · " + a.name;
+      $("#orchActionLabel").textContent = "Ejecutando subagentes de " + a.name + "...";
+      try {
+        li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch(e){}
     }
-    if(state==="idle"){st.textContent="En espera";st.className="a-state chip";$(".log",li).innerHTML="";$(".out-toggle",li).hidden=true;$(".out",li).hidden=true;$(".dot",li).textContent=AGENTS.indexOf(a)+1}
+    if(state === "done"){
+      if(st){ st.textContent = "✓ Hecho"; st.className = "a-state chip ok"; }
+      $(".dot", li).textContent = "✓";
+      if(dotEl){ dotEl.className = "orch-step-dot done"; }
+      var actEl = $("#act-" + a.id);
+      if(actEl) actEl.hidden = true;
+      var tg = $(".out-toggle", li);
+      if(tg){ tg.hidden = false; tg.textContent = "Ver resultado · " + a.summary; }
+    }
+    if(state === "idle"){
+      if(st){ st.textContent = "En espera"; st.className = "a-state chip"; }
+      $(".dot", li).textContent = aIdx + 1;
+      if(dotEl){ dotEl.className = "orch-step-dot"; }
+      $(".log", li).innerHTML = "";
+      var actEl = $("#act-" + a.id);
+      if(actEl) actEl.hidden = true;
+      var hoEl = $("#handoff-" + a.id);
+      if(hoEl) hoEl.hidden = true;
+      var tg = $(".out-toggle", li); if(tg) tg.hidden = true;
+      var out = $(".out", li); if(out) out.hidden = true;
+      var cnt = $("#subcnt-" + a.id);
+      if(cnt) cnt.textContent = "0/" + (a.subagents ? a.subagents.length : 3) + " completados";
+      if(a.subagents){
+        a.subagents.forEach(function(s, sIdx){
+          var sp = $("#sub-" + a.id + "-" + sIdx);
+          if(sp){
+            sp.dataset.status = "pending";
+            var badge = $(".sub-state-badge", sp);
+            if(badge) badge.textContent = "En cola";
+          }
+        });
+      }
+    }
+  }
+
+  function setSubagentState(agent, subIdx, state, actionText){
+    var pill = $("#sub-" + agent.id + "-" + subIdx);
+    if(!pill) return;
+    pill.dataset.status = state;
+    var badge = $(".sub-state-badge", pill);
+    var sub = agent.subagents && agent.subagents[subIdx];
+    var subName = sub ? sub.name : ("Subagente " + (subIdx + 1));
+    var subIcon = sub ? sub.icon : "⚡";
+
+    if(state === "running"){
+      if(badge) badge.textContent = "⚡ Ejecutando";
+      var actEl = $("#act-" + agent.id);
+      if(actEl) actEl.hidden = false;
+      var tagEl = $("#act-tag-" + agent.id);
+      if(tagEl) tagEl.textContent = subIcon + " " + subName + ":";
+      var descEl = $("#act-desc-" + agent.id);
+      if(descEl) descEl.textContent = actionText || (sub ? sub.action : "Procesando tarea...");
+
+      $("#orchActionIcon").textContent = subIcon;
+      $("#orchActionPhase").textContent = agent.name + " › " + subName;
+      $("#orchActionLabel").textContent = actionText || (sub ? sub.action : "Ejecutando acción...");
+
+      var log = $(".log", $("#ag-" + agent.id));
+      if(log){
+        var elMs = Date.now() - t0;
+        var timeStr = "[" + fmt(elMs) + "." + Math.floor((elMs % 1000) / 100) + "]";
+        var div = document.createElement("div");
+        div.className = "log-entry";
+        div.innerHTML = '<span class="log-time">' + timeStr + '</span> ' +
+          '<span class="log-sub">' + subIcon + ' ' + h(subName) + ':</span> ' +
+          '<span class="log-msg">' + h(actionText || (sub ? sub.action : 'Ejecutando...')) + '</span>';
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+      }
+    } else if(state === "done"){
+      if(badge) badge.textContent = "✓ Hecho";
+      var completed = 0;
+      if(agent.subagents){
+        agent.subagents.forEach(function(s, idx){
+          var p = $("#sub-" + agent.id + "-" + idx);
+          if(p && p.dataset.status === "done") completed++;
+        });
+        var cnt = $("#subcnt-" + agent.id);
+        if(cnt) cnt.textContent = completed + "/" + agent.subagents.length + " completados";
+      }
+    }
+  }
+
+  async function animateAgentSubagents(agent, nextAgent){
+    setAgent(agent, "running");
+    var subs = agent.subagents || [];
+    for(var sIdx = 0; sIdx < subs.length; sIdx++){
+      if(!running) return;
+      var sub = subs[sIdx];
+      setSubagentState(agent, sIdx, "running", sub.action);
+      await new Promise(function(r){ timers.push(setTimeout(r, 440)); });
+      setSubagentState(agent, sIdx, "done");
+    }
+
+    setAgent(agent, "done");
+
+    if(nextAgent && running){
+      var ho = $("#handoff-" + agent.id);
+      var hoTxt = $("#handoff-txt-" + agent.id);
+      if(ho && hoTxt){
+        hoTxt.textContent = "Handoff: transfiriendo artefactos a " + nextAgent.name + "...";
+        ho.hidden = false;
+        $("#orchActionIcon").textContent = "🔄";
+        $("#orchActionPhase").textContent = "Handoff de artefactos";
+        $("#orchActionLabel").textContent = "Transfiriendo especificaciones de " + agent.name + " a " + nextAgent.name + "...";
+        await new Promise(function(r){ timers.push(setTimeout(r, 340)); });
+      }
+    }
   }
 
   // ---------- Run ----------
   var timers=[], running=false, t0=0, clockTimer=null;
   function clearAll(){timers.forEach(clearTimeout);timers=[];clearInterval(clockTimer)}
   function fmt(ms){var s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
-  var TOTAL = AGENTS.reduce(function(s,a){return s+a.dur},0);
-  // Simulated real-world duration shown on clock: scale demo seconds to ~minutes
   function reset(){
     clearAll(); running=false; rendered=false;
     AGENTS.forEach(function(a){setAgent(a,"idle")});
     $("#bar").style.width="0";$("#clock").textContent="00:00";
     $("#pipeState").textContent="En espera";$("#pipeState").className="chip";
+    $("#orchTelemetry").className="orch-telemetry";
+    $("#orchBeacon").className="orch-beacon";
+    $("#orchStatusText").textContent="Pipeline preparado · 7 agentes y 21 subagentes listos";
+    $("#orchActionIcon").textContent="🤖";
+    $("#orchActionPhase").textContent="Orquestación:";
+    $("#orchActionLabel").textContent="Pulsa «Lanzar agentes» para iniciar la orquestación y ver las acciones en tiempo real.";
+    $all(".orch-step-dot").forEach(function(d){ d.className="orch-step-dot"; });
     $("#deliverables").hidden=true;$("#emptyState").hidden=false;
   }
   function finish(){
@@ -1607,6 +2361,13 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     $("#bar").style.width="100%";
     $("#clock").textContent="06:42";
     $("#pipeState").textContent="Completado";$("#pipeState").className="chip ok";
+    $("#orchTelemetry").className="orch-telemetry done";
+    $("#orchBeacon").className="orch-beacon done";
+    $("#orchStatusText").textContent="✓ Orquestación completada · 7 agentes y 21 subagentes finalizaron el flujo";
+    $("#orchActionIcon").textContent="✅";
+    $("#orchActionPhase").textContent="Entrega finalizada";
+    $("#orchActionLabel").textContent="Flujo generado y validado con 100% de componentes y tokens de Uber Base DS.";
+    $all(".orch-step-dot").forEach(function(d){ d.className="orch-step-dot done"; });
     $("#runBtn").disabled=false;$("#runBtn").textContent="Volver a lanzar";
     $("#skipBtn").disabled=false;
 
@@ -1633,78 +2394,25 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     renderScreens();
     $("#emptyState").hidden=true;$("#deliverables").hidden=false;
   }
+
   async function run(){
     var info = getBriefInfo();
     reset(); running=true;
     $("#runBtn").disabled=true;$("#skipBtn").disabled=false;
     $("#pipeState").textContent="En curso";$("#pipeState").className="chip col";
+    $("#orchTelemetry").className="orch-telemetry running";
     t0=Date.now();
     clockTimer=setInterval(function(){
       var el=Date.now()-t0;
       $("#clock").textContent=fmt(el);
     },200);
 
+    // Si tiene conexión AI con servidor, lanzamos la llamada SSE en segundo plano
+    var serverAiPromise = null;
     if(hasServerAi){
-      // LLAMADA EN STREAMING SSE REAL AL BACKEND MULTI-AGENTE
-      setAgent(AGENTS[0], "running");
-      var log0 = $(".log", $("#ag-"+AGENTS[0].id));
-      log0.innerHTML = "<div>Conectando con agentes IA (Gemini 3.8 Flash)...</div><div>Enviando briefing estructurado</div>";
-
-      try{
-        var resp = await fetch("/api/llm/stream", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            key: info.key,
-            title: info.title,
-            priority: info.priority,
-            body: info.body
-          })
-        });
-
-        var res = null;
-        if(resp.ok && resp.body){
-          var reader = resp.body.getReader();
-          var decoder = new TextDecoder("utf-8");
-          var buffer = "";
-
-          while(true){
-            var chunk = await reader.read();
-            if(chunk.done) break;
-            buffer += decoder.decode(chunk.value, { stream: true });
-            var parts = buffer.split("\n\n");
-            buffer = parts.pop();
-
-            for(var pIdx = 0; pIdx < parts.length; pIdx++){
-              var block = parts[pIdx].trim();
-              if(!block) continue;
-              var evMatch = block.match(/event:\s*([^\n]+)/);
-              var dataMatch = block.match(/data:\s*([^\n]+)/);
-              if(evMatch && dataMatch){
-                var ev = evMatch[1].trim();
-                var evData = JSON.parse(dataMatch[1]);
-                if(ev === "agent_step"){
-                  var targetAgent = AGENTS.find(function(a){ return a.id === evData.id; });
-                  if(targetAgent){
-                    setAgent(targetAgent, evData.status || "running");
-                    var agLog = $(".log", $("#ag-" + targetAgent.id));
-                    if(agLog && evData.log){
-                      var dDiv = document.createElement("div");
-                      dDiv.textContent = evData.log;
-                      agLog.appendChild(dDiv);
-                    }
-                  }
-                } else if(ev === "result" && evData.ok){
-                  res = evData.result;
-                }
-              }
-            }
-          }
-        }
-
-        // Si el stream no devolvió result o falló, recurrir a /api/llm/generate
-        if(!res){
-          var fallbackResp = await fetch("/api/llm/generate", {
+      serverAiPromise = (async function(){
+        try {
+          var resp = await fetch("/api/llm/stream", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1714,87 +2422,131 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
               body: info.body
             })
           });
-          var fallbackData = await fallbackResp.json();
-          if(fallbackData && fallbackData.ok) res = fallbackData.result;
-        }
 
-        if(res){
-          var ags = res.agents || {};
-          // Actualizar secuencialmente cada agente con sus outputs reales
-          for(var i=0; i<AGENTS.length; i++){
-            var a = AGENTS[i];
-            var agData = ags[a.id] || {};
-            setAgent(a, "running");
-            var agLog2 = $(".log", $("#ag-"+a.id));
-            if(agLog2) agLog2.innerHTML = "";
-            var logs = Array.isArray(agData.logs) ? agData.logs : (a.logs || ["Procesado por agente"]);
-            logs.forEach(function(l){
-              var d = document.createElement("div"); d.textContent = l; if(agLog2) agLog2.appendChild(d);
+          var res = null;
+          if(resp.ok && resp.body){
+            var reader = resp.body.getReader();
+            var decoder = new TextDecoder("utf-8");
+            var buffer = "";
+
+            while(true){
+              var chunk = await reader.read();
+              if(chunk.done) break;
+              buffer += decoder.decode(chunk.value, { stream: true });
+              var parts = buffer.split("\n\n");
+              buffer = parts.pop();
+
+              for(var pIdx = 0; pIdx < parts.length; pIdx++){
+                var block = parts[pIdx].trim();
+                if(!block) continue;
+                var evMatch = block.match(/event:\s*([^\n]+)/);
+                var dataMatch = block.match(/data:\s*([^\n]+)/);
+                if(evMatch && dataMatch){
+                  var ev = evMatch[1].trim();
+                  var evData = JSON.parse(dataMatch[1]);
+                  if(ev === "agent_step"){
+                    var normId = evData.id === "context" ? "ctx" : (evData.id === "delivery" ? "deliver" : evData.id);
+                    var targetAgent = AGENTS.find(function(a){ return a.id === normId; });
+                    if(targetAgent && evData.log){
+                      var logEl = $(".log", $("#ag-" + targetAgent.id));
+                      if(logEl){
+                        var div = document.createElement("div");
+                        div.className = "log-entry";
+                        div.innerHTML = '<span class="log-time">[IA]</span> <span class="log-sub">' + h(evData.subagent || targetAgent.name) + ':</span> <span class="log-msg">' + h(evData.log) + '</span>';
+                        logEl.appendChild(div);
+                      }
+                    }
+                  } else if(ev === "result" && evData.ok){
+                    res = evData.result;
+                  }
+                }
+              }
+            }
+          }
+
+          if(!res){
+            var fallbackResp = await fetch("/api/llm/generate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                key: info.key,
+                title: info.title,
+                priority: info.priority,
+                body: info.body
+              })
             });
-            a.out = agData.out || a.out;
-            a.summary = agData.summary || a.summary;
-            var outEl = $(".out", $("#ag-"+a.id));
-            if(outEl) outEl.innerHTML = a.out;
-            await new Promise(function(r){ setTimeout(r, 120); });
-            setAgent(a, "done");
-            $("#bar").style.width = Math.round((i+1)/AGENTS.length * 100) + "%";
+            var fallbackData = await fallbackResp.json();
+            if(fallbackData && fallbackData.ok) res = fallbackData.result;
           }
 
-          var genDesign = Object.assign({}, DEFAULT_DESIGN, res.design || {});
-          if(Array.isArray(res.screens) && res.screens.length > 0){
-            genDesign.screens = res.screens;
-          }
-          versions = [{
-            n: 0,
-            design: genDesign,
-            summary: res.summary || ("Flujo generado para " + info.title),
-            request: "",
-            changes: []
-          }];
-          viewIdx = 0;
-          renderVersions();
-          renderViewer();
-          renderSuggest();
-
-          finish();
-          return;
+          return res;
+        } catch(err){
+          console.warn("Fallo en streaming SSE:", err);
+          return null;
         }
-      }catch(err){
-        console.warn("Fallo en streaming SSE, recurriendo a ejecución local", err);
+      })();
+    }
+
+    // Ejecución animada de los 7 agentes y sus 21 subagentes
+    for(var i = 0; i < AGENTS.length; i++){
+      if(!running) return;
+      var a = AGENTS[i];
+      var nextA = AGENTS[i + 1] || null;
+      await animateAgentSubagents(a, nextA);
+      $("#bar").style.width = Math.round(((i + 1) / AGENTS.length) * 100) + "%";
+    }
+
+    // Si se ejecutó IA en servidor, incorporar diseño generado
+    if(serverAiPromise){
+      $("#orchStatusText").textContent = "Consolidando entrega multi-agente con Gemini...";
+      $("#orchActionLabel").textContent = "Ensamblando diseño con Uber Base DS y validando accesibilidad...";
+      var aiRes = await serverAiPromise;
+      if(aiRes && running){
+        var genDesign = Object.assign({}, DEFAULT_DESIGN, aiRes.design || {});
+        if(Array.isArray(aiRes.screens) && aiRes.screens.length > 0){
+          genDesign.screens = aiRes.screens;
+        }
+        versions = [{
+          n: 0,
+          design: genDesign,
+          summary: aiRes.summary || ("Flujo generado para " + info.title),
+          request: "",
+          changes: []
+        }];
+        viewIdx = 0;
+        renderVersions();
+        renderViewer();
+        renderSuggest();
       }
     }
 
-    // Respaldo secuencial
-    prepareAgentsForBrief();
-    var at=0;
-    AGENTS.forEach(function(a,i){
-      timers.push(setTimeout(function(){setAgent(a,"running")},at));
-      var step=a.dur/(a.logs.length+1);
-      a.logs.forEach(function(line,j){
-        timers.push(setTimeout(function(){
-          var d=document.createElement("div");d.textContent=line;$(".log",$("#ag-"+a.id)).appendChild(d);
-        },at+step*(j+0.6)));
-      });
-      at+=a.dur;
-      timers.push(setTimeout(function(){
-        setAgent(a,"done");
-        $("#bar").style.width=Math.round((i+1)/AGENTS.length*100)+"%";
-        if(i===AGENTS.length-1) finish();
-      },at));
-    });
+    if(running){
+      finish();
+    }
   }
+
   function skip(){
     prepareAgentsForBrief();
     clearAll();
     AGENTS.forEach(function(a){
-      setAgent(a,"idle");
-      var log=$(".log",$("#ag-"+a.id));
-      a.logs.forEach(function(l){var d=document.createElement("div");d.textContent=l;log.appendChild(d)});
-      setAgent(a,"done");
+      setAgent(a, "idle");
+      var log = $(".log", $("#ag-" + a.id));
+      if(log) log.innerHTML = "";
+      if(a.subagents){
+        a.subagents.forEach(function(s, sIdx){
+          setSubagentState(a, sIdx, "done");
+          var div = document.createElement("div");
+          div.className = "log-entry";
+          div.innerHTML = '<span class="log-time">[00:00.0]</span> <span class="log-sub">' + s.icon + ' ' + h(s.name) + ':</span> <span class="log-msg">' + h(s.action) + '</span>';
+          if(log) log.appendChild(div);
+        });
+      }
+      setAgent(a, "done");
     });
     finish();
     $("#results").scrollIntoView({behavior:"smooth",block:"start"});
   }
+
   $("#runBtn").addEventListener("click",run);
   $("#skipBtn").addEventListener("click",skip);
 

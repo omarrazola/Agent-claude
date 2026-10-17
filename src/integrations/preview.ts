@@ -14,7 +14,7 @@ export async function writePreview(key: string, version: number, files: ScreenFi
   const safeKey = safe(key);
   const dir = path.join(config.paths.output, "previews", safeKey, `v${version}`);
   await mkdir(dir, { recursive: true });
-  await copyFile(path.join(config.paths.designSystem, "css", "albora.css"), path.join(dir, "albora.css"));
+  await copyFile(path.join(config.paths.designSystem, "css", "base.css"), path.join(dir, "base.css"));
 
   const names: string[] = [];
   for (const file of files) {
@@ -30,7 +30,7 @@ export async function writePreview(key: string, version: number, files: ScreenFi
   await writeFile(
     path.join(dir, "index.html"),
     `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<title>${key} · v${version}</title><link rel="stylesheet" href="albora.css"></head>` +
+      `<title>${key} · v${version} · Uber Base DS</title><link rel="stylesheet" href="base.css"></head>` +
       `<body class="al-page"><main class="al-sec"><h1 class="al-h">${key} · v${version}</h1><ul>${links}</ul></main></body></html>`,
   );
 

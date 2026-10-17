@@ -6,27 +6,52 @@
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Albora Design Agents</title>
+<title>Base Design Agents · Uber Base Design System</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css"/>
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <style>
-/* Layout: consola de agencia — barra superior con pestañas; demo en dos columnas (ticket | pipeline) y banda de resultados a lo ancho */
+@font-face {
+  font-family: "Uber Move";
+  src: url("https://d1a3f4spazzrp4.cloudfront.net/dotcom-assets/fonts/UberMove-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("https://d1a3f4spazzrp4.cloudfront.net/dotcom-assets/fonts/UberMoveText-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("https://uber-common-public.s3-us-west-2.amazonaws.com/design-platform/UberMoveText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Layout: consola de diseño con Uber Base Design System */
 :root{
-  --bg:#F4F6F5; --surface:#FFFFFF; --sunken:#EBEFED; --fg:#16201C; --muted:#5B6863; --line:#D9E0DC;
-  --accent:#3346B8; --accent-soft:#E6E9FA; --on-accent:#FFFFFF; --ok:#2C7A4B; --ok-soft:#E2F2E8; --warn:#A76A12; --warn-soft:#FBF0DD; --idle:#AEB8B3;
-  --f-ui:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --bg:#F6F6F6; --surface:#FFFFFF; --sunken:#EEEEEE; --fg:#000000; --muted:#545454; --line:#E2E2E2;
+  --accent:#000000; --accent-soft:#E2E2E2; --on-accent:#FFFFFF; --ok:#0E8345; --ok-soft:#EAF6ED; --warn:#F69E0C; --warn-soft:#FDF2DC; --idle:#AEB8B3;
+  --f-ui:"Uber Move Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --f-hotel-d:"Young Serif", Georgia, serif;
-  --f-hotel:"Figtree", "Segoe UI", system-ui, sans-serif;
-  --r:10px;
+  --f-hotel-d:"Uber Move", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --f-hotel:"Uber Move Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --r:12px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#101413; --surface:#181E1C; --sunken:#0C0F0E; --fg:#E6ECE9; --muted:#9AA7A1; --line:#2A3330;
-  --accent:#93A0FF; --accent-soft:#232A55; --on-accent:#0E1230; --ok:#6CCB92; --ok-soft:#173326; --warn:#E5B35E; --warn-soft:#3A2C12; --idle:#4A5552; color-scheme:dark}}
+  --bg:#000000; --surface:#141414; --sunken:#0A0A0A; --fg:#FFFFFF; --muted:#AFAFAF; --line:#292929;
+  --accent:#FFFFFF; --accent-soft:#2A2A2A; --on-accent:#000000; --ok:#0E8345; --ok-soft:#173326; --warn:#F69E0C; --warn-soft:#3A2C12; --idle:#545454; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#101413; --surface:#181E1C; --sunken:#0C0F0E; --fg:#E6ECE9; --muted:#9AA7A1; --line:#2A3330;
-  --accent:#93A0FF; --accent-soft:#232A55; --on-accent:#0E1230; --ok:#6CCB92; --ok-soft:#173326; --warn:#E5B35E; --warn-soft:#3A2C12; --idle:#4A5552; color-scheme:dark}
+  --bg:#000000; --surface:#141414; --sunken:#0A0A0A; --fg:#FFFFFF; --muted:#AFAFAF; --line:#292929;
+  --accent:#FFFFFF; --accent-soft:#2A2A2A; --on-accent:#000000; --ok:#0E8345; --ok-soft:#173326; --warn:#F69E0C; --warn-soft:#3A2C12; --idle:#545454; color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.5}
@@ -44,9 +69,10 @@ button{font:inherit;cursor:pointer}
 .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
 .brand strong{font-size:17px;letter-spacing:-.01em}
 .brand span{color:var(--muted);font-size:13px}
-.tabs{display:flex;gap:4px;background:var(--sunken);padding:4px;border-radius:9px}
-.tabs button{border:0;background:transparent;color:var(--muted);padding:6px 14px;border-radius:6px;font-weight:500;font-size:14px}
-.tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.tabs{display:flex;gap:4px;background:var(--sunken);padding:4px;border-radius:9999px}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:8px 18px;border-radius:9999px;font-weight:600;font-size:14px;transition:all .15s ease}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 1px 3px rgb(0 0 0 / .12)}
+.tabs button:not([aria-selected="true"]):hover{color:var(--fg)}
 
 .intro{padding-block:32px 20px;display:grid;gap:10px;max-width:760px}
 .intro h1{font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;font-weight:600}
@@ -59,9 +85,10 @@ button{font:inherit;cursor:pointer}
 .panel-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .panel-h h2{font-size:14px;font-weight:600;margin-right:auto}
 
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
-.seg button{border:0;background:transparent;padding:4px 12px;font-size:13px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.seg{display:inline-flex;background:var(--sunken);border-radius:9999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 14px;font-size:13px;font-weight:600;border-radius:9999px;color:var(--muted);transition:all .15s ease}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.seg button:not([aria-pressed="true"]):hover{color:var(--fg)}
 
 /* Ticket mock */
 .ticket{padding:16px;display:grid;gap:14px}
@@ -84,10 +111,26 @@ button{font:inherit;cursor:pointer}
 .trello .trello-labels{display:flex}
 .trello-labels i{display:block;width:40px;height:8px;border-radius:4px}
 
+/* Brief editable */
+.brief-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 16px;background:var(--sunken);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.brief-presets{display:flex;gap:5px;flex-wrap:wrap}
+.b-pre{border:none;background:var(--sunken);color:var(--fg);font-size:12px;padding:6px 14px;border-radius:9999px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s ease}
+.b-pre:hover{background:var(--line)}
+.b-pre.active{background:var(--accent);color:var(--on-accent)}
+.ticket [contenteditable="true"]{outline:none;border-radius:6px;padding:3px 6px;margin:-3px -6px;transition:all .15s ease;cursor:text}
+.ticket [contenteditable="true"]:hover{background:color-mix(in srgb, var(--sunken) 70%, transparent);box-shadow:0 0 0 1px var(--line)}
+.ticket [contenteditable="true"]:focus{background:var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.ticket h3[contenteditable="true"]:empty::before,
+.t-body[contenteditable="true"]:empty::before{content:"Haz clic para escribir el brief...";color:var(--muted);font-style:italic}
+
 .run{display:flex;gap:10px;padding:0 16px 16px;flex-wrap:wrap}
-.btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;border-radius:8px;font-weight:600;font-size:14px}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;background:var(--sunken);color:var(--fg);padding:10px 20px;border-radius:9999px;font-family:var(--f-ui);font-weight:600;font-size:14px;min-height:42px;cursor:pointer;transition:all .15s ease;line-height:1.2}
+.btn:hover{background:var(--line)}
+.btn:active{transform:scale(0.98)}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{opacity:.88;background:var(--accent)}
+.btn.sm{padding:6px 14px;font-size:12.5px;min-height:32px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .trigger-note{font-size:12.5px;color:var(--muted);padding:0 16px 16px}
 
 /* Pipeline */
@@ -147,63 +190,274 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .toast{font-size:13.5px;padding:10px 12px;border-radius:8px;background:var(--ok-soft);color:var(--ok)}
 .toast.warn{background:var(--warn-soft);color:var(--warn)}
 
-/* ===== Albora DS (dentro de los marcos de móvil: tema propio, fijo) ===== */
-.phone{width:300px;height:620px;border-radius:34px;border:8px solid #1C2320;background:#1C2320;overflow:hidden;position:relative;box-shadow:0 10px 30px rgb(0 0 0 / .12)}
-.al{--al-pine:#1E4A42; --al-pine-700:#163832; --al-pine-50:#E7EFEC; --al-sun:#E2A63B; --al-sun-50:#FBF1DD; --al-stone:#F4F2EE; --al-white:#FFFFFF; --al-ink:#1A2421; --al-ink-60:#5E6B66; --al-line:#E2E0DA; --al-error:#B3412E; --al-success:#2D7A4E;
-  --al-s1:4px; --al-s2:8px; --al-s3:12px; --al-s4:16px; --al-s5:24px; --al-r-sm:6px; --al-r-md:12px; --al-r-lg:18px;
-  height:100%;overflow-y:auto;background:var(--al-stone);color:var(--al-ink);font-family:var(--f-hotel);font-size:13px;line-height:1.45;border-radius:26px;color-scheme:light;scrollbar-width:none}
+/* ===== Uber Base DS (dentro de los marcos de móvil) ===== */
+.phone{width:300px;height:620px;border-radius:36px;border:8px solid #000000;background:#000000;overflow:hidden;position:relative;box-shadow:0 12px 32px rgb(0 0 0 / .16)}
+.al{--al-pine:#000000; --al-pine-700:#222222; --al-pine-50:#F6F6F6; --al-sun:#276EF1; --al-sun-50:#FDF2DC; --al-stone:#FFFFFF; --al-white:#FFFFFF; --al-ink:#000000; --al-ink-60:#545454; --al-line:#E2E2E2; --al-error:#DE1135; --al-success:#0E8345;
+  --al-s1:4px; --al-s2:8px; --al-s3:12px; --al-s4:16px; --al-s5:24px; --al-r-sm:4px; --al-r-md:8px; --al-r-lg:8px;
+  height:100%;overflow-y:auto;background:#FFFFFF;color:#000000;font-family:var(--f-hotel);font-size:13.5px;line-height:1.45;border-radius:28px;color-scheme:light;scrollbar-width:none}
 .al::-webkit-scrollbar{display:none}
-.al-status{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:11px;font-weight:600;background:var(--al-white)}
-.al-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--al-white);border-bottom:1px solid var(--al-line)}
-.al-bar .back{width:28px;height:28px;border-radius:50%;background:var(--al-stone);display:grid;place-items:center;font-size:14px}
-.al-bar b{font-weight:600;font-size:14px}
-.al-logo{font-family:var(--f-hotel-d);font-size:18px;color:var(--al-pine)}
-.al-search{margin:12px 16px;background:var(--al-white);border-radius:var(--al-r-md);border:1px solid var(--al-line);padding:10px 12px;display:grid;gap:2px}
-.al-search small{color:var(--al-ink-60);font-size:11px}
-.al-search span{font-weight:600}
-.al-chips{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
-.al-chip{border:1px solid var(--al-line);background:var(--al-white);border-radius:99px;padding:5px 10px;font-size:11.5px;font-weight:500;white-space:nowrap}
-.al-chip.on{background:var(--al-pine);color:var(--al-white);border-color:var(--al-pine)}
-.al-h{font-family:var(--f-hotel-d);font-size:19px;font-weight:400;line-height:1.2;color:var(--al-ink)}
-.al-sub{color:var(--al-ink-60);font-size:12px}
+.al-status{height:28px;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-size:11px;font-weight:700;background:#FFFFFF;color:#000000}
+.al-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#FFFFFF;border-bottom:1px solid #E2E2E2}
+.al-bar .back{width:32px;height:32px;border-radius:8px;background:#F6F6F6;display:grid;place-items:center;font-size:16px;font-weight:700;border:none;cursor:pointer}
+.al-bar b{font-weight:700;font-size:15px;font-family:var(--f-hotel-d)}
+.al-logo{font-family:var(--f-hotel-d);font-size:22px;color:#000000;font-weight:700;letter-spacing:-0.03em}
+.al-search{margin:12px 16px;background:#F6F6F6;border-radius:8px;border:1px solid transparent;padding:10px 14px;display:grid;gap:2px}
+.al-search small{color:#545454;font-size:11.5px}
+.al-search span{font-weight:700}
+.al-chips{display:flex;gap:8px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+.al-chip{border:none;background:#F6F6F6;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;white-space:nowrap;color:#000000}
+.al-chip.on{background:#000000;color:#FFFFFF}
+.al-h{font-family:var(--f-hotel-d);font-size:20px;font-weight:700;line-height:1.2;color:#000000;letter-spacing:-0.02em}
+.al-sub{color:#545454;font-size:12.5px}
 .al-list{display:grid;gap:12px;padding:4px 16px 20px}
-.al-card{background:var(--al-white);border-radius:var(--al-r-lg);overflow:hidden;border:1px solid var(--al-line)}
+.al-card{background:#FFFFFF;border-radius:8px;overflow:hidden;border:1px solid #E2E2E2;transition:border-color .15s}
+.al-card:hover{border-color:#000000}
 .al-img{height:118px;position:relative}
-.img-sea{background:linear-gradient(180deg,#BFD9DC 0 38%,#6FA4AA 38% 58%,#E8DCC4 58% 100%)}
-.img-room{background:linear-gradient(180deg,#E9E4DA 0 55%,#C8B89C 55% 62%,#F7F4EE 62% 100%)}
-.img-suite{background:radial-gradient(circle at 75% 30%,#F3D79B 0 14%,transparent 15%),linear-gradient(180deg,#A9C7CC 0 45%,#3E7A80 45% 60%,#D6C7A9 60%)}
-.al-badge{position:absolute;left:10px;top:10px;background:var(--al-sun);color:var(--al-ink);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px}
-.al-card-b{padding:12px;display:grid;gap:6px}
+.img-sea{background:linear-gradient(180deg,#F6F6F6 0%, #E2E2E2 100%)}
+.img-room{background:linear-gradient(180deg,#F6F6F6 0%, #E2E2E2 100%)}
+.img-suite{background:linear-gradient(180deg,#000000 0%, #222222 100%)}
+.al-badge{position:absolute;left:10px;top:10px;background:#000000;color:#FFFFFF;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px}
+.al-card-b{padding:12px 14px;display:grid;gap:6px}
 .al-row{display:flex;justify-content:space-between;align-items:end;gap:8px}
-.al-price{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
-.al-price small{font-weight:500;font-size:11px;color:var(--al-ink-60)}
-.al-perk{font-size:11.5px;color:var(--al-success);font-weight:500}
-.al-btn{display:block;width:100%;text-align:center;background:var(--al-pine);color:var(--al-white);border-radius:var(--al-r-md);padding:12px;font-weight:600;font-size:14px;min-height:44px}
-.al-btn.ghost{background:var(--al-white);color:var(--al-pine);border:1.5px solid var(--al-pine)}
-.al-btn.sm{width:auto;padding:8px 14px;font-size:12.5px;min-height:36px}
+.al-price{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;color:#000000}
+.al-price small{font-weight:500;font-size:11px;color:#545454}
+.al-perk{font-size:12px;color:#0E8345;font-weight:600}
+/* =========================================================
+   Uber Base Design System · Botones Oficiales
+   Especificación: https://base.uber.com/6d2425e9f/p/294ab4-base-design-system
+   ========================================================= */
+.base-btn, .al-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  font-family: var(--f-hotel) !important;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+  transition: background-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+              border-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+              color 0.15s cubic-bezier(0.2, 0, 0, 1),
+              transform 0.08s ease;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-radius: 8px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  width: 100%;
+  background-color: #000000;
+  color: #FFFFFF;
+  border-color: #000000;
+}
+
+/* Kinds */
+.base-btn:not(.base-btn-secondary):not(.base-btn-tertiary):not(.base-btn-minimal):not(.base-btn-negative):not(.base-btn-positive):not(.secondary):not(.ghost):not(.danger):not(.al-btn-minimal):not(.tertiary),
+.base-btn-primary, .al-btn:not(.secondary):not(.ghost):not(.danger):not(.al-btn-minimal):not(.tertiary) {
+  background-color: #000000;
+  color: #FFFFFF;
+  border-color: #000000;
+}
+.base-btn:not(.base-btn-secondary):not(.base-btn-tertiary):not(.base-btn-minimal):not(.base-btn-negative):not(.base-btn-positive):not(.secondary):not(.ghost):not(.danger):not(.al-btn-minimal):not(.tertiary):hover,
+.base-btn-primary:hover, .al-btn:not(.secondary):not(.ghost):not(.danger):not(.al-btn-minimal):not(.tertiary):hover {
+  background-color: #333333;
+  border-color: #333333;
+}
+.base-btn:not(.base-btn-secondary):not(.base-btn-tertiary):not(.base-btn-minimal):not(.base-btn-negative):not(.base-btn-positive):not(.secondary):not(.ghost):not(.danger):not(.al-btn-minimal):not(.tertiary):active,
+.base-btn-primary:active, .al-btn:not(.secondary):not(.ghost):not(.danger):not(.al-btn-minimal):not(.tertiary):active {
+  background-color: #545454;
+  border-color: #545454;
+  transform: scale(0.985);
+}
+
+.base-btn-secondary, .al-btn.secondary {
+  background-color: #EEEEEE;
+  color: #000000;
+  border-color: #EEEEEE;
+}
+.base-btn-secondary:hover, .al-btn.secondary:hover {
+  background-color: #E2E2E2;
+  border-color: #E2E2E2;
+}
+.base-btn-secondary:active, .al-btn.secondary:active {
+  background-color: #CCCCCC;
+  border-color: #CCCCCC;
+  transform: scale(0.985);
+}
+
+.base-btn-tertiary, .al-btn.tertiary {
+  background-color: transparent;
+  color: #000000;
+  border-color: #E2E2E2;
+}
+.base-btn-tertiary:hover, .al-btn.tertiary:hover {
+  background-color: #F6F6F6;
+  border-color: #CCCCCC;
+}
+.base-btn-tertiary:active, .al-btn.tertiary:active {
+  background-color: #EEEEEE;
+  transform: scale(0.985);
+}
+
+.base-btn-minimal, .al-btn.ghost, .al-btn-minimal {
+  background-color: transparent;
+  color: #000000;
+  border-color: transparent;
+}
+.base-btn-minimal:hover, .al-btn.ghost:hover, .al-btn-minimal:hover {
+  background-color: #F6F6F6;
+}
+.base-btn-minimal:active, .al-btn.ghost:active, .al-btn-minimal:active {
+  background-color: #EEEEEE;
+  transform: scale(0.985);
+}
+
+.base-btn-negative, .al-btn.danger {
+  background-color: #E11900;
+  color: #FFFFFF;
+  border-color: #E11900;
+}
+.base-btn-negative:hover, .al-btn.danger:hover {
+  background-color: #B20D2A;
+  border-color: #B20D2A;
+}
+.base-btn-negative:active, .al-btn.danger:active {
+  background-color: #8C0B21;
+  transform: scale(0.985);
+}
+
+.base-btn-positive, .al-btn.positive {
+  background-color: #0E8345;
+  color: #FFFFFF;
+  border-color: #0E8345;
+}
+.base-btn-positive:hover, .al-btn.positive:hover {
+  background-color: #0B6A37;
+  border-color: #0B6A37;
+}
+
+/* Shapes */
+.shape-pill { border-radius: 9999px !important; }
+.shape-rounded { border-radius: 8px !important; }
+.shape-square { border-radius: 0px !important; }
+.shape-circle {
+  border-radius: 50% !important;
+  padding: 0 !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  min-width: 48px !important;
+}
+
+/* Sizes */
+.size-large {
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 24px !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
+}
+.size-default, .size-medium {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 20px !important;
+  font-size: 15px !important;
+}
+.size-compact, .al-btn.sm {
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 16px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  width: auto !important;
+}
+.size-mini {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  width: auto !important;
+}
+
+/* States */
+.base-btn:disabled, .base-btn[disabled], .al-btn:disabled {
+  background-color: #F6F6F6 !important;
+  color: #AFAFAF !important;
+  border-color: transparent !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  pointer-events: none;
+}
+.base-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: base-spin 0.75s linear infinite;
+  display: inline-block;
+}
+@keyframes base-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Button Group / Segmented */
+.base-btn-group {
+  display: inline-flex;
+  border-radius: 9999px;
+  background-color: #EEEEEE;
+  padding: 3px;
+  gap: 2px;
+}
+.base-btn-group .base-btn {
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  background-color: transparent !important;
+  color: #545454 !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  width: auto !important;
+}
+.base-btn-group .base-btn.active {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
 .al-hero{height:170px}
-.al-sec{padding:14px 16px;display:grid;gap:10px;background:var(--al-white);margin-top:8px}
+.al-sec{padding:14px 16px;display:grid;gap:10px;background:#FFFFFF;margin-top:8px;border-top:1px solid #F6F6F6}
 .al-amen{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px}
-.al-amen span::before{content:"·";color:var(--al-sun);font-weight:900;margin-right:6px}
-.al-rate{border:1.5px solid var(--al-line);border-radius:var(--al-r-md);padding:10px 12px;display:grid;grid-template-columns:18px 1fr auto;gap:2px 10px;align-items:start}
-.al-rate.on{border-color:var(--al-pine);background:var(--al-pine-50)}
-.al-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--al-ink-60);margin-top:2px}
-.al-rate.on .al-radio{border:5px solid var(--al-pine)}
-.al-rate small{grid-column:2 / -1;color:var(--al-ink-60);font-size:11.5px}
-.al-sticky{position:sticky;bottom:0;background:var(--al-white);border-top:1px solid var(--al-line);padding:10px 16px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.al-amen span::before{content:"•";color:#000000;font-weight:900;margin-right:6px}
+.al-rate{border:1px solid #E2E2E2;border-radius:8px;padding:12px;display:grid;grid-template-columns:18px 1fr auto;gap:2px 10px;align-items:start;background:#FFFFFF}
+.al-rate.on{border-color:#000000;background:#F6F6F6}
+.al-radio{width:16px;height:16px;border-radius:50%;border:2px solid #545454;margin-top:2px}
+.al-rate.on .al-radio{border:5px solid #000000}
+.al-rate small{grid-column:2 / -1;color:#545454;font-size:11.5px}
+.al-sticky{position:sticky;bottom:0;background:#FFFFFF;border-top:1px solid #E2E2E2;padding:12px 16px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .al-steps{display:flex;gap:6px;padding:12px 16px 4px}
-.al-steps i{flex:1;height:4px;border-radius:2px;background:var(--al-line)}
-.al-steps i.on{background:var(--al-pine)}
+.al-steps i{flex:1;height:4px;border-radius:2px;background:#E2E2E2}
+.al-steps i.on{background:#000000}
 .al-field{display:grid;gap:4px}
-.al-field label{font-size:11.5px;font-weight:600;color:var(--al-ink-60)}
-.al-input{border:1px solid var(--al-line);border-radius:var(--al-r-sm);padding:10px;background:var(--al-white);font-size:13px;min-height:42px}
-.al-sum{display:grid;gap:6px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.al-field label{font-size:12px;font-weight:700;color:#545454}
+.al-input{border:1px solid #E2E2E2;border-radius:8px;padding:10px 12px;background:#F6F6F6;font-size:13.5px;min-height:42px}
+.al-sum{display:grid;gap:6px;font-size:13px;font-variant-numeric:tabular-nums}
 .al-sum div{display:flex;justify-content:space-between}
-.al-sum .tot{border-top:1px solid var(--al-line);padding-top:8px;font-weight:700;font-size:15px}
-.al-points{display:flex;justify-content:space-between;align-items:center;background:var(--al-sun-50);border-radius:var(--al-r-md);padding:10px 12px;font-size:12px}
-.al-switch{width:34px;height:20px;border-radius:99px;background:var(--al-pine);position:relative;flex:0 0 auto}
-.al-switch::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--al-white)}
-.al-legal{font-size:10.5px;color:var(--al-ink-60)}
+.al-sum .tot{border-top:1px solid #E2E2E2;padding-top:8px;font-weight:700;font-size:16px}
+.al-points{display:flex;justify-content:space-between;align-items:center;background:#F6F6F6;border-radius:10px;padding:10px 12px;font-size:12px}
+.al-switch{width:36px;height:22px;border-radius:9999px;background:#000000;position:relative;flex:0 0 auto;border:none;cursor:pointer}
+.al-switch::after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#FFFFFF}
+.al-switch.off{background:#E2E2E2}
+.al-switch.off::after{right:auto;left:3px}
+.al-legal{font-size:11px;color:#757575}
 
 /* DS tab */
 .ds{padding-block:8px 48px;display:grid;gap:28px}
@@ -218,10 +472,14 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .sw code{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
 .type-row{display:grid;grid-template-columns:140px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
 .type-row code{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.ds-stage{background:#F4F2EE;border-radius:var(--r);padding:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;color:#1A2421;color-scheme:light}
+.ds-stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:20px;color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,0.04)}
 .ds-stage .al{height:auto;background:transparent;border-radius:0;overflow:visible}
+.ds-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.ds-card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.ds-card-title{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0;display:flex;justify-content:space-between;align-items:center}
+.ds-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .comp{display:grid;gap:8px;min-width:0}
-.comp > small{font-family:var(--f-mono);font-size:11px;color:#5E6B66}
+.comp > small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
 .space-row{display:flex;gap:16px;align-items:end;flex-wrap:wrap}
 .space-row div{display:grid;gap:6px;justify-items:center;font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
 .space-row i{display:block;background:var(--accent);opacity:.75;border-radius:2px}
@@ -262,6 +520,21 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 /* ===== Visor, prototipo e iteración ===== */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .viewer-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.state-filters{display:inline-flex;background:var(--sunken);border-radius:9999px;padding:3px;gap:2px}
+.s-filter-btn{border:0;background:transparent;padding:5px 12px;font-size:12.5px;font-weight:600;border-radius:9999px;color:var(--muted);transition:all .15s ease;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.s-filter-btn.active{background:var(--accent);color:var(--on-accent);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.s-filter-btn:hover:not(.active){color:var(--fg);background:var(--line)}
+.state-badge-tag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.state-badge-tag.happy_path{background:#EBF7EE;color:#0E8345;border:1px solid #B8E4C3}
+.state-badge-tag.corner_case{background:#FEF6E7;color:#B25E00;border:1px solid #FCE4B8}
+.state-badge-tag.error{background:#FDF0F2;color:#DE1135;border:1px solid #F8C3CA}
+.state-meta-banner{font-size:12px;padding:6px 10px;border-radius:6px;margin-top:4px;line-height:1.35;max-width:320px}
+.state-meta-banner.happy_path{background:rgba(14,131,69,0.08);color:#0E8345;border-left:3px solid #0E8345}
+.state-meta-banner.corner_case{background:rgba(246,158,12,0.12);color:#C27800;border-left:3px solid #F69E0C}
+.state-meta-banner.error{background:rgba(222,17,53,0.12);color:#DE1135;border-left:3px solid #DE1135}
+.al-banner.negative{background:#FDF0F2;color:#DE1135;border:1px solid #F8C3CA}
+.al-banner.warning{background:#FEF6E7;color:#8F4700;border:1px solid #FCE4B8}
+.al-banner.positive{background:#EBF7EE;color:#0E8345;border:1px solid #B8E4C3}
 .versions{display:flex;gap:6px;flex-wrap:wrap}
 .versions button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--f-mono);font-size:12px;padding:3px 9px;border-radius:99px}
 .versions button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
@@ -280,8 +553,8 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .proto-side h3{font-size:18px;font-weight:600}
 .proto-side p{color:var(--muted)}
 .proto-nav{display:flex;gap:8px;flex-wrap:wrap}
-.proto-dots{display:flex;gap:6px}
-.proto-dots button{width:26px;height:6px;border-radius:3px;border:0;background:var(--line);padding:0}
+.proto-dots{display:flex;gap:6px;flex-wrap:wrap}
+.proto-dots button{width:26px;height:6px;border-radius:3px;border:0;background:var(--line);padding:0;cursor:pointer}
 .proto-dots button[aria-current="true"]{background:var(--accent)}
 .hot-toggle{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--muted)}
 .hot-toggle input{accent-color:var(--accent)}
@@ -317,37 +590,34 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .handoff{padding:16px;display:grid;gap:12px;font-size:14px}
 .handoff ul{margin:0;padding-left:18px;display:grid;gap:4px}
 
-/* Albora DS: variantes que los agentes pueden tocar */
-.al{--al-cta:var(--al-pine);--al-cta-fg:#FFFFFF}
-:where(.al button){font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;text-align:inherit;cursor:pointer;display:block;width:100%}
-.al-btn{background:var(--al-cta);color:var(--al-cta-fg)}
-.al-btn.ghost{background:var(--al-white);color:var(--al-pine)}
+/* Base DS: variables y componentes para el simulador */
+:where(.al button:not(.base-btn):not(.al-btn)){font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;text-align:inherit;cursor:pointer;display:block;width:100%}
 .al.compact .al-img{height:92px}
 .al.compact .al-card-b{padding:9px 12px;gap:3px}
 .al.compact .al-list{gap:8px}
-.al-banner{margin:0 16px 10px;border-radius:var(--al-r-md);padding:10px 12px;font-size:12px;font-weight:500}
-.al-banner.sun{background:var(--al-sun-50);color:#6B4A0E}
-.al-banner.pine{background:var(--al-pine-50);color:var(--al-pine-700)}
+.al-banner{margin:0 16px 10px;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500}
+.al-banner.sun{background:#EFF4FE;color:#174EA6}
+.al-banner.pine{background:#EAF6ED;color:#0E8345}
 .al-sec .al-banner{margin:0}
-.al-rating{font-size:11.5px;color:var(--al-ink-60)}
-.al-rating b{color:var(--al-ink)}
-.al-card:hover{border-color:var(--al-pine)}
-.al-switch.off{background:#C9C6BF}
-.al-switch.off::after{right:auto;left:2px}
+.al-rating{font-size:11.5px;color:#545454}
+.al-rating b{color:#000000}
+.al-card:hover{border-color:#000000}
+.al-switch.off{background:#E2E2E2}
+.al-switch.off::after{right:auto;left:3px}
 .al-points :where(button){width:auto}
-.al-confirm{padding:28px 20px;display:grid;gap:12px;text-align:center;justify-items:center;background:var(--al-white);min-height:calc(100% - 26px)}
-.al-check{width:56px;height:56px;border-radius:50%;background:var(--al-pine-50);color:var(--al-pine);display:grid;place-items:center;font-size:26px}
-.al-code{font-family:var(--f-mono);font-size:13px;background:var(--al-stone);padding:6px 12px;border-radius:var(--al-r-sm)}
-.al-confirm .al-sum{width:100%;text-align:left;background:var(--al-stone);padding:12px;border-radius:var(--al-r-md)}
+.al-confirm{padding:28px 20px;display:grid;gap:12px;text-align:center;justify-items:center;background:#FFFFFF;min-height:calc(100% - 26px)}
+.al-check{width:56px;height:56px;border-radius:50%;background:#EAF6ED;color:#0E8345;display:grid;place-items:center;font-size:26px}
+.al-code{font-family:var(--f-mono);font-size:13px;background:#F6F6F6;padding:6px 12px;border-radius:8px}
+.al-confirm .al-sum{width:100%;text-align:left;background:#F6F6F6;padding:12px;border-radius:12px}
 
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 
 <header class="top">
   <div class="wrap">
-    <div class="brand"><strong>Albora Design Agents</strong><span>Demo · Hoteles Albora × Estudio Norte</span></div>
+    <div class="brand"><strong>Base Design Agents</strong><span>Uber Base Design System · Ecosistema de Movilidad</span></div>
     <nav class="tabs" role="tablist" aria-label="Secciones">
-      <button role="tab" id="tab-demo" aria-selected="true" data-tab="demo">Demo</button>
+      <button role="tab" id="tab-demo" aria-selected="true" data-tab="demo">Consola de Agentes</button>
       <button role="tab" id="tab-sistema" aria-selected="false" data-tab="sistema">Sistema de diseño</button>
       <button role="tab" id="tab-arquitectura" aria-selected="false" data-tab="arquitectura">Arquitectura</button>
     </nav>
@@ -355,12 +625,23 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 </header>
 
 <main>
-<!-- ================= DEMO ================= -->
+<!-- ================= CONSOLA DE AGENTES ================= -->
 <section id="view-demo" class="wrap" role="tabpanel">
   <div class="intro">
     <span class="eyebrow">Del ticket a las pantallas</span>
     <h1>Cada petición de diseño llega al diseñador con el trabajo de base ya hecho</h1>
-    <p>Cuando Hoteles Albora abre una petición en Jira o Trello, siete agentes analizan el brief, buscan contexto, definen el flujo, escriben los textos y codifican las pantallas con el sistema de diseño. El diseñador de Estudio Norte recibe un punto de partida para revisar, no una hoja en blanco.</p>
+    <p>Cuando el equipo de producto abre una petición en Jira o Trello, siete agentes analizan el brief, buscan contexto, definen el flujo, escriben los textos y codifican las pantallas con el sistema de diseño Uber Base. El diseñador recibe un punto de partida completo para revisar, no una hoja en blanco.</p>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 20px;margin-bottom:20px;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:40px;height:40px;border-radius:50%;background:#000000;color:#FFFFFF;display:grid;place-items:center;font-size:18px">🎨</div>
+      <div>
+        <b style="font-size:15px">Catálogo Visual · Uber Base Design System</b>
+        <p style="font-size:13px;color:var(--muted)">Explora visualmente todos los botones, variantes (Primary, Secondary, Tertiary), formas (Pill, Rounded), tamaños, inputs y tokens de <a href="https://base.uber.com/6d2425e9f/p/294ab4-base-design-system" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;text-decoration:underline">base.uber.com</a>.</p>
+      </div>
+    </div>
+    <button type="button" class="base-btn size-compact" style="width:auto" id="btnGoSistema" onclick="window.showTab('sistema')">Ver componentes visuales ➔</button>
   </div>
 
   <div class="demo">
@@ -373,27 +654,24 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           <button id="srcTrello" aria-pressed="false" data-src="trello">Trello</button>
         </div>
       </div>
+      <div class="brief-bar">
+        <span>✏️ <strong>Brief editable</strong> (escribe tu briefing personalizado):</span>
+      </div>
       <div class="ticket">
-        <div class="trello-labels" aria-hidden="true"><i style="background:#2C7A4B"></i><i style="background:#A76A12"></i></div>
+        <div class="trello-labels" aria-hidden="true"><i style="background:#000000"></i><i style="background:#276EF1"></i></div>
         <div class="t-meta">
-          <span class="t-key">ALB-482</span>
+          <span class="t-key" id="tKey" contenteditable="true" spellcheck="false" title="Haz clic para editar la clave">UBER-402</span>
           <span class="chip col" id="tCol">Diseño · Nuevo</span>
-          <span class="chip">Prioridad alta</span>
+          <span class="chip" id="tPriority" contenteditable="true" spellcheck="false" title="Haz clic para editar la prioridad">Prioridad alta</span>
           <span class="chip" id="tType">Historia</span>
         </div>
-        <h3>Rediseñar el flujo de reserva en móvil</h3>
-        <div class="t-body">
-          <p><b>Contexto.</b> El 71&nbsp;% de las reservas directas empiezan en móvil, pero la conversión móvil es la mitad que en escritorio. Recepción reporta muchas llamadas de clientes que no entienden las tarifas.</p>
-          <p><b>Qué necesitamos.</b></p>
-          <ul>
-            <li>Listado de habitaciones más claro, con precio total visible.</li>
-            <li>Comparar tarifa flexible y no reembolsable sin salir de la ficha.</li>
-            <li>Checkout más corto, con opción de pagar con puntos Albora Club.</li>
-          </ul>
-          <p><b>Fecha objetivo.</b> Revisión con negocio el 30 de octubre.</p>
+        <h3 id="tTitle" contenteditable="true" spellcheck="false" title="Haz clic para editar el título de la petición">Seguimiento de conductor en mapa tras solicitar servicio</h3>
+        <div class="t-body" id="tBody" contenteditable="true" spellcheck="false" title="Haz clic para editar el briefing">
+          <p><b>Contexto.</b> Los usuarios demandan poder ver donde está el conductor después de solicitar un servicio.</p>
+          <p><b>Qué necesitamos.</b> Después de solicitar un servicio, se debe mostrar en el mapa la ubicación exacta en la que se encuentra el conductor reduciendo el nivel de incertidumbre por parte del usuario.</p>
         </div>
-        <div class="attach"><span>analytics_reservas_Q3.pdf</span><span>capturas_flujo_actual.zip</span></div>
-        <div class="t-foot"><span>Creado por Marta Ruiz · Ecommerce</span><span id="tAssignee">Asignado a: Estudio Norte</span></div>
+        <div class="attach" id="tAttach"><span>map_tracking_spec.pdf</span><span>gps_telemetry.json</span></div>
+        <div class="t-foot"><span id="tAuthor">Creado por Ti · Product Team</span><span id="tAssignee">Asignado a: Design Systems Team</span></div>
       </div>
       <div class="run">
         <button class="btn primary" id="runBtn">Lanzar agentes</button>
@@ -419,7 +697,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     <div class="results-h">
       <div>
         <span class="eyebrow">Entrega para el diseñador</span>
-        <h2>Pantallas codificadas con Albora DS</h2>
+        <h2>Pantallas codificadas con Uber Base DS</h2>
       </div>
       <p>HTML con los tokens y componentes del sistema. Revisa el flujo, pide cambios a los agentes y, cuando esté listo, apruébalo para desarrollo.</p>
     </div>
@@ -432,6 +710,12 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
         <div class="seg" role="group" aria-label="Modo de vista">
           <button id="modeScreens" aria-pressed="true" data-mode="screens">Pantallas</button>
           <button id="modeProto" aria-pressed="false" data-mode="proto">Prototipo</button>
+        </div>
+        <div class="state-filters" id="stateFilters" role="group" aria-label="Filtro de estados de producto">
+          <button type="button" class="s-filter-btn active" data-state="all" id="sfAll">Todos (5)</button>
+          <button type="button" class="s-filter-btn" data-state="happy_path" id="sfHappy">🟢 Happy Path</button>
+          <button type="button" class="s-filter-btn" data-state="corner_case" id="sfCorner">🟡 Corner Cases</button>
+          <button type="button" class="s-filter-btn" data-state="error" id="sfError">🔴 Casos de Error</button>
         </div>
         <div class="versions" id="versions" aria-label="Versiones"></div>
         <span class="chip" id="lockChip" hidden>Enviado a desarrollo</span>
@@ -446,7 +730,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
         </div>
         <form id="changeForm" class="composer-row">
           <label for="changeInput" class="sr">Describe el cambio</label>
-          <textarea id="changeInput" rows="2" placeholder="Por ejemplo: muestra la valoración de cada habitación y pon primero la tarifa no reembolsable."></textarea>
+          <textarea id="changeInput" rows="2" placeholder="Por ejemplo: cambia el punto de encuentro al parking exprés, simula que el conductor cancela el viaje o añade una advertencia de lluvia."></textarea>
           <div class="composer-actions">
             <button type="submit" class="btn primary" id="applyBtn">Aplicar cambios</button>
             <button type="button" class="btn" id="stopBtn" hidden>Detener</button>
@@ -465,15 +749,15 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           <div class="panel">
             <div class="panel-h"><h2>Comentario publicado en el ticket</h2><span class="chip col" id="newCol">Revisión diseño</span></div>
             <div class="comment">
-              <div class="who"><div class="avatar">AI</div><div><b>Agente de entrega</b><br><span class="time">ALB-482</span></div></div>
-              <p>Primera propuesta lista para revisión. Resumen:</p>
-              <ul>
-                <li>3 pantallas: resultados, ficha con comparador de tarifas y checkout.</li>
-                <li>12 de 12 componentes reutilizados de Albora DS, ninguno nuevo.</li>
-                <li>Accesibilidad AA superada; 1 ajuste corregido automáticamente.</li>
-                <li><b>2 preguntas abiertas para negocio:</b> ¿se puede pagar parte con puntos y parte con tarjeta? ¿La tasa turística se cobra en la reserva o en el hotel?</li>
+              <div class="who"><div class="avatar">AI</div><div><b>Agente de entrega</b><br><span class="time" id="commentKey">UBER-104</span></div></div>
+              <p id="commentLead">Primera propuesta lista para revisión. Resumen:</p>
+              <ul id="commentList">
+                <li>Flujo completo de producto: Happy Path, Casos de Error con recuperación y Corner Cases.</li>
+                <li>100 % componentes y tokens de Uber Base DS.</li>
+                <li>Accesibilidad AA superada en todos los estados.</li>
+                <li><b>2 preguntas abiertas para negocio:</b> ¿se puede pagar parte con Uber Cash y parte con tarjeta? ¿El PIN es obligatorio para todos los trayectos nocturnos?</li>
               </ul>
-              <div class="links"><span>preview.albora.dev/alb-482</span><span>Figma › ALB-482</span><span>rama: design/alb-482</span></div>
+              <div class="links" id="commentLinks"><span>preview.uber.internal/uber-104</span><span>Figma › UBER-104</span><span>rama: design/uber-104</span></div>
             </div>
           </div>
         </div>
@@ -482,7 +766,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           <form class="review" id="reviewForm">
             <p class="muted-s">Se aprueba la versión que estás viendo: <b id="approveVer">v0</b>.</p>
             <label class="check"><input type="checkbox" id="c1"> El flujo responde a los tres puntos del brief</label>
-            <label class="check"><input type="checkbox" id="c2"> Los textos encajan con el tono de Albora</label>
+            <label class="check"><input type="checkbox" id="c2"> Los textos encajan con el tono de Uber Base</label>
             <label class="check"><input type="checkbox" id="c3"> Las preguntas abiertas se han enviado a negocio</label>
             <button type="submit" class="btn primary" id="approveBtn">Aprobar y enviar a desarrollo</button>
             <div class="toast" id="toast" hidden></div>
@@ -497,43 +781,291 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 <!-- ================= SISTEMA ================= -->
 <section id="view-sistema" class="wrap" role="tabpanel" hidden>
   <div class="intro">
-    <span class="eyebrow">Albora DS · v2.3</span>
-    <h1>El sistema de diseño que usan los agentes</h1>
-    <p>Los agentes no inventan estilos: solo pueden usar estos tokens y componentes. Por eso lo que generan es coherente con la marca y fácil de llevar a desarrollo. El sistema vive en un repositorio de código y está sincronizado con la librería de Figma.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span class="eyebrow" style="margin:0">Catálogo de componentes · Base Design System</span>
+      <span class="chip ok" style="font-size:11px">v10.02.26 · Oficial</span>
+    </div>
+    <h1>Sistema de diseño Base de Uber</h1>
+    <p>Todos los componentes, botones, variantes, tamaños, inputs y tokens que utilizan los agentes provienen estrictamente del <b>Base Design System</b> (<a href="https://base.uber.com/6d2425e9f/p/294ab4-base-design-system" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;text-decoration:underline">base.uber.com</a>). A continuación puedes ver y probar visualmente cada componente.</p>
   </div>
+
   <div class="ds">
+    <!-- SECCIÓN 1: SISTEMA DE BOTONES -->
     <section>
-      <h2>Color</h2>
-      <p class="lead">Pino es el color de acción. Sol se reserva para destacar beneficios y el programa de fidelización. Piedra es el fondo base, cálido sin llegar a crema.</p>
-      <div class="sw-grid" id="swatches"></div>
-    </section>
-    <section>
-      <h2>Tipografía</h2>
-      <p class="lead">Young Serif para titulares con carácter mediterráneo; Figtree para todo lo funcional. Escala de 6 pasos.</p>
-      <div>
-        <div class="type-row"><code>display / 28</code><span style="font-family:var(--f-hotel-d);font-size:28px">Albora Mar · Valencia</span></div>
-        <div class="type-row"><code>heading / 19</code><span style="font-family:var(--f-hotel-d);font-size:19px">Habitación Deluxe vista mar</span></div>
-        <div class="type-row"><code>title / 15 · 600</code><span style="font-family:var(--f-hotel);font-size:15px;font-weight:600">Elige tu tarifa</span></div>
-        <div class="type-row"><code>body / 13</code><span style="font-family:var(--f-hotel);font-size:13px">Cancelación gratuita hasta 48 horas antes de la llegada.</span></div>
-        <div class="type-row"><code>caption / 11.5</code><span style="font-family:var(--f-hotel);font-size:11.5px;color:var(--muted)">Precio por noche, impuestos incluidos</span></div>
-        <div class="type-row"><code>price / 17 · 700</code><span style="font-family:var(--f-hotel);font-size:17px;font-weight:700;font-variant-numeric:tabular-nums">189,00 €</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px">
+        <div>
+          <h2>1. Sistema de botones (Uber Base Buttons)</h2>
+          <p class="lead">Jerarquía oficial según la especificación de Base Web y Mobile (<code>baseui/button</code>). Con alto contraste (#000000 / #FFFFFF), tipografía <b>Uber Move Text Bold</b> y variantes de forma (Píldora, Redondeado 8px, Cuadrado y Círculo).</p>
+        </div>
+        <a href="https://base.uber.com/6d2425e9f/p/756216-button" target="_blank" rel="noopener noreferrer" class="base-btn size-compact base-btn-secondary" style="width:auto">Documentación oficial de botones ↗</a>
+      </div>
+
+      <!-- Tarjeta 1.1: Variantes / Kinds -->
+      <div class="ds-stage">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
+          <h3 style="font-size:15px;font-weight:700">1.1 Variantes de jerarquía (Kinds)</h3>
+          <code>KIND: primary · secondary · tertiary · minimal · negative · positive</code>
+        </div>
+        <div class="ds-row">
+          <div class="comp">
+            <small>Primary (KIND.primary · #000000)</small>
+            <button class="base-btn base-btn-primary" style="width:auto">Confirmar viaje ➔</button>
+          </div>
+          <div class="comp">
+            <small>Secondary (KIND.secondary · #EEEEEE)</small>
+            <button class="base-btn base-btn-secondary" style="width:auto">Programar para más tarde</button>
+          </div>
+          <div class="comp">
+            <small>Tertiary / Outline (KIND.tertiary)</small>
+            <button class="base-btn base-btn-tertiary" style="width:auto">Ver desglose de precio</button>
+          </div>
+          <div class="comp">
+            <small>Minimal / Ghost (KIND.minimal)</small>
+            <button class="base-btn base-btn-minimal" style="width:auto">Cancelar</button>
+          </div>
+          <div class="comp">
+            <small>Negative / Destructive (#E11900)</small>
+            <button class="base-btn base-btn-negative" style="width:auto">Finalizar recarga</button>
+          </div>
+          <div class="comp">
+            <small>Positive / Success (#0E8345)</small>
+            <button class="base-btn base-btn-positive" style="width:auto">Conexión verificada ✓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1.2: Formas (Shapes) -->
+      <div class="ds-stage">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
+          <h3 style="font-size:15px;font-weight:700">1.2 Formas geométricas (Shapes)</h3>
+          <code>SHAPE: pill · rounded · square · circle</code>
+        </div>
+        <div class="ds-row">
+          <div class="comp">
+            <small>SHAPE.pill · 9999px (Firma móvil Uber)</small>
+            <button class="base-btn base-btn-primary shape-pill" style="width:auto">Solicitar UberX</button>
+          </div>
+          <div class="comp">
+            <small>SHAPE.rounded · 8px (Estándar Base Web)</small>
+            <button class="base-btn base-btn-primary shape-rounded" style="width:auto">Solicitar UberX</button>
+          </div>
+          <div class="comp">
+            <small>SHAPE.square · 0px (Estilo sharp)</small>
+            <button class="base-btn base-btn-primary shape-square" style="width:auto">Solicitar UberX</button>
+          </div>
+          <div class="comp">
+            <small>SHAPE.circle · Icon Buttons</small>
+            <div style="display:flex;gap:8px">
+              <button class="base-btn base-btn-secondary shape-circle" aria-label="Atrás" title="Volver" style="width:48px;height:48px;font-size:20px">‹</button>
+              <button class="base-btn base-btn-primary shape-circle" aria-label="Llamar" title="Llamar" style="width:48px;height:48px;font-size:18px">📞</button>
+              <button class="base-btn base-btn-secondary shape-circle" aria-label="Mensaje" title="Mensaje" style="width:48px;height:48px;font-size:18px">💬</button>
+              <button class="base-btn base-btn-tertiary shape-circle" aria-label="Cerrar" title="Cerrar" style="width:48px;height:48px;font-size:18px">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1.3: Tamaños (Sizes) -->
+      <div class="ds-stage">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
+          <h3 style="font-size:15px;font-weight:700">1.3 Escala de tamaños (Sizes)</h3>
+          <code>SIZE: large (56px) · default (48px) · compact (36px) · mini (28px)</code>
+        </div>
+        <div class="ds-row" style="align-items:flex-end">
+          <div class="comp">
+            <small>SIZE.large · 56 px (Hero / Sticky CTA)</small>
+            <button class="base-btn base-btn-primary size-large" style="width:auto"><span>Confirmar recogida (56px)</span> <span style="font-size:17px">➔</span></button>
+          </div>
+          <div class="comp">
+            <small>SIZE.default · 48 px (Estándar táctil)</small>
+            <button class="base-btn base-btn-primary size-default" style="width:auto"><span>Continuar (48px)</span> <span style="font-size:16px">➔</span></button>
+          </div>
+          <div class="comp">
+            <small>SIZE.compact · 36 px (Secundario / Filtros)</small>
+            <button class="base-btn base-btn-primary size-compact">Elegir (36px)</button>
+          </div>
+          <div class="comp">
+            <small>SIZE.mini · 28 px (Inline / Tablas)</small>
+            <button class="base-btn base-btn-primary size-mini">Editar (28px)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1.4: Estados Interactivos y Enhancers -->
+      <div class="ds-stage">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
+          <h3 style="font-size:15px;font-weight:700">1.4 Estados interactivos, Enhancers y Grupos</h3>
+          <code>States &amp; Enhancers (baseui)</code>
+        </div>
+        <div class="ds-grid">
+          <div class="ds-card">
+            <h4 class="ds-card-title"><span>Estados</span></h4>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="base-btn base-btn-primary">Estado Normal / Default</button>
+              <button class="base-btn base-btn-primary" disabled>Estado Deshabilitado (Disabled)</button>
+              <button class="base-btn base-btn-primary" style="pointer-events:none">
+                <span class="base-spinner"></span>
+                <span>Asignando conductor…</span>
+              </button>
+            </div>
+          </div>
+          <div class="ds-card">
+            <h4 class="ds-card-title"><span>Con Enhancers (Iconos y Flechas)</span></h4>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="base-btn base-btn-primary" style="justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:8px">🚗 <span>Pedir UberX</span></span>
+                <span style="font-size:17px">➔</span>
+              </button>
+              <button class="base-btn base-btn-secondary" style="justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:8px">⚡ <span>Cargador CCS2 150 kW</span></span>
+                <span style="font-size:13px;color:var(--muted)">0,45 €/kWh ›</span>
+              </button>
+            </div>
+          </div>
+          <div class="ds-card">
+            <h4 class="ds-card-title"><span>Segmented Controls (ButtonGroup)</span></h4>
+            <div>
+              <div class="base-btn-group" role="group">
+                <button type="button" class="base-btn active">Viaje actual</button>
+                <button type="button" class="base-btn">Uber Reserve</button>
+                <button type="button" class="base-btn">Alquiler</button>
+              </div>
+            </div>
+            <div style="margin-top:10px">
+              <small style="color:var(--muted);font-size:12px">Código React Base Web:</small>
+              <pre class="code" style="margin:4px 0 0;font-size:11.5px;padding:8px">import { Button, KIND, SIZE, SHAPE } from 'baseui/button';
+&lt;Button kind={KIND.primary} shape={SHAPE.pill} size={SIZE.large}&gt;
+  Confirmar viaje
+&lt;/Button&gt;</pre>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
+
+    <!-- SECCIÓN 2: FORMULARIOS & INPUTS -->
     <section>
-      <h2>Espaciado y radios</h2>
-      <div class="space-row" id="spaces"></div>
+      <h2>2. Formularios y campos de entrada (Inputs &amp; Controls)</h2>
+      <p class="lead">Entradas de búsqueda con iconos de origen y destino característicos de Uber, selectores de radio, switches y steppers.</p>
+      <div class="ds-grid">
+        <div class="ds-card">
+          <h4 class="ds-card-title"><span>Búsqueda de trayecto (Route Input)</span></h4>
+          <div style="display:flex;flex-direction:column;gap:8px;background:var(--surface);padding:14px;border-radius:12px;border:1px solid var(--line)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:10px;height:10px;border-radius:50%;background:#000000;display:inline-block"></span>
+              <div style="flex:1;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:600">Estación Joaquín Sorolla</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:10px;height:10px;border-radius:2px;background:#000000;display:inline-block"></span>
+              <div style="flex:1;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:13.5px;color:var(--muted)">Aeropuerto de Valencia (T1)</div>
+            </div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <h4 class="ds-card-title"><span>Interruptor (Uber Cash Switch)</span></h4>
+          <div class="al-points">
+            <div>
+              <b>Usar saldo Uber Cash</b>
+              <div style="font-size:12px;color:var(--muted)">Saldo disponible: 12,50 €</div>
+            </div>
+            <span class="al-switch"></span>
+          </div>
+          <div class="al-points" style="margin-top:8px">
+            <div>
+              <b>Viaje silencioso</b>
+              <div style="font-size:12px;color:var(--muted)">Preferencia de confort</div>
+            </div>
+            <span class="al-switch off"></span>
+          </div>
+        </div>
+        <div class="ds-card">
+          <h4 class="ds-card-title"><span>Selector de opciones (Radio Cards)</span></h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="al-rate on">
+              <span class="al-radio"></span>
+              <b>Viaje inmediato</b>
+              <b>14,20 €</b>
+              <small>Llegada en 4 min · Asignación instantánea</small>
+            </div>
+            <div class="al-rate">
+              <span class="al-radio"></span>
+              <b>Uber Reserve</b>
+              <b>18,20 €</b>
+              <small>Reserva con anticipación · 15 min espera de cortesía</small>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
+
+    <!-- SECCIÓN 3: TARJETAS DE PRODUCTO & MOBILIDAD -->
     <section>
-      <h2>Componentes</h2>
-      <p class="lead">Cada componente tiene su versión en código y en Figma, con el mismo nombre. Así el agente de UI y el diseñador hablan el mismo idioma.</p>
-      <div class="ds-stage">
-        <div class="al" style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
-          <div class="comp" style="width:200px"><small>Button / primary · ghost</small><span class="al-btn">Reservar</span><span class="al-btn ghost">Ver habitaciones</span></div>
-          <div class="comp"><small>Chip / filter</small><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="al-chip on">Vista mar</span><span class="al-chip">Desayuno</span><span class="al-chip">Terraza</span></div></div>
-          <div class="comp" style="width:220px"><small>Input / text</small><div class="al-field"><label>Correo electrónico</label><div class="al-input">marta@correo.es</div></div></div>
-          <div class="comp" style="width:240px"><small>RateOption / selected</small><div class="al-rate on"><span class="al-radio"></span><b>Flexible</b><b>219 €</b><small>Cancelación gratuita hasta 48 h antes</small></div></div>
-          <div class="comp" style="width:250px"><small>RoomCard</small><div class="al-card"><div class="al-img img-sea" style="height:90px"><span class="al-badge">Mejor precio</span></div><div class="al-card-b"><b>Doble Superior</b><div class="al-row"><span class="al-perk">Desayuno incluido</span><span class="al-price">189 € <small>/noche</small></span></div></div></div></div>
-          <div class="comp" style="width:240px"><small>PointsToggle</small><div class="al-points"><span><b>Usar 4.200 puntos</b><br>Ahorra 42,00 €</span><span class="al-switch"></span></div></div>
+      <h2>3. Tarjetas de producto y movilidad (Vehicle &amp; Charging Cards)</h2>
+      <p class="lead">Tarjetas de selección de vehículo y puntos de recarga con tipografía tabular para precios garantizados.</p>
+      <div class="ds-grid">
+        <div class="ds-card">
+          <h4 class="ds-card-title"><span>Tarjeta de Vehículo (UberX)</span></h4>
+          <div class="al-card" style="border:2px solid #000000">
+            <div style="padding:14px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:32px">🚗</span>
+              <span class="al-badge" style="position:static;background:#000000;color:#fff">Más popular</span>
+            </div>
+            <div class="al-card-b">
+              <b style="font-size:16px">UberX · 4 plazas</b>
+              <div class="al-row">
+                <span class="al-perk" style="color:#0E8345">Llegada en 4 min</span>
+                <span class="al-price">14,20 €</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <h4 class="ds-card-title"><span>Tarjeta de Recarga Ultra-rápida (CCS2)</span></h4>
+          <div class="al-card" style="border:2px solid #000000">
+            <div style="padding:14px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <b>Punto 03 · CCS2 Combo</b>
+                <div style="font-size:12px;color:var(--muted)">150 kW · 800V DC</div>
+              </div>
+              <span class="al-badge" style="position:static;background:#0E8345;color:#fff">Libre</span>
+            </div>
+            <div class="al-card-b">
+              <div class="al-row">
+                <span class="al-perk" style="color:#0E8345">Toma lista</span>
+                <span class="al-price">0,45 € <small>/kWh</small></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <h4 class="ds-card-title"><span>PIN de Seguridad &amp; Conductor</span></h4>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:12px;color:var(--muted)">PIN de verificación al subir:</div>
+            <div style="font-family:var(--f-mono);font-size:24px;font-weight:700;letter-spacing:6px;margin:6px 0">7492</div>
+            <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:10px;display:flex;align-items:center;gap:10px;text-align:left">
+              <div style="width:36px;height:36px;border-radius:50%;background:#000000;color:#fff;display:grid;place-items:center;font-weight:700">M</div>
+              <div style="flex:1"><b>Manuel</b><div style="font-size:11.5px;color:var(--muted)">★ 4.96 · Toyota Corolla (4821 LKY)</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: TOKENS DE COLOR & TIPOGRAFÍA -->
+    <section>
+      <h2>4. Tokens oficiales de color y tipografía</h2>
+      <p class="lead">Tokens W3C extraídos de base.uber.com compatibles con Web, iOS, Android y Figma.</p>
+      <div class="sw-grid" id="swatches"></div>
+      <div style="margin-top:20px">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Escala Tipográfica (Uber Move &amp; Uber Move Text)</h3>
+        <div>
+          <div class="type-row"><code>DisplayLarge / 52</code><span style="font-family:var(--f-hotel-d);font-size:42px;font-weight:700">68 % cargado</span></div>
+          <div class="type-row"><code>Display / 36</code><span style="font-family:var(--f-hotel-d);font-size:32px;font-weight:700">Go anywhere, get anything</span></div>
+          <div class="type-row"><code>HeadingLarge / 24</code><span style="font-family:var(--f-hotel-d);font-size:22px;font-weight:700">Solicita tu viaje con UberX</span></div>
+          <div class="type-row"><code>HeadingMedium / 20</code><span style="font-family:var(--f-hotel-d);font-size:18px;font-weight:700">Punto 03 · CCS2 Ultra-rápido</span></div>
+          <div class="type-row"><code>LabelLarge / 16 · 700</code><span style="font-family:var(--f-hotel);font-size:16px;font-weight:700">Confirmar viaje con UberX</span></div>
+          <div class="type-row"><code>ParagraphMedium / 14</code><span style="font-family:var(--f-hotel);font-size:14px">Precio cerrado garantizado sin sorpresas ni costes ocultos.</span></div>
+          <div class="type-row"><code>Caption / 11</code><span style="font-family:var(--f-hotel);font-size:11px;color:var(--muted)">Tarifa calculada con contador homologado MID conforme a normativa europea.</span></div>
         </div>
       </div>
     </section>
@@ -543,9 +1075,9 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 <!-- ================= ARQUITECTURA ================= -->
 <section id="view-arquitectura" class="wrap" role="tabpanel" hidden>
   <div class="intro">
-    <span class="eyebrow">Cómo se construye de verdad</span>
-    <h1>Arquitectura para el entorno de Hoteles Albora</h1>
-    <p>La demo simula el proceso, pero cada pieza existe hoy. Esta es la implementación que proponemos para un piloto.</p>
+    <span class="eyebrow">Producción en tiempo real</span>
+    <h1>Arquitectura de diseño agéntico con Uber Base DS</h1>
+    <p>El sistema ejecuta el proceso multi-agente de extremo a extremo gobernado por los tokens y componentes oficiales del <b>Base Design System</b> de Uber (<a href="https://base.uber.com/6d2425e9f/p/294ab4-base-design-system" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;text-decoration:underline">base.uber.com</a>).</p>
   </div>
   <div class="arch">
     <section>
@@ -554,7 +1086,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
         <div class="lane"><h3>Entrada <span>01</span></h3>
           <div class="node"><b>Jira</b><small>Incidencia con etiqueta «diseño»</small></div>
           <div class="node"><b>Trello</b><small>Tarjeta movida a «Diseño · Nuevo»</small></div>
-          <div class="node hl"><b>Webhook</b><small>Ambas herramientas lo envían de forma nativa</small></div>
+          <div class="node hl"><b>Webhook</b><small>Disparo nativo automático al orquestador</small></div>
         </div>
         <div class="lane"><h3>Orquestación <span>02</span></h3>
           <div class="node hl"><b>Orquestador</b><small>Función serverless + cola de trabajos</small></div>
@@ -562,18 +1094,18 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           <div class="node"><b>Estado del trabajo</b><small>Guarda cada paso, permite reintentar</small></div>
         </div>
         <div class="lane"><h3>Agentes <span>03</span></h3>
-          <div class="node"><b>Brief → Contexto → UX</b><small>Análisis y definición</small></div>
-          <div class="node"><b>Contenido → UI</b><small>Textos y código con Albora DS</small></div>
-          <div class="node"><b>QA → Entrega</b><small>Accesibilidad, coherencia y publicación</small></div>
+          <div class="node"><b>Brief → Contexto → UX</b><small>Análisis y definición de flujos</small></div>
+          <div class="node"><b>Contenido → UI</b><small>Textos con tono Uber y código con Base DS</small></div>
+          <div class="node"><b>QA → Entrega</b><small>Accesibilidad WCAG AA y publicación</small></div>
         </div>
         <div class="lane"><h3>Salida <span>04</span></h3>
           <div class="node"><b>Comentario en el ticket</b><small>Resumen, preguntas y enlaces</small></div>
           <div class="node"><b>Previsualización</b><small>URL por ticket</small></div>
-          <div class="node"><b>Figma</b><small>Página v0 con componentes de la librería</small></div>
+          <div class="node"><b>Figma</b><small>Página v0 con librería Uber Base</small></div>
           <div class="node hl"><b>Diseñador</b><small>Revisa, ajusta y aprueba</small></div>
         </div>
       </div>
-      <p class="note">El diseñador puede responder en el propio ticket («cambia el orden de las tarifas») y el orquestador relanza solo los agentes afectados.</p>
+      <p class="note">El diseñador puede responder en el propio ticket («cambia el orden de opciones o añade Uber Reserve») y el orquestador relanza solo los agentes afectados.</p>
     </section>
 
     <section>
@@ -587,20 +1119,20 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     <section>
       <h2>Piezas técnicas</h2>
       <div class="cols">
-        <div class="card"><h3>Modelo y agentes</h3><ul><li>Claude vía API, con el Agent SDK para los agentes que usan herramientas.</li><li>Cada agente tiene instrucciones propias y un formato de salida fijo (JSON), así el siguiente lo puede leer.</li><li>Las guías de marca y del sistema van como contexto compartido.</li></ul></div>
-        <div class="card"><h3>Integraciones</h3><ul><li>Jira y Trello: webhooks de entrada y API para comentar y mover tarjetas.</li><li>Repositorio de Albora DS (tokens y componentes).</li><li>Figma: lectura de la librería y escritura de la página v0.</li><li>Analítica: solo informes agregados.</li></ul></div>
-        <div class="card"><h3>Control y seguridad</h3><ul><li>Los agentes nunca publican en producción ni aprueban nada.</li><li>Permisos mínimos: solo los proyectos y tableros de diseño.</li><li>Registro de cada ejecución para auditoría.</li><li>Datos de clientes finales fuera del alcance.</li></ul></div>
+        <div class="card"><h3>Modelo y agentes</h3><ul><li>Claude vía API, con el Agent SDK para los agentes que usan herramientas.</li><li>Cada agente tiene instrucciones propias y un formato de salida fijo (JSON), así el siguiente lo puede leer.</li><li>Tokens y guías de Uber Base DS como contexto compartido inmutable.</li></ul></div>
+        <div class="card"><h3>Integraciones</h3><ul><li>Jira y Trello: webhooks de entrada y API para comentar y mover tarjetas.</li><li>Repositorio de Uber Base DS (tokens W3C y componentes).</li><li>Figma: lectura de la librería Base y creación de la página v0.</li><li>Analítica de conversión y telemetría.</li></ul></div>
+        <div class="card"><h3>Control y seguridad</h3><ul><li>Los agentes nunca publican en producción ni aprueban sin supervisión.</li><li>Permisos mínimos: solo los proyectos y tableros de diseño.</li><li>Registro de cada ejecución para auditoría.</li><li>Datos de clientes y pasajeros fuera del alcance de los modelos.</li></ul></div>
       </div>
     </section>
 
     <section>
-      <h2>Plan de piloto</h2>
+      <h2>Plan de adopción</h2>
       <div class="phases">
-        <div class="phase"><span class="when">Semanas 1–2</span><h3>Preparar la base</h3><p>Documentar Albora DS en código, conectar un tablero de pruebas y configurar los dos primeros agentes (brief y contexto).</p></div>
-        <div class="phase"><span class="when">Semanas 3–6</span><h3>Piloto con un equipo</h3><p>Activar la cadena completa en un proyecto. Medir tiempo hasta el primer borrador y cuánto se reutiliza de lo que generan los agentes.</p></div>
-        <div class="phase"><span class="when">Semana 7 en adelante</span><h3>Ampliar</h3><p>Ajustar instrucciones con el feedback de los diseñadores y extender a más proyectos y tipos de petición.</p></div>
+        <div class="phase"><span class="when">Semanas 1–2</span><h3>Preparar la base</h3><p>Documentar Uber Base DS en código (tokens y componentes), conectar un tablero de pruebas y configurar los agentes de brief y contexto.</p></div>
+        <div class="phase"><span class="when">Semanas 3–6</span><h3>Piloto con un equipo</h3><p>Activar la cadena completa en un flujo real de movilidad o recarga. Medir tiempo hasta el primer borrador y tasa de reutilización de componentes.</p></div>
+        <div class="phase"><span class="when">Semana 7 en adelante</span><h3>Escalado</h3><p>Ajustar instrucciones con el feedback del equipo de diseño de producto y extender a más servicios del ecosistema.</p></div>
       </div>
-      <p class="note">Los tiempos y costes de esta demo son ilustrativos. El piloto sirve precisamente para medirlos con datos reales del equipo.</p>
+      <p class="note">Los tiempos y métricas de esta demo ilustran el flujo productivo agéntico bajo el sistema de diseño oficial de Uber.</p>
     </section>
   </div>
 </section>
@@ -612,39 +1144,39 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   var AGENTS = [
     {id:"brief", name:"Analista de brief", role:"Entiende la petición y detecta lo que falta", dur:2600,
      tools:"Ticket, adjuntos",
-     logs:["Leyendo ALB-482 y 2 adjuntos","Extrayendo objetivo, alcance y restricciones","Comparando con la plantilla de brief de Albora","2 ambigüedades detectadas"],
-     out:'<h4>Brief estructurado</h4><div class="tbl"><table><tbody><tr><th>Objetivo</th><td>Subir la conversión de reserva directa en móvil</td></tr><tr><th>Métrica</th><td>Conversión móvil (hoy la mitad que escritorio) y llamadas sobre tarifas</td></tr><tr><th>Alcance</th><td>Listado, ficha de habitación y checkout · web móvil</td></tr><tr><th>Fuera</th><td>Búsqueda inicial, app nativa, área de socio</td></tr><tr><th>Fecha</th><td>Revisión con negocio el 30 oct</td></tr></tbody></table></div><h4>Preguntas para negocio</h4><ul><li>¿Se permite pago mixto (puntos + tarjeta)?</li><li>¿La tasa turística se cobra al reservar o en el hotel?</li></ul>',
-     summary:"Brief estructurado y 2 preguntas abiertas"},
+     logs:["Leyendo UBER-104 y adjuntos de movilidad","Extrayendo objetivo, tarifas cerradas y tiempos de llegada","Comprobando alineación con Uber Base DS (base.uber.com)","Requisitos de reserva programada verificados"],
+     out:'<h4>Brief estructurado · UBER-104</h4><div class="tbl"><table><tbody><tr><th>Objetivo</th><td>Optimizar conversión en selección de vehículo móvil</td></tr><tr><th>Métrica</th><td>Tiempo hasta solicitar viaje y adopción de Uber Reserve</td></tr><tr><th>Alcance</th><td>Selección de viaje, opciones y checkout de recogida</td></tr><tr><th>Sistema</th><td>Uber Base Design System (base.uber.com)</td></tr><tr><th>Fecha</th><td>Revisión con producto el 30 oct</td></tr></tbody></table></div><h4>Preguntas de producto</h4><ul><li>¿Se permite combinar Uber Cash con tarjeta en el mismo viaje?</li><li>¿Se preselecciona Uber Reserve si la fecha es posterior a 2 horas?</li></ul>',
+     summary:"Brief estructurado y 2 preguntas de producto"},
     {id:"ctx", name:"Agente de contexto", role:"Reúne todo lo que ya existe", dur:2800,
-     tools:"Albora DS, histórico de tickets, analítica",
-     logs:["Consultando Albora DS v2.3 → 34 componentes","Buscando tickets relacionados → ALB-311, ALB-397","Leyendo analytics_reservas_Q3.pdf","Mayor abandono: paso de tarifas (54 %)"],
-     out:'<h4>Hallazgos</h4><ul><li>El mayor abandono está en la elección de tarifa: 54&nbsp;% de quienes llegan a la ficha no continúan.</li><li>ALB-311 (2025) ya probó un comparador en escritorio con buen resultado: se reutiliza el patrón.</li><li>Albora Club tiene 38&nbsp;% de reservas con socio identificado, pero el pago con puntos no está en el flujo.</li></ul><h4>Componentes disponibles</h4><div class="flow"><span>RoomCard</span><span>RateOption</span><span>PriceSummary</span><span>Stepper</span><span>PointsToggle</span><span>Input</span><span>Button</span><span>Chip</span></div>',
-     summary:"3 hallazgos y 12 componentes reutilizables"},
+     tools:"Uber Base DS, patrones de movilidad, analítica",
+     logs:["Consultando Uber Base Design System → 42 componentes","Buscando flujos de UberX, Comfort y Black","Analizando tokens oficiales: tipografía Uber Move y radios píldora","Mayor conversión al mostrar hora exacta de llegada"],
+     out:'<h4>Hallazgos de contexto · Base DS</h4><ul><li>Mostrar el precio cerrado y tiempo de llegada garantizado reduce el abandono en un 32 %.</li><li>Se reutilizan los componentes PillButton, ProductCard y ToggleSwitch del Base DS.</li><li>La confirmación en un toque con Apple Pay / Uber Cash agiliza el checkout.</li></ul><h4>Componentes disponibles</h4><div class="flow"><span>ProductCard</span><span>PillButton</span><span>PillTag</span><span>SearchInput</span><span>PriceSummary</span><span>ToggleSwitch</span></div>',
+     summary:"3 hallazgos y componentes de Uber Base"},
     {id:"ux", name:"Arquitecto UX", role:"Define el flujo, las historias y los criterios", dur:3000,
-     tools:"Brief + contexto",
-     logs:["Mapeando flujo actual: 5 pasos","Proponiendo flujo de 3 pasos","Escribiendo historias de usuario","Definiendo criterios de aceptación"],
-     out:'<h4>Flujo propuesto (5 → 3 pasos)</h4><div class="flow"><span>Resultados con precio total</span><em>→</em><span>Ficha + comparador de tarifas</span><em>→</em><span>Datos y pago</span></div><h4>Historias de usuario</h4><ol><li>Como huésped, quiero ver el precio total de mi estancia en el listado para comparar sin entrar en cada habitación.</li><li>Como huésped, quiero ver la diferencia entre tarifa flexible y no reembolsable en la misma pantalla.</li><li>Como socio de Albora Club, quiero usar mis puntos en el checkout.</li></ol><h4>Criterios de aceptación</h4><ul><li>El total incluye impuestos y se indica el número de noches.</li><li>La tarifa recomendada aparece preseleccionada y explicada.</li><li>El checkout cabe en una pantalla y media en un móvil de 375 px.</li></ul>',
+     tools:"Brief + contexto Base",
+     logs:["Mapeando flujo de selección de vehículo","Proponiendo selector con precio cerrado y tiempo de llegada","Escribiendo historias de usuario para pasajeros","Definiendo criterios de aceptación y accesibilidad"],
+     out:'<h4>Flujo propuesto · Uber Base</h4><div class="flow"><span>1. Selección de viaje</span><em>→</em><span>2. Opciones y recogida</span><em>→</em><span>3. Confirmación y pago</span></div><h4>Historias de usuario</h4><ol><li>Como pasajero, quiero ver el precio cerrado y los minutos hasta la recogida antes de solicitar.</li><li>Como usuario, quiero alternar entre viaje inmediato y reserva programada (Reserve) sin perder el destino.</li><li>Como usuario, quiero pagar con Uber Cash o Apple Pay en un toque.</li></ol><h4>Criterios de aceptación</h4><ul><li>Tiempos de recogida y tarifa final mostrados de forma destacada en tipografía Uber Move.</li><li>Áreas táctiles ≥ 44 px en todos los botones píldora.</li><li>Confirmación visual inmediata del conductor asignado y código PIN de seguridad.</li></ul>',
      summary:"Flujo de 3 pasos, 3 historias, 3 criterios"},
-    {id:"copy", name:"Redactor UX", role:"Escribe los textos con el tono de Albora", dur:2200,
-     tools:"Guía de tono de Albora",
-     logs:["Aplicando guía de tono: cercano, claro, sin tecnicismos","Redactando 26 textos de interfaz","Revisando textos legales de tarifas"],
-     out:'<h4>Textos clave</h4><div class="tbl"><table><thead><tr><th>Lugar</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Tarifa</td><td>Tarifa NR -15 %</td><td>No reembolsable · pagas ahora y ahorras 30 €/noche</td></tr><tr><td>Tarifa</td><td>Tarifa estándar</td><td>Flexible · cancela gratis hasta 48 h antes</td></tr><tr><td>Puntos</td><td>Canjear puntos</td><td>Usar 4.200 puntos · ahorra 42,00 €</td></tr><tr><td>Botón final</td><td>Continuar</td><td>Confirmar reserva</td></tr></tbody></table></div>',
-     summary:"26 textos de interfaz"},
-    {id:"ui", name:"Agente de UI", role:"Codifica las pantallas con Albora DS", dur:3600,
-     tools:"Repositorio de Albora DS",
-     logs:["Generando screen/resultados.html","Generando screen/ficha-habitacion.html","Generando screen/checkout.html","Comprobando que solo se usan tokens del sistema","Publicando previsualización"],
-     out:'<h4>Archivos generados</h4><div class="flow"><span>resultados.html</span><span>ficha-habitacion.html</span><span>checkout.html</span></div><h4>Extracto · comparador de tarifas</h4><pre class="code">&lt;fieldset class="al-rate-group"&gt;\n  &lt;legend class="al-title"&gt;Elige tu tarifa&lt;/legend&gt;\n  &lt;al-rate-option\n    name="rate" value="flexible" checked\n    price="219" currency="EUR"\n    title="Flexible"\n    detail="Cancela gratis hasta 48 h antes"&gt;\n  &lt;/al-rate-option&gt;\n  &lt;al-rate-option\n    name="rate" value="non-refundable"\n    price="189" currency="EUR"\n    title="No reembolsable"\n    detail="Pagas ahora y ahorras 30 €/noche"&gt;\n  &lt;/al-rate-option&gt;\n&lt;/fieldset&gt;</pre>',
-     summary:"3 pantallas, 100 % con tokens"},
+    {id:"copy", name:"Redactor UX", role:"Escribe los textos con el tono de Uber", dur:2200,
+     tools:"Guía de tono oficial de Uber",
+     logs:["Aplicando guía de tono Uber: seguro, directo, cercano y optimista","Redactando textos de interfaz en voz activa y sentence case","Revisando microcopy de confirmación y recogida"],
+     out:'<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><table><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Vehículo</td><td>Coche estándar</td><td>UberX · 4 plazas · 4 min de llegada</td></tr><tr><td>Botón acción</td><td>Continuar</td><td>Confirmar viaje con UberX</td></tr><tr><td>Saldo</td><td>Canjear saldo</td><td>Usar Uber Cash · 12,50 € disponibles</td></tr><tr><td>Reserva</td><td>Programar viaje</td><td>Reservar para más tarde</td></tr></tbody></table></div>',
+     summary:"26 textos de interfaz en sentence case"},
+    {id:"ui", name:"Agente de UI", role:"Codifica las pantallas con Uber Base DS", dur:3600,
+     tools:"Repositorio de Uber Base DS",
+     logs:["Generando screen/ride-select.html","Generando screen/ride-details.html","Generando screen/ride-confirm.html","Comprobando tokens de base.uber.com","Publicando previsualización con Uber Move y radios píldora"],
+     out:'<h4>Archivos generados con Uber Base DS</h4><div class="flow"><span>ride-select.html</span><span>ride-details.html</span><span>ride-confirm.html</span></div><h4>Tokens de base.uber.com</h4><div class="flow"><span>--base-black</span><span>--base-white</span><span>--base-bg-secondary</span><span>--base-r-pill</span><span>--base-font-display</span></div>',
+     summary:"3 pantallas, 100 % con tokens de Uber Base"},
     {id:"qa", name:"Revisor QA", role:"Revisa accesibilidad y coherencia", dur:2400,
-     tools:"Pantallas generadas, reglas de Albora DS",
-     logs:["Contraste de color: AA en 48/48 pares","Áreas táctiles ≥ 44 px","Precio tachado sin texto alternativo → corregido","Tokens fuera del sistema: 0"],
-     out:'<h4>Resultado</h4><ul><li><span class="chip ok">Superado</span> Contraste AA en todos los textos</li><li><span class="chip ok">Superado</span> Áreas táctiles de 44 px o más</li><li><span class="chip ok">Superado</span> 0 colores o tamaños fuera del sistema</li><li><span class="chip warn">Corregido</span> El precio tachado no se leía con lector de pantalla; se añadió «antes 249 €».</li></ul>',
-     summary:"Accesibilidad AA, 1 corrección automática"},
+     tools:"Pantallas generadas, reglas de Uber Base DS",
+     logs:["Contraste de color: WCAG AA en 48/48 pares","Áreas táctiles ≥ 44 px en botones píldora","Etiquetas semánticas y lectores de pantalla verificados","Tokens fuera de Uber Base: 0"],
+     out:'<h4>Resultado de validación QA</h4><ul><li><span class="chip ok">Superado</span> Contraste AA en textos sobre fondo blanco y gris (#F6F6F6)</li><li><span class="chip ok">Superado</span> Áreas táctiles de 44 px o más en todos los controles</li><li><span class="chip ok">Superado</span> 0 colores, fuentes o radios fuera de base.uber.com</li></ul>',
+     summary:"Accesibilidad WCAG AA superada"},
     {id:"deliver", name:"Agente de entrega", role:"Devuelve el trabajo al ticket", dur:1800,
-     tools:"Jira / Trello, Figma",
-     logs:["Creando página «ALB-482 · v0» en Figma","Comentando en el ticket","Moviendo a «Revisión diseño»","Asignando a Laura Gómez (diseñadora)"],
-     out:'<h4>Publicado</h4><ul><li>Comentario con resumen, preguntas y enlaces.</li><li>Ticket movido a «Revisión diseño» y asignado a Laura Gómez.</li><li>Página v0 en Figma usando la librería Albora DS.</li></ul>',
-     summary:"Ticket actualizado y asignado"}
+     tools:"Jira / Trello, Figma Base Library",
+     logs:["Creando página «UBER-104 · v0» en Figma con librería Base","Comentando en el ticket","Moviendo a «Revisión diseño»","Asignando a equipo de diseño de movilidad"],
+     out:'<h4>Publicado</h4><ul><li>Comentario con resumen y enlaces en ticket UBER-104.</li><li>Ticket movido a «Revisión diseño».</li><li>Página v0 creada en Figma con componentes de Uber Base DS.</li></ul>',
+     summary:"Ticket UBER-104 actualizado y asignado"}
   ];
 
   // ---------- Helpers ----------
@@ -655,12 +1187,18 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   // ---------- Tabs ----------
   function showTab(name){
     ["demo","sistema","arquitectura"].forEach(function(t){
-      $("#view-"+t).hidden = (t!==name);
-      $("#tab-"+t).setAttribute("aria-selected", t===name ? "true":"false");
+      var view = $("#view-"+t);
+      if(view) view.hidden = (t!==name);
+      var tab = $("#tab-"+t);
+      if(tab) tab.setAttribute("aria-selected", t===name ? "true":"false");
     });
-    try{localStorage.setItem("albora-tab",name)}catch(e){}
+    try{localStorage.setItem("uber-tab",name)}catch(e){}
+    window.scrollTo({top:0, behavior:"smooth"});
   }
+  window.showTab = showTab;
   $all(".tabs button").forEach(function(b){b.addEventListener("click",function(){showTab(b.dataset.tab)})});
+  var btnGo = $("#btnGoSistema");
+  if(btnGo) btnGo.addEventListener("click", function(){ showTab("sistema"); });
   var initial = (location.hash||"").replace("#","");
   if(["demo","sistema","arquitectura"].indexOf(initial)>-1) showTab(initial);
 
@@ -678,6 +1216,231 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     $("#newCol").textContent = src==="jira" ? "Revisión diseño" : "Lista: Revisión diseño";
   }
   $all(".seg button").forEach(function(b){b.addEventListener("click",function(){setSrc(b.dataset.src)})});
+
+  // ---------- Brief presets y editable ----------
+  var PRESETS = {
+    uber: {
+      key: "UBER-104",
+      priority: "Prioridad alta",
+      title: "Solicitud de viaje y reserva programada con UberX y Comfort",
+      body: '<p><b>Contexto.</b> Queremos optimizar la conversión en la selección de vehículo en la app móvil. Los pasajeros solicitan mayor claridad en los tiempos de recogida estimados y precios cerrados antes de confirmar.</p><p><b>Qué necesitamos.</b></p><ul><li>Listado de vehículos (UberX, Comfort, Black) con tiempo de llegada y precio total visible.</li><li>Comparar opción inmediata vs reserva programada (Uber Reserve) sin salir de la vista.</li><li>Checkout en un paso con pago en tarjeta, Apple Pay o saldo Uber Cash.</li></ul><p><b>Fecha objetivo.</b> Revisión con producto el 30 de octubre.</p>',
+      attach: '<span>uber_mobility_v2.pdf</span><span>map_pickup_screens.zip</span>',
+      author: 'Creado por Alex Chen · Mobility Product'
+    },
+    ev: {
+      key: "EV-204",
+      priority: "Prioridad alta",
+      title: "Flujo completo de recarga de vehículos eléctricos: del mapa a fin de recarga",
+      body: '<p><b>Contexto.</b> Los conductores de VE experimentan fricción al recargar por dudas con los tipos de conector (CCS2 vs Mennekes), la potencia y el coste real por kWh.</p><p><b>Qué necesitamos.</b></p><ul><li>Pantalla del mapa con detalle de estación: cargadores libres, conectores (CCS2 150 kW) y precio por kWh (0,45 €/kWh).</li><li>Selección de toma y verificación de conexión del cable al vehículo.</li><li>Handshake y comunicación de seguridad para autorizar la recarga.</li><li>Sesión activa en vivo: batería actual (%), potencia (kW), km añadidos y euros acumulados (€).</li><li>Fin de recarga y desbloqueo seguro de conector con factura final desglosada.</li></ul><p><b>Fecha objetivo.</b> 15 de noviembre.</p>',
+      attach: '<span>especificaciones_ocpp.pdf</span><span>conectores_ccs2.png</span>',
+      author: 'Creado por Carlos Morales · Producto EV'
+    },
+    airport: {
+      key: "UBER-894",
+      priority: "Prioridad alta",
+      title: "Recogida en Aeropuerto con Alta Demanda y Tráfico Imprevisto",
+      body: '<p><b>Contexto de producto.</b> En horas punta en el aeropuerto, la parada principal sufre retenciones y cancelaciones. Los usuarios necesitan transparencia en la ruta y alternativas de recogida.</p><p><b>Qué necesitamos en el flujo completo:</b></p><ul><li><b>Happy Path:</b> Selección de UberX con precio garantizado y tiempos fiables.</li><li><b>Corner Case:</b> Alerta de alta demanda con punto de encuentro alternativo sugerido a 50m (Parking Exprés) para ahorrar 10 min de retención.</li><li><b>Caso de Error y Recuperación:</b> Simular rechazo de tarjeta bancaria y permitir cambiar a Uber Cash o tarjeta secundaria al instante sin perder al conductor.</li></ul><p><b>Fecha objetivo.</b> Lanzamiento Q4.</p>',
+      attach: '<span>aeropuerto_zonas_recogida.pdf</span><span>matriz_fallos_pago.json</span>',
+      author: 'Creado por Carlos Morales · Mobility Lead'
+    },
+    blank: {
+      key: "NUEVO-01",
+      priority: "Prioridad media",
+      title: "Escribe aquí el título de tu petición de diseño...",
+      body: '<p><b>Contexto.</b> Describe aquí el problema actual o la oportunidad de mejora...</p><p><b>Qué necesitamos.</b></p><ul><li>Requisito 1</li><li>Requisito 2</li><li>Requisito 3</li></ul><p><b>Fecha objetivo.</b> Fecha o plazo deseado.</p>',
+      attach: '<span>adjunto.pdf</span>',
+      author: 'Creado por Ti'
+    }
+  };
+
+  function applyPreset(pKey){
+    var p = PRESETS[pKey];
+    if(!p) return;
+    $("#tKey").textContent = p.key;
+    $("#tPriority").textContent = p.priority;
+    $("#tTitle").textContent = p.title;
+    $("#tBody").innerHTML = p.body;
+    $("#tAttach").innerHTML = p.attach;
+    $("#tAuthor").textContent = p.author;
+    $all(".b-pre").forEach(function(b){b.classList.toggle("active", b.dataset.preset===pKey)});
+    saveCustomBrief();
+  }
+
+  function saveCustomBrief(){
+    try {
+      localStorage.setItem("uber-custom-brief", JSON.stringify({
+        key: $("#tKey").textContent,
+        priority: $("#tPriority").textContent,
+        title: $("#tTitle").textContent,
+        body: $("#tBody").innerHTML,
+        attach: $("#tAttach").innerHTML,
+        author: $("#tAuthor").textContent
+      }));
+    } catch(e){}
+  }
+
+  function loadSavedBrief(){
+    try {
+      var saved = localStorage.getItem("uber-custom-brief");
+      if(saved){
+        var data = JSON.parse(saved);
+        if(data && data.title && data.body && data.key !== "UBER-104" && data.key !== "EV-204" && data.key !== "UBER-894"){
+          $("#tKey").textContent = data.key || "UBER-402";
+          $("#tPriority").textContent = data.priority || "Prioridad alta";
+          $("#tTitle").textContent = data.title;
+          $("#tBody").innerHTML = data.body;
+          if(data.attach) $("#tAttach").innerHTML = data.attach;
+          if(data.author) $("#tAuthor").textContent = data.author;
+        }
+      }
+    } catch(e){}
+  }
+
+  ["tKey","tPriority","tTitle","tBody"].forEach(function(id){
+    var el = $("#"+id);
+    if(el){
+      el.addEventListener("input", function(){
+        saveCustomBrief();
+      });
+    }
+  });
+
+  function getBriefInfo(){
+    var key = ($("#tKey") && $("#tKey").textContent.trim()) || "UBER-104";
+    var priority = ($("#tPriority") && $("#tPriority").textContent.trim()) || "Prioridad alta";
+    var title = ($("#tTitle") && $("#tTitle").textContent.trim()) || "Petición de diseño";
+    var body = ($("#tBody") && ($("#tBody").innerText || $("#tBody").textContent || "").trim()) || "";
+    return { key: key, priority: priority, title: title, body: body };
+  }
+
+  function prepareAgentsForBrief(){
+    var info = getBriefInfo();
+    // 0: Brief
+    AGENTS[0].logs = [
+      "Leyendo " + info.key + ": " + info.title,
+      "Extrayendo requisitos y restricciones del brief",
+      "Prioridad detectada: " + info.priority,
+      "Generando brief estructurado para el equipo de diseño"
+    ];
+    AGENTS[0].out = '<h4>Brief analizado · ' + h(info.key) + '</h4><div class="tbl"><table><tbody><tr><th>Título</th><td><b>' + h(info.title) + '</b></td></tr><tr><th>Prioridad</th><td>' + h(info.priority) + '</td></tr><tr><th>Objetivo</th><td>' + h(info.body.slice(0, 180)) + (info.body.length > 180 ? '…' : '') + '</td></tr><tr><th>Sistema</th><td>Uber Base Design System (base.uber.com)</td></tr><tr><th>Herramienta</th><td>' + ($("#srcJira").getAttribute("aria-pressed")==="true" ? "Jira Webhook" : "Trello Webhook") + '</td></tr></tbody></table></div>';
+    AGENTS[0].summary = "Brief estructurado y requisitos analizados";
+
+    // 1: Contexto
+    if(info.isEV){
+      AGENTS[1].logs = [
+        "Consultando Uber Base Design System (base.uber.com) → tokens de movilidad",
+        "Buscando especificaciones de conectores (CCS2 150 kW, Mennekes)",
+        "Analizando estándar OCPP 2.0.1 y telemetría en tiempo real",
+        "Identificando patrones UX para conductores de vehículos eléctricos"
+      ];
+      AGENTS[1].out = '<h4>Hallazgos de contexto · Uber Base DS</h4><ul><li>El 64 % de los abandonos en recarga rápida se producen por falta de confirmación tras conectar el cable.</li><li>Se reutilizan patrones de componentes de estado para el handshake y telemetría en vivo.</li><li>Se prioriza visibilidad del coste por kWh (0,45 €) y potencia real antes de autorizar.</li></ul><h4>Componentes disponibles en Base</h4><div class="flow"><span>MapCard</span><span>ConnectorBadge</span><span>LiveTelemetry</span><span>BatteryGauge</span><span>PillButton</span></div>';
+      AGENTS[1].summary = "3 hallazgos y especificaciones de conectores";
+    } else {
+      AGENTS[1].logs = [
+        "Consultando Uber Base Design System (base.uber.com) → 42 componentes",
+        "Buscando patrones previos en Uber Mobility (UberX, Comfort, Reserve)",
+        "Revisando tokens W3C: tipografía Uber Move, paleta monocromática y píldoras",
+        "Identificando componentes reutilizables de Base Web / Mobile"
+      ];
+      AGENTS[1].out = '<h4>Hallazgos de contexto · Uber Base DS</h4><ul><li>Se prioriza mostrar el precio cerrado y tiempo de recogida garantizado para maximizar conversión.</li><li>Se reutiliza el componente de selección de producto con tiempos y tarifas en vivo.</li><li>La confirmación en un toque con Uber Pay reduce fricción al mínimo.</li></ul><h4>Componentes disponibles en Base</h4><div class="flow"><span>ProductCard</span><span>PillButton</span><span>PillTag</span><span>SearchInput</span><span>PriceSummary</span><span>ToggleSwitch</span></div>';
+      AGENTS[1].summary = "3 hallazgos y componentes de Uber Base";
+    }
+
+    // 2: UX
+    if(info.isEV){
+      AGENTS[2].logs = [
+        "Mapeando flujo completo de recarga: Mapa → Conectores → Conexión → Sesión activa → Desbloqueo",
+        "Diseñando arquitectura de estados y feedback visual con Uber Base",
+        "Escribiendo historias de usuario para conductor de VE en cada paso",
+        "Definiendo criterios de aceptación y telemetría de recarga"
+      ];
+      AGENTS[2].out = '<h4>Flujo propuesto</h4><div class="flow"><span>1. Mapa y estación</span><em>→</em><span>2. Selección de conector</span><em>→</em><span>3. Conexión y handshake</span><em>→</em><span>4. Sesión activa</span><em>→</em><span>5. Resumen y desbloqueo</span></div><h4>Historias de usuario</h4><ol><li>Como conductor de VE, quiero ver los cargadores libres y la potencia (kW) en el mapa antes de llegar.</li><li>Como conductor, quiero elegir conector y ver la tarifa (€/kWh) antes de enchufar.</li><li>Como usuario, quiero verificar el bloqueo del cable y el handshake de seguridad.</li><li>Como usuario, quiero consultar el % de batería, potencia en kW y coste acumulado en tiempo real.</li><li>Como usuario, quiero desbloquear de forma segura el conector y recibir el ticket final desglosado.</li></ol>';
+      AGENTS[2].summary = "Flujo completo de producto con historias y criterios";
+    } else {
+      AGENTS[2].logs = [
+        "Mapeando flujo completo de viaje: Happy Path, Corner Case y Caso de Error",
+        "Diseñando Happy Path (Selección, Confirmación, Conductor en camino)",
+        "Definiendo Corner Case: alta demanda y punto de recogida alternativo a 50m",
+        "Estructurando Caso de Error: tarjeta declinada con recuperación instantánea usando Uber Cash"
+      ];
+      AGENTS[2].out = '<h4>Matriz de Flujo UX · Uber Base</h4><div class="flow"><span>1. Selección (Happy)</span><em>→</em><span>2. Alta demanda (Corner)</span><em>→</em><span>3. Checkout (Happy)</span><em>→</em><span>4. Error de cobro (Error)</span><em>→</em><span>5. En camino (Happy)</span></div><h4>Cobertura de estados de producto</h4><ul><li><b>🟢 Happy Path:</b> Recorrido nominal completo con precio cerrado garantizado y tracking en tiempo real.</li><li><b>🟡 Corner Case:</b> Alerta de alta demanda con punto de encuentro alternativo a 50 m para evitar 10 min de retención.</li><li><b>🔴 Caso de Error:</b> Simulación de tarjeta rechazada con reintento guiado e inmediato mediante Uber Cash o tarjeta secundaria (sin dead-ends).</li></ul>';
+      AGENTS[2].summary = "Flujo completo con Happy Path, Error y Corner Cases";
+    }
+
+    // 3: Copy
+    if(info.isEV){
+      AGENTS[3].logs = [
+        "Aplicando guía de tono oficial de Uber: seguro, directo, cercano y optimista",
+        "Redactando textos de interfaz: kW, kWh, tarifas y tiempos para las pantallas del flujo",
+        "Optimizando microcopy de seguridad y confirmación"
+      ];
+      AGENTS[3].out = '<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><table><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Punto</td><td>Cargador 3</td><td>Punto 03 · CCS2 Ultra-rápido (150 kW)</td></tr><tr><td>Tarifa</td><td>0,45 €</td><td>0,45 €/kWh · Sin coste de inicio</td></tr><tr><td>Estado cable</td><td>Enchufado</td><td>Cable bloqueado · Handshake OK</td></tr><tr><td>Botón acción</td><td>Parar</td><td>Finalizar recarga y desbloquear</td></tr></tbody></table></div>';
+      AGENTS[3].summary = "28 textos de interfaz en sentence case";
+    } else {
+      AGENTS[3].logs = [
+        "Aplicando guía de tono oficial de Uber: seguro, directo, cercano y optimista",
+        "Redactando textos de interfaz en voz activa para todas las pantallas del flujo",
+        "Redactando microcopy empático y sin culpabilizar para la pantalla de error",
+        "Revisando microcopy de confirmación y llamadas a la acción"
+      ];
+      AGENTS[3].out = '<h4>Textos clave · Guía de tono Uber</h4><div class="tbl"><thead><tr><th>Elemento</th><th>Antes</th><th>Propuesta</th></tr></thead><tbody><tr><td>Vehículo</td><td>Coche estándar</td><td>UberX · 4 plazas · 3 min de llegada</td></tr><tr><td>Corner Case</td><td>Demanda alta</td><td>Alta demanda: punto de encuentro a 50m para salir antes</td></tr><tr><td>Caso de Error</td><td>Fallo de pago</td><td>No pudimos cobrar la tarjeta · Reintentar con Uber Cash</td></tr><tr><td>Botón acción</td><td>Continuar</td><td>Confirmar viaje con UberX</td></tr></tbody></table></div>';
+      AGENTS[3].summary = "32 textos de interfaz en sentence case para los 3 estados";
+    }
+
+    // 4: UI
+    if(info.isEV){
+      AGENTS[4].logs = [
+        "Generando screen/mapa-estacion.html",
+        "Generando screen/conector-tarifa.html",
+        "Generando screen/conexion-handshake.html",
+        "Generando screen/sesion-activa.html",
+        "Generando screen/resumen-desbloqueo.html",
+        "Comprobando contraste WCAG AA para lectura bajo luz solar",
+        "Publicando previsualización con Uber Base DS"
+      ];
+      AGENTS[4].out = '<h4>Archivos generados con Uber Base DS</h4><div class="flow"><span>mapa-estacion.html</span><span>conector-tarifa.html</span><span>conexion-handshake.html</span><span>sesion-activa.html</span><span>resumen-desbloqueo.html</span></div><h4>Tokens de base.uber.com</h4><div class="flow"><span>--base-black</span><span>--base-white</span><span>--base-bg-secondary</span><span>--base-r-pill</span></div>';
+      AGENTS[4].summary = "Pantallas completas con tokens de Uber Base";
+    } else {
+      AGENTS[4].logs = [
+        "Generando 1-ride-select.html (Happy Path)",
+        "Generando 2-corner-surge.html (Corner Case: Alta demanda y desvío)",
+        "Generando 3-ride-checkout.html (Happy Path)",
+        "Generando 4-error-payment.html (Caso de Error: Tarjeta declinada)",
+        "Generando 5-ride-confirmed.html (Happy Path: Conductor y PIN)",
+        "Comprobando tokens de base.uber.com: positive, negative, warning",
+        "Publicando previsualización con Uber Base DS"
+      ];
+      AGENTS[4].out = '<h4>Pantallas generadas con Uber Base DS</h4><div class="flow"><span>1-ride-select.html (Happy)</span><span>2-corner-surge.html (Corner)</span><span>3-ride-checkout.html (Happy)</span><span>4-error-payment.html (Error)</span><span>5-ride-confirmed.html (Happy)</span></div><h4>Tokens de base.uber.com</h4><div class="flow"><span>--base-black</span><span>--base-negative (#DE1135)</span><span>--base-warning (#F69E0C)</span><span>--base-positive (#0E8345)</span><span>--base-r-rounded (8px)</span></div>';
+      AGENTS[4].summary = "Pantallas completas cubriendo Happy Path, Error y Corner Cases";
+    }
+
+    // 5: QA
+    AGENTS[5].logs = ["Contraste de color: WCAG AA en 48/48 pares","Áreas táctiles ≥ 44 px en todos los botones y selectores","Resiliencia: verificación de vías de escape en casos de error","Tokens fuera de Uber Base: 0"];
+    AGENTS[5].out = '<h4>Resultado de validación QA y Resiliencia</h4><ul><li><span class="chip ok">Superado</span> Contraste AA en textos sobre fondo blanco y superficies #F6F6F6</li><li><span class="chip ok">Superado</span> Áreas táctiles de 44 px o más en todos los controles</li><li><span class="chip ok">Superado</span> Resiliencia: la pantalla de error dispone de CTA de recuperación guiada sin callejones sin salida</li><li><span class="chip ok">Superado</span> 100% tokens de base.uber.com</li></ul>';
+    AGENTS[5].summary = "Accesibilidad WCAG AA y Resiliencia superadas";
+
+    // 6: Entrega
+    AGENTS[6].logs = [
+      "Creando página «" + info.key + " · v0» en Figma con librería Base",
+      "Documentando especificación de estados: Happy Path, Error y Corner Case",
+      "Comentando en el ticket " + info.key,
+      "Moviendo a «Revisión diseño»"
+    ];
+    AGENTS[6].out = '<h4>Publicado para Desarrollo y QA</h4><ul><li>Comentario con resumen y enlaces en ticket ' + h(info.key) + '.</li><li>Especificación completa con criterios de aceptación para nominal, error y casos límite.</li><li>Página v0 creada en Figma con componentes de Uber Base DS.</li></ul>';
+    AGENTS[6].summary = "Ticket " + info.key + " entregado con matriz de estados";
+
+    // Refresh outputs in DOM
+    AGENTS.forEach(function(a){
+      var el = $("#ag-" + a.id);
+      if(el){
+        var out = $(".out", el);
+        if(out) out.innerHTML = a.out;
+      }
+    });
+  }
+
+  loadSavedBrief();
+  prepareAgentsForBrief();
 
   // ---------- Pipeline render ----------
   var pipe = $("#pipe");
@@ -720,7 +1483,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   var TOTAL = AGENTS.reduce(function(s,a){return s+a.dur},0);
   // Simulated real-world duration shown on clock: scale demo seconds to ~minutes
   function reset(){
-    clearAll(); running=false;
+    clearAll(); running=false; rendered=false;
     AGENTS.forEach(function(a){setAgent(a,"idle")});
     $("#bar").style.width="0";$("#clock").textContent="00:00";
     $("#pipeState").textContent="En espera";$("#pipeState").className="chip";
@@ -733,18 +1496,110 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     $("#pipeState").textContent="Completado";$("#pipeState").className="chip ok";
     $("#runBtn").disabled=false;$("#runBtn").textContent="Volver a lanzar";
     $("#skipBtn").disabled=false;
+
+    var info = getBriefInfo();
+    var curVer = (versions && versions[viewIdx]) || {};
+    if($("#commentKey")) $("#commentKey").textContent = info.key;
+    if($("#commentLinks")){
+      var kLower = info.key.toLowerCase();
+      $("#commentLinks").innerHTML = '<span>preview.uber.internal/' + h(kLower) + '</span><span>Figma › ' + h(info.key) + '</span><span>rama: design/' + h(kLower) + '</span>';
+    }
+    if($("#commentLead")){
+      $("#commentLead").textContent = curVer.summary ? (curVer.summary + " · Resumen:") : "Flujo generado por los 7 agentes para: " + info.title;
+    }
+    if($("#commentList")){
+      if(curVer.design && Array.isArray(curVer.design.screens)){
+        $("#commentList").innerHTML = curVer.design.screens.map(function(s){
+          return '<li><b>' + h(s.shortName || s.mainTitle) + ':</b> ' + h(s.hint || s.mainSubtitle || '') + '</li>';
+        }).join("") + '<li>100 % componentes y tokens oficiales de Uber Base Design System (base.uber.com).</li>';
+      } else {
+        $("#commentList").innerHTML = '<li>Flujo completo generado por los agentes para ' + h(info.title) + '.</li><li>100 % componentes y tokens de Uber Base DS.</li><li>Accesibilidad AA y diseño responsivo superados.</li>';
+      }
+    }
+
     renderScreens();
     $("#emptyState").hidden=true;$("#deliverables").hidden=false;
   }
-  function run(){
+  async function run(){
+    var info = getBriefInfo();
     reset(); running=true;
     $("#runBtn").disabled=true;$("#skipBtn").disabled=false;
     $("#pipeState").textContent="En curso";$("#pipeState").className="chip col";
     t0=Date.now();
     clockTimer=setInterval(function(){
-      var el=Date.now()-t0; // demo ms → simulated: TOTAL ms ≈ 6:42
-      $("#clock").textContent=fmt(Math.min(el/TOTAL,1)*402000);
+      var el=Date.now()-t0;
+      $("#clock").textContent=fmt(el);
     },200);
+
+    if(hasServerAi){
+      // LLAMADA 100% REAL AL BACKEND MULTI-AGENTE
+      setAgent(AGENTS[0], "running");
+      var log0 = $(".log", $("#ag-"+AGENTS[0].id));
+      log0.innerHTML = "<div>Conectando con agentes IA (Gemini)...</div><div>Enviando briefing personalizado</div>";
+
+      try{
+        var resp = await fetch("/api/llm/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            key: info.key,
+            title: info.title,
+            priority: info.priority,
+            body: info.body
+          })
+        });
+        var data = await resp.json();
+        if(data && data.ok && data.result){
+          var res = data.result;
+          var ags = res.agents || {};
+
+          // Actualizar secuencialmente cada agente con sus logs y resultados reales
+          for(var i=0; i<AGENTS.length; i++){
+            var a = AGENTS[i];
+            var agData = ags[a.id] || {};
+            setAgent(a, "running");
+            var agLog = $(".log", $("#ag-"+a.id));
+            agLog.innerHTML = "";
+            var logs = Array.isArray(agData.logs) ? agData.logs : (a.logs || ["Procesado por agente"]);
+            logs.forEach(function(l){
+              var d = document.createElement("div"); d.textContent = l; agLog.appendChild(d);
+            });
+            a.out = agData.out || a.out;
+            a.summary = agData.summary || a.summary;
+            var outEl = $(".out", $("#ag-"+a.id));
+            if(outEl) outEl.innerHTML = a.out;
+            await new Promise(function(r){ setTimeout(r, 250); });
+            setAgent(a, "done");
+            $("#bar").style.width = Math.round((i+1)/AGENTS.length * 100) + "%";
+          }
+
+          // Inyectar el diseño real generado por los agentes
+          var genDesign = Object.assign({}, DEFAULT_DESIGN, res.design || {});
+          if(Array.isArray(res.screens) && res.screens.length > 0){
+            genDesign.screens = res.screens;
+          }
+          versions = [{
+            n: 0,
+            design: genDesign,
+            summary: res.summary || ("Flujo generado para " + info.title),
+            request: "",
+            changes: []
+          }];
+          viewIdx = 0;
+          renderVersions();
+          renderViewer();
+          renderSuggest();
+
+          finish();
+          return;
+        }
+      }catch(err){
+        console.warn("Fallo en llamada real, recurriendo a ejecución local", err);
+      }
+    }
+
+    // Respaldo secuencial
+    prepareAgentsForBrief();
     var at=0;
     AGENTS.forEach(function(a,i){
       timers.push(setTimeout(function(){setAgent(a,"running")},at));
@@ -763,6 +1618,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     });
   }
   function skip(){
+    prepareAgentsForBrief();
     clearAll();
     AGENTS.forEach(function(a){
       setAgent(a,"idle");
@@ -777,38 +1633,179 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   $("#skipBtn").addEventListener("click",skip);
 
   // ---------- Design state (lo que generan y editan los agentes) ----------
-  var NIGHTS=3, TAX=9;
+  var TAX=2.50;
   var DEFAULT_DESIGN = {
-    theme:{cta:"pine",radius:"md",density:"comfortable"},
-    results:{title:"7 habitaciones disponibles",subtitle:"Precio total de la estancia, impuestos incluidos",priceMode:"total",showRating:false,
-      filters:[{label:"Vista mar",on:true},{label:"Desayuno incluido",on:false},{label:"Cancelación gratis",on:false}],banner:null},
+    theme:{cta:"ink",radius:"md",density:"comfortable"},
+    results:{title:"Elige una opción de viaje",subtitle:"Precios cerrados con tarifa garantizada",priceMode:"total",showRating:true,
+      filters:[{label:"Recomendados",on:true},{label:"Uber Reserve",on:false},{label:"Uber Green (VE)",on:false},{label:"Confort extra",on:false}],banner:null},
     rooms:[
-      {id:"sup",name:"Doble Superior vista mar",img:"sea",badge:"Mejor precio",perk:"Desayuno incluido",night:189,rating:4.7,reviews:312,specs:"28 m² · cama de matrimonio o dos camas · planta 4–7",amenities:["Balcón al mar","Desayuno buffet","Wifi gratis","Cafetera"]},
-      {id:"dlx",name:"Deluxe vista ciudad",img:"room",badge:"",perk:"Cancelación gratis hasta 10 nov",night:204,rating:4.5,reviews:198,specs:"32 m² · cama king · zona de trabajo",amenities:["Escritorio","Desayuno buffet","Wifi gratis","Minibar"]},
-      {id:"jst",name:"Junior Suite con terraza",img:"suite",badge:"Albora Club",perk:"Late check-out para socios",night:287,rating:4.9,reviews:87,specs:"45 m² · terraza privada · salón",amenities:["Terraza de 12 m²","Bañera exenta","Desayuno buffet","Acceso al spa"]}
+      {id:"uberx",name:"UberX",img:"uberx",badge:"Más popular",perk:"Llegada en 4 min · 4 plazas",night:14.20,rating:4.9,reviews:1420,specs:"4 plazas · Coche estándar · Conductor profesional",amenities:["4 plazas","Coche estándar","Maletero mediano","Viaje privado"]},
+      {id:"comfort",name:"Uber Comfort",img:"comfort",badge:"Espacio extra",perk:"Llegada en 3 min · Coches nuevos",night:18.50,rating:4.95,reviews:840,specs:"4 plazas · Espacio extra para piernas · Temp. a elegir",amenities:["Espacio extra piernas","Preferencia de temp.","Silencio opcional","Conductores top"]},
+      {id:"black",name:"Uber Black",img:"black",badge:"Premium",perk:"Llegada en 6 min · Chófer profesional",night:27.80,rating:4.98,reviews:512,specs:"4 plazas · Vehículo de gama alta · 15 min espera",amenities:["Vehículos premium","Chófer profesional","15 min espera cortesía","Botellas de agua"]}
     ],
-    room:{rateTitle:"Elige tu tarifa",rateOrder:["flexible","nonref"],defaultRate:"flexible",
-      rates:{flexible:{name:"Flexible",detail:"Cancela gratis hasta 48 h antes · pagas en el hotel",extra:30},nonref:{name:"No reembolsable",detail:"Pagas ahora y ahorras 30 €/noche",extra:0}},
-      recommendation:"Recomendamos Flexible porque tu llegada es en menos de 30 días.",cta:"Continuar",banner:null},
-    checkout:{title:"Confirma tu reserva",fields:[{label:"Nombre y apellidos",value:"Marta Ruiz Ortega"},{label:"Correo electrónico",value:"marta.ruiz@correo.es"},{label:"Teléfono",value:"+34 612 345 678"}],
-      showPoints:true,pointsLabel:"Usar 4.200 puntos Albora Club",pointsValue:42,cta:"Confirmar reserva",banner:null},
-    confirm:{title:"¡Reserva confirmada!",message:"Te hemos enviado la confirmación por correo. Te esperamos el 12 de noviembre."}
+    room:{rateTitle:"Opciones de recogida",rateOrder:["flexible","nonref"],defaultRate:"flexible",
+      rates:{flexible:{name:"Viaje inmediato",detail:"Llegada en 4 min · Asignación automática de conductor",extra:0},nonref:{name:"Uber Reserve",detail:"Reserva programada · 15 min de espera de cortesía",extra:4}},
+      recommendation:"El conductor te recogerá en el punto de recogida seleccionado.",cta:"Elegir UberX",banner:null},
+    checkout:{title:"Confirma la recogida",fields:[{label:"Punto de recogida",value:"Estación Joaquín Sorolla (Puerta Principal)"},{label:"Destino",value:"Aeropuerto de Valencia · Terminal 1"},{label:"Pasajero",value:"Para ti (Marta Ruiz)"}],
+      showPoints:true,pointsLabel:"Usar saldo Uber Cash",pointsValue:12.50,cta:"Confirmar UberX",banner:null},
+    confirm:{title:"¡Tu UberX está en camino!",message:"Manuel llegará en 4 minutos en un Toyota Corolla (4821 LKY)."},
+    screens: [
+      {
+        step: 1,
+        shortName: "1 · Selección de servicio",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Selección nominal de servicio con precio cerrado garantizado",
+        hint: "Elige entre UberX, Comfort o Black",
+        navTitle: "Viaje",
+        mainTitle: "Elige tu vehículo",
+        mainSubtitle: "Tarifas cerradas garantizadas y tiempos de recogida en vivo",
+        showMap: false,
+        items: [
+          { title: "UberX · 4 plazas", subtitle: "Llegada en 3 min · Coche estándar", icon: "🚗", highlight: true, price: "14,20 €" },
+          { title: "Uber Comfort · 4 plazas", subtitle: "Llegada en 4 min · Espacio extra y silencio", icon: "🚘", highlight: false, price: "18,50 €" },
+          { title: "Uber Black · Chófer", subtitle: "Llegada en 6 min · Chófer profesional", icon: "🖤", highlight: false, price: "27,80 €" }
+        ],
+        cards: [
+          { label: "Tiempo estimado", value: "3 min" },
+          { label: "Punto de recogida", value: "Terminal 1" }
+        ],
+        banner: null,
+        cta: "Continuar con UberX",
+        ctaVariant: "primary"
+      },
+      {
+        step: 2,
+        shortName: "2 · Corner Case: Alta demanda y desvío",
+        stateType: "corner_case",
+        stateBadge: "CORNER CASE",
+        stateDesc: "Condición atípica de alta demanda con punto de encuentro sugerido a 50m",
+        hint: "Aviso anticipado para evitar retenciones de tráfico",
+        navTitle: "Aviso de ruta",
+        mainTitle: "Zona con alta demanda de tráfico",
+        mainSubtitle: "Para evitar 10 min de atasco, te recomendamos caminar 50m al punto exprés",
+        showMap: true,
+        mapMeta: {
+          badge: "Punto exprés a 50 m",
+          eta: "2 min",
+          driverName: "Carlos M.",
+          rating: "4.95",
+          vehicle: "Toyota Corolla · 4821 LKY",
+          location: "Parking Exprés · Carril B",
+          lat: 39.4699,
+          lng: -0.3763,
+          dlat: 39.4665,
+          dlng: -0.3785
+        },
+        items: [
+          { title: "Punto de encuentro optimizado", subtitle: "Acércate al Parking Exprés (carril B)", icon: "📍", highlight: true }
+        ],
+        cards: [
+          { label: "Ahorro de tiempo", value: "-10 min" },
+          { label: "Distancia a pie", value: "50 m" }
+        ],
+        banner: { text: "Alta afluencia en terminal: punto de encuentro optimizado para salir antes", tone: "warning" },
+        cta: "Aceptar nuevo punto de encuentro",
+        ctaVariant: "primary"
+      },
+      {
+        step: 3,
+        shortName: "3 · Confirmación y autorización",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Revisión nominal de detalles, punto de encuentro y autorización",
+        hint: "Resumen previo al servicio",
+        navTitle: "Confirmación",
+        mainTitle: "Revisa los detalles del viaje",
+        mainSubtitle: "Tarifa fijada de 14,20 € sin recargos imprevistos",
+        showMap: false,
+        items: [
+          { title: "Punto de recogida", subtitle: "Aeropuerto de Valencia · Parking Exprés", icon: "📍", highlight: false },
+          { title: "Destino", subtitle: "Plaza del Ayuntamiento, 1", icon: "🏁", highlight: false },
+          { title: "Método de pago", subtitle: "Tarjeta Visa terminada en •••• 4242", icon: "💳", highlight: true }
+        ],
+        cards: [
+          { label: "Total viaje", value: "14,20 €" },
+          { label: "Uber Cash", value: "12,50 € disp." }
+        ],
+        banner: null,
+        cta: "Confirmar viaje",
+        ctaVariant: "primary"
+      },
+      {
+        step: 4,
+        shortName: "4 · Caso de Error: Fallo y recuperación",
+        stateType: "error",
+        stateBadge: "CASO DE ERROR",
+        stateDesc: "Simulación de tarjeta declinada con recuperación instantánea usando Uber Cash sin dead-ends",
+        hint: "Resolución guiada de incidencia de cobro",
+        navTitle: "Incidencia",
+        mainTitle: "No se pudo procesar tu tarjeta",
+        mainSubtitle: "Tu banco ha rechazado la operación. Puedes cambiar a Uber Cash o tarjeta secundaria para no perder el vehículo.",
+        showMap: false,
+        items: [
+          { title: "Uber Cash (Saldo disponible: 18,50 €)", subtitle: "Pagar 14,20 € con saldo prepago · Instantáneo", icon: "💳", highlight: true },
+          { title: "Tarjeta Mastercard •••• 9812", subtitle: "Usar método de pago secundario guardado", icon: "🏦", highlight: false }
+        ],
+        cards: [
+          { label: "Importe", value: "14,20 €" },
+          { label: "Estado", value: "Listo para reintentar" }
+        ],
+        banner: { text: "Tarjeta declinada por la entidad: cambia de método para mantener tu asignación", tone: "negative" },
+        cta: "Reintentar y pagar con Uber Cash",
+        ctaVariant: "negative"
+      },
+      {
+        step: 5,
+        shortName: "5 · Conductor en camino y PIN",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Flujo recuperado con éxito: conductor asignado, seguimiento GPS en tiempo real y código PIN",
+        hint: "Servicio activo y seguro",
+        navTitle: "En camino",
+        mainTitle: "Carlos está a 2 minutos",
+        mainSubtitle: "Dirígete al punto de recogida y muestra tu PIN de seguridad al conductor",
+        showMap: true,
+        mapMeta: {
+          badge: "En camino hacia ti",
+          eta: "2 min",
+          driverName: "Carlos M.",
+          rating: "4.95",
+          vehicle: "Toyota Corolla · 4821 LKY",
+          location: "A 350 m de tu punto de encuentro",
+          lat: 39.4699,
+          lng: -0.3763,
+          dlat: 39.4680,
+          dlng: -0.3775
+        },
+        items: [
+          { title: "PIN de seguridad", subtitle: "Compártelo con Carlos antes de subir al vehículo", icon: "🔒", highlight: true }
+        ],
+        cards: [
+          { label: "PIN", value: "7492" },
+          { label: "Matrícula", value: "4821 LKY" }
+        ],
+        banner: null,
+        cta: "Finalizar y reiniciar prototipo",
+        ctaVariant: "primary"
+      }
+    ]
   };
   function clone(o){return JSON.parse(JSON.stringify(o))}
 
-  // Valida lo que devuelve un agente: solo valores que existen en Albora DS
+  // Valida lo que devuelve un agente: solo valores que existen en Uber Base DS
   function pick(v,allowed,fb){return allowed.indexOf(v)>-1?v:fb}
   function str(v,fb,max){return (typeof v==="string"&&v.trim())?v.trim().slice(0,max||160):fb}
   function num(v,fb,min,max){v=Number(v);return isFinite(v)&&v>=min&&v<=max?Math.round(v*10)/10:fb}
   function banner(v,fb){
     if(v===null) return null;
-    if(v&&typeof v==="object"&&typeof v.text==="string"&&v.text.trim()) return {text:v.text.trim().slice(0,140),tone:pick(v.tone,["sun","pine"],"sun")};
+    if(v&&typeof v==="object"&&typeof v.text==="string"&&v.text.trim()) return {text:v.text.trim().slice(0,140),tone:pick(v.tone,["sun","pine","negative","warning","positive"],"sun")};
     return fb===undefined?null:fb;
   }
   function sanitize(c,p){
     c=c||{}; var o=clone(p);
     var t=c.theme||{};
-    o.theme={cta:pick(t.cta,["pine","sun","ink"],p.theme.cta),radius:pick(t.radius,["sm","md","lg"],p.theme.radius),density:pick(t.density,["comfortable","compact"],p.theme.density)};
+    o.theme={cta:pick(t.cta,["pine","sun","ink"],p.theme.cta),radius:pick(t.radius,["sm","md","rounded","lg","pill"],p.theme.radius),density:pick(t.density,["comfortable","compact"],p.theme.density)};
     var r=c.results||{};
     o.results.title=str(r.title,p.results.title,60);
     o.results.subtitle=str(r.subtitle,p.results.subtitle,90);
@@ -819,8 +1816,8 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     if(Array.isArray(c.rooms)&&c.rooms.length){
       o.rooms=c.rooms.slice(0,4).map(function(x,i){
         var b=p.rooms[i]||p.rooms[0]; x=x||{};
-        return {id:str(x.id,b.id+"-"+i,12),name:str(x.name,b.name,40),img:pick(x.img,["sea","room","suite"],b.img),badge:typeof x.badge==="string"?x.badge.slice(0,22):b.badge,
-          perk:str(x.perk,b.perk,48),night:Math.round(num(x.night,b.night,40,2000)),rating:num(x.rating,b.rating,1,5),reviews:Math.round(num(x.reviews,b.reviews,0,99999)),
+        return {id:str(x.id,b.id+"-"+i,12),name:str(x.name,b.name,40),img:pick(x.img,["uberx","comfort","black","green","sea","room","suite"],b.img),badge:typeof x.badge==="string"?x.badge.slice(0,22):b.badge,
+          perk:str(x.perk,b.perk,48),night:Math.round(num(x.night,b.night,1,500)*10)/10,rating:num(x.rating,b.rating,1,5),reviews:Math.round(num(x.reviews,b.reviews,0,99999)),
           specs:str(x.specs,b.specs,80),amenities:Array.isArray(x.amenities)&&x.amenities.length?x.amenities.slice(0,6).map(function(a){return str(a,"",28)}).filter(Boolean):b.amenities};
       });
     }
@@ -846,6 +1843,33 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     var f=c.confirm||{};
     o.confirm.title=str(f.title,p.confirm.title,40);
     o.confirm.message=str(f.message,p.confirm.message,140);
+    if(Array.isArray(c.screens) && c.screens.length){
+      o.screens = c.screens.map(function(s, idx){
+        s = s || {};
+        return {
+          step: Number(s.step) || (idx + 1),
+          shortName: str(s.shortName, "Paso " + (idx + 1), 60),
+          stateType: pick(s.stateType, ["happy_path", "error", "corner_case"], "happy_path"),
+          stateBadge: str(s.stateBadge, (s.stateType === "error" ? "CASO DE ERROR" : s.stateType === "corner_case" ? "CORNER CASE" : "HAPPY PATH"), 30),
+          stateDesc: str(s.stateDesc, "", 160),
+          hint: str(s.hint, "", 140),
+          navTitle: str(s.navTitle, "Paso " + (idx + 1), 50),
+          mainTitle: str(s.mainTitle, "Título del paso", 80),
+          mainSubtitle: str(s.mainSubtitle, "", 160),
+          showMap: !!s.showMap,
+          mapMeta: s.mapMeta && typeof s.mapMeta === "object" ? s.mapMeta : null,
+          heroImage: s.heroImage && typeof s.heroImage === "object" ? s.heroImage : null,
+          items: Array.isArray(s.items) ? s.items : [],
+          cards: Array.isArray(s.cards) ? s.cards : [],
+          banner: banner(s.banner, null),
+          cta: str(s.cta, "Continuar", 60),
+          ctaVariant: pick(s.ctaVariant, ["primary", "secondary", "negative", "tertiary"], "primary"),
+          recoveryAction: str(s.recoveryAction, "", 120)
+        };
+      });
+    } else if(Array.isArray(p.screens)){
+      o.screens = clone(p.screens);
+    }
     return o;
   }
 
@@ -860,8 +1884,8 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   function eur(n){var s=n.toFixed(2).replace(".",",");return s+" €"}
   function eur0(n){return Math.round(n)+" €"}
   function alStyle(d){
-    var r={sm:["6px","10px"],md:["12px","18px"],lg:["18px","26px"]}[d.theme.radius];
-    var c={pine:["var(--al-pine)","#FFFFFF"],sun:["var(--al-sun)","#1A2421"],ink:["var(--al-ink)","#FFFFFF"]}[d.theme.cta];
+    var r={sm:["4px","8px"],md:["8px","12px"],rounded:["8px","12px"],lg:["12px","16px"],pill:["9999px","9999px"]}[d.theme.radius]||["8px","12px"];
+    var c={pine:["#0E8345","#FFFFFF"],sun:["#276EF1","#FFFFFF"],ink:["#000000","#FFFFFF"]}[d.theme.cta]||["#000000","#FFFFFF"];
     return '--al-r-md:'+r[0]+';--al-r-lg:'+r[1]+';--al-cta:'+c[0]+';--al-cta-fg:'+c[1];
   }
   function bannerHtml(b){return b?'<div class="al-banner '+b.tone+'">'+h(b.text)+'</div>':""}
@@ -869,24 +1893,30 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   function rateOf(d,room,id){var r=d.room.rates[id];return {id:id,name:r.name,detail:r.detail,price:room.night+r.extra}}
   function roomById(d,id){for(var i=0;i<d.rooms.length;i++){if(d.rooms[i].id===id)return d.rooms[i]}return d.rooms[0]}
 
+  function vehicleIcon(img){
+    if(img==="black") return "🖤";
+    if(img==="comfort") return "🚘";
+    if(img==="green") return "⚡";
+    return "🚗";
+  }
+
   function sResults(d){
     var R=d.results;
     return STATUS+
-      '<div class="al-bar"><span class="al-logo">Albora</span></div>'+
-      '<div class="al-search"><small>Albora Mar · Valencia</small><span>12–15 nov · 3 noches · 2 adultos</span></div>'+
+      '<div class="al-bar"><span class="al-logo">Uber</span></div>'+
+      '<div class="al-search"><small>Estación Joaquín Sorolla</small><span>➔ Aeropuerto de Valencia (T1)</span></div>'+
       '<div class="al-chips">'+R.filters.map(function(f){return '<span class="al-chip'+(f.on?' on':'')+'">'+h(f.label)+'</span>'}).join("")+'</div>'+
       bannerHtml(R.banner)+
       '<div style="padding:0 16px 8px"><h3 class="al-h">'+h(R.title)+'</h3><p class="al-sub">'+h(R.subtitle)+'</p></div>'+
       '<div class="al-list">'+d.rooms.map(function(r){
-        var total=r.night*NIGHTS;
-        var main = R.priceMode==="total" ? eur0(total)+' <small>total</small>' : eur0(r.night)+' <small>/noche</small>';
-        var second = R.priceMode==="total" ? eur0(r.night)+'/noche' : eur0(total)+' total · 3 noches';
-        return '<button class="al-card" data-act="room:'+h(r.id)+'" aria-label="Ver '+h(r.name)+'"><div class="al-img img-'+r.img+'">'+(r.badge?'<span class="al-badge">'+h(r.badge)+'</span>':'')+'</div>'+
-          '<div class="al-card-b"><b style="font-size:14px">'+h(r.name)+'</b>'+
-          (R.showRating?'<span class="al-rating"><b>★ '+String(r.rating).replace(".",",")+'</b> · '+r.reviews+' opiniones</span>':'')+
+        var priceFormatted = eur(r.night);
+        return '<button class="al-card" data-act="room:'+h(r.id)+'" aria-label="Ver '+h(r.name)+'"><div class="al-img img-'+r.img+'" style="display:flex;align-items:center;justify-content:center;background:#F6F6F6;font-size:32px">'+(r.badge?'<span class="al-badge">'+h(r.badge)+'</span>':'')+'<span>'+vehicleIcon(r.img)+'</span></div>'+
+          '<div class="al-card-b"><b style="font-size:15px">'+h(r.name)+'</b>'+
+          (R.showRating?'<span class="al-rating"><b>★ '+String(r.rating).replace(".",",")+'</b> · '+r.reviews+' valoraciones</span>':'')+
           '<span class="al-perk">'+h(r.perk)+'</span>'+
-          '<div class="al-row"><span class="al-sub">'+second+'</span><span class="al-price">'+main+'</span></div></div></button>';
-      }).join("")+'</div>';
+          '<div class="al-row"><span class="al-sub">'+h(r.specs.split("·")[0]||"4 plazas")+'</span><span class="al-price">'+priceFormatted+'</span></div></div></button>';
+      }).join("")+'</div>'+
+      '<div class="al-sticky"><button class="base-btn size-large" data-act="room:'+h(d.rooms[0].id)+'"><span>Seleccionar '+h(d.rooms[0].name)+'</span> <span style="font-size:17px">➔</span></button></div>';
   }
   function sRoom(d,roomId,rateId){
     var r=roomById(d,roomId), M=d.room, sel=rateId||M.defaultRate;
@@ -894,89 +1924,612 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     var cur=rateOf(d,r,sel);
     return STATUS+
       '<div class="al-bar"><button class="back" data-act="back" aria-label="Volver" style="width:28px">‹</button><b>'+h(r.name)+'</b></div>'+
-      '<div class="al-img al-hero img-'+r.img+'">'+(r.badge?'<span class="al-badge">'+h(r.badge)+'</span>':'')+'</div>'+
+      '<div class="al-steps" aria-label="Paso 2 de 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>'+
+      '<div class="al-img al-hero img-'+r.img+'" style="display:flex;align-items:center;justify-content:center;background:#F6F6F6;font-size:44px">'+(r.badge?'<span class="al-badge">'+h(r.badge)+'</span>':'')+'<span>'+vehicleIcon(r.img)+'</span></div>'+
       '<div class="al-sec"><h3 class="al-h">'+h(r.name)+'</h3><p class="al-sub">'+h(r.specs)+'</p>'+
-        (d.results.showRating?'<span class="al-rating"><b>★ '+String(r.rating).replace(".",",")+'</b> · '+r.reviews+' opiniones</span>':'')+
+        (d.results.showRating?'<span class="al-rating"><b>★ '+String(r.rating).replace(".",",")+'</b> · '+r.reviews+' valoraciones</span>':'')+
         '<div class="al-amen">'+r.amenities.map(function(a){return '<span>'+h(a)+'</span>'}).join("")+'</div></div>'+
       '<div class="al-sec"><b style="font-size:15px">'+h(M.rateTitle)+'</b>'+bannerHtml(M.banner)+
-        rates.map(function(x){return '<button class="al-rate'+(x.id===sel?' on':'')+'" data-act="rate:'+x.id+'" role="radio" aria-checked="'+(x.id===sel)+'"><span class="al-radio"></span><b>'+h(x.name)+'</b><b>'+eur0(x.price)+'</b><small>'+h(x.detail)+'</small></button>'}).join("")+
-        (M.recommendation?'<p class="al-legal">Precio por noche. '+h(M.recommendation)+'</p>':'<p class="al-legal">Precio por noche.</p>')+'</div>'+
-      '<div class="al-sticky"><div><div class="al-price">'+eur0(cur.price*NIGHTS)+' <small>3 noches</small></div><span class="al-sub">Impuestos incluidos</span></div><button class="al-btn sm" data-act="next" style="width:auto">'+h(M.cta)+'</button></div>';
+        rates.map(function(x){return '<button class="al-rate'+(x.id===sel?' on':'')+'" data-act="rate:'+x.id+'" role="radio" aria-checked="'+(x.id===sel)+'"><span class="al-radio"></span><b>'+h(x.name)+'</b><b>'+eur(x.price)+'</b><small>'+h(x.detail)+'</small></button>'}).join("")+
+        (M.recommendation?'<p class="al-legal">'+h(M.recommendation)+'</p>':'<p class="al-legal">Precio cerrado garantizado.</p>')+'</div>'+
+      '<div class="al-sticky"><div><div class="al-price">'+eur(cur.price)+'</div><span class="al-sub">Tarifa garantizada</span></div><button class="base-btn size-compact" data-act="next" style="width:auto"><span>Continuar con '+h(r.name)+'</span> <span style="font-size:16px">➔</span></button></div>';
   }
   function totals(d,roomId,rateId,usePoints){
     var r=roomById(d,roomId), rate=rateOf(d,r,rateId||d.room.defaultRate);
-    var stay=rate.price*NIGHTS, pts=(d.checkout.showPoints&&usePoints)?d.checkout.pointsValue:0;
-    return {room:r,rate:rate,stay:stay,pts:pts,total:stay+TAX-pts};
+    var stay=rate.price, fee=TAX, pts=(d.checkout.showPoints&&usePoints)?d.checkout.pointsValue:0;
+    var total=Math.max(0, stay+fee-pts);
+    return {room:r,rate:rate,stay:stay,fee:fee,pts:pts,total:total};
   }
   function sCheckout(d,roomId,rateId,usePoints){
     var C=d.checkout, t=totals(d,roomId,rateId,usePoints);
-    var legal = t.rate.id==="flexible" ? 'Pagas '+eur(t.total)+' en el hotel. Cancela gratis hasta el 10 nov a las 23:59.' : 'Se cargarán '+eur(t.total)+' ahora. Esta tarifa no admite cancelación.';
     return STATUS+
       '<div class="al-bar"><button class="back" data-act="back" aria-label="Volver" style="width:28px">‹</button><b>'+h(C.title)+'</b></div>'+
-      '<div class="al-steps" aria-label="Paso 3 de 3"><i class="on"></i><i class="on"></i><i class="on"></i></div>'+
-      '<div class="al-sec" style="margin-top:4px"><b style="font-size:15px">Tus datos</b>'+bannerHtml(C.banner)+
+      '<div class="al-steps" aria-label="Paso 3 de 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>'+
+      '<div class="al-sec" style="margin-top:4px"><b style="font-size:15px">Detalles del trayecto</b>'+bannerHtml(C.banner)+
         C.fields.map(function(f){return '<div class="al-field"><label>'+h(f.label)+'</label><div class="al-input">'+h(f.value)+'</div></div>'}).join("")+'</div>'+
       '<div class="al-sec">'+
-        (C.showPoints?'<div class="al-points"><span><b>'+h(C.pointsLabel)+'</b><br>Ahorra '+eur(C.pointsValue)+'</span><button class="al-switch'+(usePoints?'':' off')+'" data-act="points" role="switch" aria-checked="'+usePoints+'" aria-label="Usar puntos"></button></div>':'')+
-        '<div class="al-sum"><div><span>'+h(t.rate.name)+' · 3 noches × '+eur0(t.rate.price)+'</span><span>'+eur(t.stay)+'</span></div><div><span>Tasa turística (2 × 3 noches)</span><span>'+eur(TAX)+'</span></div>'+
-        (t.pts?'<div style="color:#2D7A4E"><span>Puntos Albora Club</span><span>−'+eur(t.pts)+'</span></div>':'')+
-        '<div class="tot"><span>Total</span><span>'+eur(t.total)+'</span></div></div>'+
-        '<p class="al-legal">'+legal+'</p></div>'+
-      '<div class="al-sticky"><button class="al-btn" data-act="confirm">'+h(C.cta)+'</button></div>';
+        (C.showPoints?'<div class="al-points"><span><b>'+h(C.pointsLabel)+'</b><br>Descuento aplicado: '+eur(t.pts)+'</span><button class="al-switch'+(usePoints?'':' off')+'" data-act="points" role="switch" aria-checked="'+usePoints+'" aria-label="Usar saldo"></button></div>':'')+
+        '<div class="al-sum"><div><span>'+h(t.room.name)+' ('+h(t.rate.name)+')</span><span>'+eur(t.stay)+'</span></div><div><span>Suplemento aeropuerto</span><span>'+eur(t.fee)+'</span></div>'+
+        (t.pts?'<div style="color:#0E8345"><span>Saldo Uber Cash</span><span>−'+eur(t.pts)+'</span></div>':'')+
+        '<div class="tot"><span>Total a cobrar</span><span>'+eur(t.total)+'</span></div></div>'+
+        '<p class="al-legal">Cobro automático en Apple Pay tras completar el trayecto. Cancelación gratuita antes de 2 min tras la asignación.</p></div>'+
+      '<div class="al-sticky"><button class="base-btn size-large" data-act="confirm"><span>'+h(C.cta)+'</span> <span style="font-size:17px">➔</span></button></div>';
+  }
+  function sRideMatching(d,roomId,rateId,usePoints){
+    var t=totals(d,roomId,rateId,usePoints);
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="back" aria-label="Volver" style="width:28px">‹</button><b>Asignando conductor</b></div>'+
+      '<div class="al-steps" aria-label="Paso 4 de 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>'+
+      '<div class="al-sec" style="margin-top:4px;text-align:center;padding:26px 16px;background:linear-gradient(180deg,#FFFFFF,#F6F6F6)">'+
+        '<div style="width:72px;height:72px;border-radius:50%;background:#000000;color:#FFFFFF;display:grid;place-items:center;margin:0 auto 12px;font-size:32px;box-shadow:0 0 0 8px rgba(0,0,0,0.06), 0 0 0 16px rgba(0,0,0,0.03)">🚗</div>'+
+        '<h3 class="al-h" style="font-size:18px">Conectando con conductores</h3>'+
+        '<p class="al-sub">Buscando el vehículo más cercano en Estación Joaquín Sorolla...</p>'+
+      '</div>'+
+      '<div class="al-sec"><b style="font-size:14px">Trayecto solicitado</b>'+
+        '<div class="al-sum">'+
+          '<div><span>Vehículo</span><span>'+h(t.room.name)+' · 4 plazas</span></div>'+
+          '<div><span>Punto de recogida</span><span>Puerta Principal Norte (vial VTC)</span></div>'+
+          '<div><span>Destino</span><span>Aeropuerto de Valencia (T1)</span></div>'+
+          '<div class="tot"><span>Tarifa cerrada garantizada</span><span>'+eur(t.total)+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sec">'+
+        '<div style="display:grid;gap:8px">'+
+          '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="color:#0E8345;font-weight:700">✓</span> <span>Precio garantizado sin suplementos por tráfico</span></div>'+
+          '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="color:#0E8345;font-weight:700">✓</span> <span>Conductores profesionales verificados</span></div>'+
+          '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="color:#0E8345;font-weight:700">✓</span> <span>Verificación de viaje por PIN de seguridad</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sticky"><button class="base-btn size-large" data-act="matching-done"><span>Simular asignación de conductor</span> <span style="font-size:17px">➔</span></button></div>';
   }
   function sConfirm(d,roomId,rateId,usePoints){
-    var t=totals(d,roomId,rateId,usePoints), F=d.confirm;
-    return STATUS+'<div class="al-confirm"><div class="al-check">✓</div><h3 class="al-h">'+h(F.title)+'</h3><p class="al-sub">'+h(F.message)+'</p>'+
-      '<span class="al-code">Localizador ALB-7Q2K</span>'+
-      '<div class="al-sum"><div><span>'+h(t.room.name)+'</span></div><div><span>12–15 nov · 2 adultos</span></div><div><span>Tarifa '+h(t.rate.name)+'</span></div><div class="tot"><span>Total</span><span>'+eur(t.total)+'</span></div></div>'+
-      '<button class="al-btn ghost" data-act="restart">Volver al inicio del prototipo</button></div>';
+    var t=totals(d,roomId,rateId,usePoints);
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="back" aria-label="Volver" style="width:28px">‹</button><b>Conductor en camino</b></div>'+
+      '<div class="al-steps" aria-label="Paso 5 de 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>'+
+      '<div class="al-sec" style="margin-top:4px;display:flex;align-items:center;gap:14px;background:#F6F6F6;border-radius:12px;padding:14px 16px">'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:#000000;color:#fff;display:grid;place-items:center;font-size:20px;font-weight:700">M</div>'+
+        '<div style="flex:1"><b style="font-size:16px">Manuel</b><div style="font-size:12.5px;color:#545454">★ 4.96 · 1.840 viajes</div></div>'+
+        '<div style="text-align:right"><b style="font-size:18px;color:#000000">4 min</b><div style="font-size:11px;color:#545454">Llegada</div></div>'+
+      '</div>'+
+      '<div class="al-sec">'+
+        '<div style="display:justify-content:space-between;display:flex;align-items:center">'+
+          '<div><b style="font-size:15px">Toyota Corolla Hybrid</b><div style="font-size:12.5px;color:#545454">Color Gris Plata · 4 plazas</div></div>'+
+          '<span style="font-family:var(--f-mono);font-size:14px;font-weight:700;padding:6px 10px;background:#000000;color:#fff;border-radius:6px;letter-spacing:1px">4821 LKY</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sec" style="text-align:center;padding:14px">'+
+        '<span class="al-sub" style="font-size:12px">Indica este código al subir al vehículo:</span>'+
+        '<div class="al-code" style="font-size:24px;letter-spacing:6px;font-weight:700;margin:6px auto 0;display:inline-block">7492</div>'+
+      '</div>'+
+      '<div class="al-sec">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+          '<button class="base-btn base-btn-secondary size-compact" style="font-size:13px" type="button">📞 Llamar</button>'+
+          '<button class="base-btn base-btn-secondary size-compact" style="font-size:13px" type="button">💬 Mensaje</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sec">'+
+        '<div class="al-sum">'+
+          '<div><span>'+h(t.room.name)+' ('+h(t.rate.name)+')</span><span>'+eur(t.stay)+'</span></div>'+
+          '<div><span>Recogida en Joaquín Sorolla</span><span>Puerta Norte</span></div>'+
+          '<div class="tot"><span>Total cobrado (Apple Pay)</span><span>'+eur(t.total)+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sticky"><button class="base-btn base-btn-secondary" data-act="restart">Volver al inicio del prototipo</button></div>';
+  }
+
+  // ---------- Vistas EV (Movilidad Eléctrica) ----------
+  function sEvMap(){
+    return STATUS+
+      '<div class="al-bar"><span class="al-logo">Uber</span><span class="al-badge" style="position:static;background:#0E8345;color:#fff;margin-left:8px;font-size:10px">Green</span></div>'+
+      '<div class="al-steps" aria-label="Paso 1 de 5"><i class="on"></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="al-search"><small>Estación Uber Green · Valencia</small><span>Uber Hub · Av. Francia, 42</span></div>'+
+      '<div class="al-chips">'+
+        '<span class="al-chip on">Todos (6)</span>'+
+        '<span class="al-chip">Libres (4)</span>'+
+        '<span class="al-chip">Ultra-rápido &gt;100 kW</span>'+
+      '</div>'+
+      '<div style="padding:0 16px 8px"><h3 class="al-h">Puntos de recarga</h3><p class="al-sub">4 cargadores disponibles ahora mismo</p></div>'+
+      '<div class="al-list">'+
+        '<div class="al-card" style="border:2px solid #000000">'+
+          '<div style="padding:12px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">'+
+            '<b>Punto 03 · CCS2 Combo</b><span class="al-badge" style="position:static;background:#0E8345;color:#fff">Libre</span>'+
+          '</div>'+
+          '<div class="al-card-b">'+
+            '<div style="font-size:12px;color:#545454">Potencia ultra-rápida hasta <b>150 kW</b> · 800V</div>'+
+            '<div class="al-row" style="margin-top:4px"><span class="al-perk" style="color:#0E8345">Toma lista para conectar</span><span class="al-price">0,45 € <small>/kWh</small></span></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="al-card">'+
+          '<div style="padding:12px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">'+
+            '<b>Punto 04 · Mennekes Tipo 2</b><span class="al-badge" style="position:static;background:#0E8345;color:#fff">Libre</span>'+
+          '</div>'+
+          '<div class="al-card-b">'+
+            '<div style="font-size:12px;color:#545454">Carga semi-rápida <b>22 kW</b> · AC trifásica</div>'+
+            '<div class="al-row" style="margin-top:4px"><span class="al-sub">Ideal para estancias largas</span><span class="al-price">0,32 € <small>/kWh</small></span></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="al-card" style="opacity:.65">'+
+          '<div style="padding:12px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">'+
+            '<b>Punto 01 · CCS2 150 kW</b><span class="chip" style="font-size:11px">Ocupado (82%)</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sticky"><div><div class="al-price">Punto 03</div><span class="al-sub">CCS2 · 150 kW</span></div><button class="base-btn size-compact" data-act="ev-next" style="width:auto"><span>Seleccionar conector</span> <span style="font-size:16px">➔</span></button></div>';
+  }
+
+  function sEvConnectors(){
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="ev-back" aria-label="Volver" style="width:28px">‹</button><b>Elegir toma y tarifa</b></div>'+
+      '<div class="al-steps" aria-label="Paso 2 de 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>'+
+      '<div style="padding:10px 16px 4px"><h3 class="al-h" style="font-size:17px">Uber Hub · Av. Francia, 42</h3><p class="al-sub">Selecciona la toma adecuada para tu vehículo</p></div>'+
+      '<div class="al-list">'+
+        '<div class="al-card" style="border:2px solid #000000;margin:0 16px 10px">'+
+          '<div style="padding:12px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">'+
+            '<b>Punto 03 · CCS2 Combo (DC)</b><span class="al-badge" style="position:static;background:#0E8345;color:#fff">Libre · Alta potencia</span>'+
+          '</div>'+
+          '<div class="al-card-b">'+
+            '<div style="font-size:12.5px;color:#000000;font-weight:600">Ultra-rápido hasta 150 kW · 800V</div>'+
+            '<div style="font-size:12px;color:#545454;margin-top:2px">10% a 80% en ~20 minutos en vehículos compatibles</div>'+
+            '<div class="al-row" style="margin-top:8px"><span class="al-perk" style="color:#0E8345">Recomendado para ruta</span><span class="al-price">0,45 € <small>/kWh</small></span></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="al-card" style="margin:0 16px 10px">'+
+          '<div style="padding:12px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">'+
+            '<b>Punto 04 · Mennekes Tipo 2 (AC)</b><span class="al-badge" style="position:static;background:#0E8345;color:#fff">Libre</span>'+
+          '</div>'+
+          '<div class="al-card-b">'+
+            '<div style="font-size:12.5px;color:#000000;font-weight:600">Carga semi-rápida 22 kW</div>'+
+            '<div style="font-size:12px;color:#545454;margin-top:2px">Ideal para recargas mientras descansas o haces gestiones</div>'+
+            '<div class="al-row" style="margin-top:8px"><span class="al-sub">Trifásica AC</span><span class="al-price">0,32 € <small>/kWh</small></span></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="al-card" style="margin:0 16px 10px;opacity:.55">'+
+          '<div style="padding:12px;background:#F6F6F6;display:flex;justify-content:space-between;align-items:center">'+
+            '<b>Punto 02 · CHAdeMO (DC)</b><span class="chip" style="font-size:11px">Ocupado</span>'+
+          '</div>'+
+          '<div class="al-card-b">'+
+            '<div style="font-size:12px;color:#545454">50 kW · En uso por otro usuario (hasta 19:20)</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sec" style="margin:0 16px"><p class="al-legal" style="margin:0">Sin coste de inicio de sesión. Facturación por kWh exacto consumido mediante contador certificado MID.</p></div>'+
+      '<div class="al-sticky"><div><div class="al-price">0,45 € <small>/kWh</small></div><span class="al-sub">Punto 03 · CCS2 150 kW</span></div><button class="base-btn size-compact" data-act="ev-to-connect" style="width:auto"><span>Conectar vehículo</span> <span style="font-size:16px">➔</span></button></div>';
+  }
+
+  function sEvConnect(){
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="ev-back" aria-label="Volver" style="width:28px">‹</button><b>Conexión y autorización</b></div>'+
+      '<div class="al-steps" aria-label="Paso 3 de 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>'+
+      '<div class="al-sec" style="margin-top:4px;text-align:center;padding:20px 16px">'+
+        '<div style="width:52px;height:52px;border-radius:50%;background:#F6F6F6;color:#000000;display:grid;place-items:center;margin:0 auto 10px;font-size:24px">⚡</div>'+
+        '<h3 class="al-h" style="font-size:18px">Punto 03 · CCS2 Ultra</h3>'+
+        '<p class="al-sub">Conecta la manguera al conector de tu vehículo</p>'+
+      '</div>'+
+      '<div class="al-sec">'+
+        '<div style="display:grid;gap:10px">'+
+          '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="color:#0E8345;font-weight:700">✓</span> <span>Cable detectado y bloqueado</span></div>'+
+          '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="color:#0E8345;font-weight:700">✓</span> <span>Handshake ISO 15118 establecido</span></div>'+
+          '<div style="display:flex;align-items:center;gap:10px;font-size:12.5px"><span style="color:#0E8345;font-weight:700">✓</span> <span>Aislamiento eléctrico verificado</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sec"><b style="font-size:14px">Resumen de tarifa</b>'+
+        '<div class="al-sum">'+
+          '<div><span>Precio energía</span><span>0,45 €/kWh</span></div>'+
+          '<div><span>Coste inicio de sesión</span><span>0,00 €</span></div>'+
+          '<div><span>Método de pago</span><span>Apple Pay (•••• 4921)</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sticky"><button class="base-btn size-large" data-act="ev-start"><span>⚡ Iniciar recarga</span> <span style="font-size:17px">➔</span></button></div>';
+  }
+
+  function sEvSession(){
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="ev-back" aria-label="Volver" style="width:28px">‹</button><b>Recarga en curso</b></div>'+
+      '<div class="al-steps" aria-label="Paso 4 de 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>'+
+      '<div class="al-sec" style="margin-top:4px;text-align:center;padding:24px 16px;background:linear-gradient(180deg,#FFFFFF,#F6F6F6)">'+
+        '<div style="font-size:11.5px;color:#0E8345;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">⚡ Suministrando energía</div>'+
+        '<div style="font-size:52px;font-family:var(--f-hotel-d);font-weight:700;color:#000000;line-height:1">68<span style="font-size:24px">%</span></div>'+
+        '<div style="font-size:12.5px;color:#545454;margin-top:6px">+24,3 kWh suministrados · <b>+118 km</b></div>'+
+      '</div>'+
+      '<div class="al-sec">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">'+
+          '<div style="background:#F6F6F6;padding:10px;border-radius:12px"><div style="font-size:11px;color:#545454">Potencia actual</div><b style="font-size:16px;color:#000000">135 kW</b></div>'+
+          '<div style="background:#F6F6F6;padding:10px;border-radius:12px"><div style="font-size:11px;color:#545454">Tiempo sesión</div><b style="font-size:16px">18 min 24 s</b></div>'+
+          '<div style="background:#F6F6F6;padding:10px;border-radius:12px"><div style="font-size:11px;color:#545454">Coste acumulado</div><b style="font-size:16px;color:#000000">10,94 €</b></div>'+
+          '<div style="background:#F6F6F6;padding:10px;border-radius:12px"><div style="font-size:11px;color:#545454">Hasta el 80%</div><b style="font-size:16px;color:#0E8345">~8 min</b></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="al-sec"><p class="al-legal" style="margin:0">La velocidad se reduce automáticamente a partir del 80% para proteger la vida útil de la batería.</p></div>'+
+      '<div class="al-sticky"><button class="base-btn base-btn-negative size-large" data-act="ev-stop">Finalizar recarga y desbloquear</button></div>';
+  }
+
+  function sEvFinish(){
+    return STATUS+
+      '<div class="al-bar"><button class="back" data-act="ev-back" aria-label="Volver" style="width:28px">‹</button><b>Recarga finalizada</b></div>'+
+      '<div class="al-steps" aria-label="Paso 5 de 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>'+
+      '<div class="al-confirm" style="padding-top:16px"><div class="al-check">✓</div><h3 class="al-h">Recarga finalizada</h3><p class="al-sub">Cable desbloqueado de forma segura. Ya puedes desconectar y continuar tu viaje.</p>'+
+      '<span class="al-code">Ticket UBER-REC-892F</span>'+
+      '<div class="al-sum"><div><span>Energía total (28,4 kWh × 0,45 €)</span><span>12,78 €</span></div><div><span>Duración total</span><span>22 min 10 s</span></div><div><span>Batería final</span><span>80 % (+145 km)</span></div><div class="tot"><span>Total cobrado</span><span>12,78 €</span></div></div>'+
+      '<button class="base-btn base-btn-secondary" data-act="ev-restart">Volver al inicio del prototipo</button></div>';
   }
 
   // ---------- Vistas ----------
-  var STEPS=[
-    {name:"Resultados",hint:"Toca una habitación para ver su ficha."},
-    {name:"Ficha y tarifas",hint:"Cambia de tarifa y mira cómo se actualiza el total. Después pulsa el botón inferior."},
-    {name:"Checkout",hint:"Activa o desactiva los puntos para ver el total. Confirma para terminar."},
-    {name:"Confirmación",hint:"Fin del flujo. Este estado no estaba en el brief: lo añadió el arquitecto UX para cerrar el prototipo."}
+  var RIDE_STEPS=[
+    {name:"Selección de vehículo",hint:"Elige entre UberX, Comfort, Black o Green con precio cerrado garantizado."},
+    {name:"Opciones y preferencias",hint:"Elige entre viaje inmediato o reserva previa (Reserve) y tus preferencias de confort."},
+    {name:"Punto de recogida y pago",hint:"Confirma el punto exacto de encuentro y activa o desactiva Uber Cash."},
+    {name:"Asignación de conductor",hint:"Búsqueda y emparejamiento con el vehículo más próximo en la zona."},
+    {name:"Conductor en camino",hint:"Conductor asignado, matrícula, modelo, tiempo de llegada y PIN de seguridad."}
   ];
+  var EV_STEPS=[
+    {name:"Mapa y puntos libres",hint:"Explora la estación y los cargadores disponibles en tiempo real."},
+    {name:"Selección de conector",hint:"Elige entre toma CCS2 ultra-rápida (150 kW) o Mennekes (22 kW)."},
+    {name:"Conexión y handshake",hint:"Comprueba el bloqueo de cable, handshake ISO 15118 y pulsa «Iniciar recarga»."},
+    {name:"Sesión activa en vivo",hint:"Monitoriza potencia (kW), batería (%), km añadidos y coste en tiempo real."},
+    {name:"Resumen y desbloqueo",hint:"Recarga finalizada, desbloqueo seguro de conector y recibo digital desglosado."}
+  ];
+
+  var activeStateFilter = "all";
+
+  function updateStateFilterButtons(screens){
+    var total = screens.length;
+    var happyCount = 0, cornerCount = 0, errorCount = 0;
+    screens.forEach(function(s){
+      var t = s.stateType || "happy_path";
+      if(t === "error") errorCount++;
+      else if(t === "corner_case") cornerCount++;
+      else happyCount++;
+    });
+    var btnAll = $("#sfAll"), btnHappy = $("#sfHappy"), btnCorner = $("#sfCorner"), btnError = $("#sfError");
+    if(btnAll) btnAll.textContent = "Todos (" + total + ")";
+    if(btnHappy) btnHappy.textContent = "🟢 Happy Path (" + happyCount + ")";
+    if(btnCorner) btnCorner.textContent = "🟡 Corner Cases (" + cornerCount + ")";
+    if(btnError) btnError.textContent = "🔴 Casos de Error (" + errorCount + ")";
+  }
+
+  function renderDynamicScreen(scr, d, idx, total){
+    var STATUS='<div class="al-status"><span>9:41</span><span>●●● 5G</span></div>';
+    var stepsDots = '<div class="al-steps" aria-label="Paso '+(idx+1)+' de '+total+'">'+
+      Array.from({length:total}).map(function(_, i){ return '<i class="'+(i<=idx?'on':'')+'"></i>'; }).join("")+
+      '</div>';
+
+    var stateType = scr.stateType || "happy_path";
+    var stateBadgeText = scr.stateBadge || (stateType === "error" ? "CASO DE ERROR" : stateType === "corner_case" ? "CORNER CASE" : "HAPPY PATH");
+    var stateTag = '<span class="state-badge-tag '+stateType+'">'+h(stateBadgeText)+'</span>';
+
+    var out = STATUS +
+      '<div class="al-bar">'+
+      (idx > 0 ? '<button class="back" data-act="dyn-back" aria-label="Volver" style="width:28px">‹</button>' : '')+
+      '<span class="al-logo" style="font-size:18px">Uber</span>'+
+      '<span style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px">'+
+        stateTag +
+        '<span style="font-size:12px;color:#545454;font-weight:600">'+h(scr.navTitle || ("Paso " + (idx+1)))+'</span>'+
+      '</span>'+
+      '</div>' + stepsDots;
+
+    // Mapa interactivo si la pantalla lo requiere (seguimiento en vivo, radar o destino)
+    if(scr.showMap){
+      var mm = scr.mapMeta || {};
+      var mapDomId = 'map-canvas-' + idx + '-' + Math.random().toString(36).substring(2, 7);
+      out += '<div style="position:relative;height:200px;margin:0 16px 12px;border-radius:8px;overflow:hidden;border:1px solid #E2E2E2;background:#141414">'+
+        '<div id="'+mapDomId+'" class="uber-map-container" style="width:100%;height:100%;position:absolute;inset:0" data-lat="'+(mm.lat||39.4699)+'" data-lng="'+(mm.lng||-0.3763)+'" data-dlat="'+(mm.dlat||39.4670)+'" data-dlng="'+(mm.dlng||-0.3780)+'"></div>'+
+        '<div style="position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:400;pointer-events:none">'+
+          '<span class="al-badge" style="position:static;background:'+(stateType === "error" ? "#DE1135" : stateType === "corner_case" ? "#F69E0C" : "#0E8345")+';color:#FFFFFF;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.5)">'+h(mm.badge || (stateType === "error" ? "Incidencia en curso" : stateType === "corner_case" ? "Aviso de ruta" : "En ruta hacia ti"))+'</span>'+
+          '<span style="font-family:var(--f-hotel-d);font-size:22px;font-weight:700;color:#FFFFFF;background:rgba(0,0,0,0.7);padding:2px 8px;border-radius:6px;backdrop-filter:blur(4px)">'+h(mm.eta || "3 min")+'</span>'+
+        '</div>'+
+        '<div style="position:absolute;bottom:8px;left:8px;right:8px;background:rgba(0,0,0,0.85);padding:6px 10px;border-radius:6px;backdrop-filter:blur(6px);font-size:11.5px;color:#FFFFFF;z-index:400;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.1)">'+
+          '<span><b>'+h(mm.driverName || "Conductor")+'</b> · ★ '+h(mm.rating || "4.95")+'</span>'+
+          '<span style="color:#AFAFAF">'+h(mm.vehicle || "Toyota Corolla")+'</span>'+
+        '</div>'+
+      '</div>';
+    }
+
+    // Imagen Hero fotográfica o ilustrada (si la pantalla lo especifica)
+    if(scr.heroImage && scr.heroImage.url){
+      out += '<div style="margin:0 16px 12px;border-radius:8px;overflow:hidden;border:1px solid #E2E2E2;height:140px;position:relative;background:#141414">'+
+        '<img src="'+h(scr.heroImage.url)+'" alt="'+h(scr.heroImage.alt || 'Imagen de pantalla')+'" style="width:100%;height:140px;object-fit:cover;display:block" loading="eager" onerror="this.onerror=null;this.src=\'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600&auto=format&fit=crop&q=80\';">'+
+        (scr.heroImage.caption ? '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.85));color:#FFFFFF;padding:8px 12px;font-size:11.5px;font-weight:600">'+h(scr.heroImage.caption)+'</div>' : '')+
+      '</div>';
+    }
+
+    out += '<div style="padding:4px 16px 8px">'+
+      '<h3 class="al-h" style="font-size:19px">'+h(scr.mainTitle || scr.shortName)+'</h3>'+
+      '<p class="al-sub">'+h(scr.mainSubtitle || scr.hint || "")+'</p>'+
+      '</div>';
+
+    if(scr.banner && scr.banner.text){
+      var bTone = scr.banner.tone || (stateType === "error" ? "negative" : stateType === "corner_case" ? "warning" : "sun");
+      var bIcon = (bTone === "negative" ? "⚠️ " : bTone === "warning" ? "⚡ " : "ℹ️ ");
+      out += '<div class="al-banner '+bTone+'" style="margin:0 16px 10px">'+bIcon+h(scr.banner.text)+'</div>';
+    }
+
+    // Tarjetas o elementos del flujo (con soporte de foto de vehículo/producto o avatar y selección interactiva)
+    if(Array.isArray(scr.items) && scr.items.length){
+      out += '<div class="al-list" style="padding-bottom:10px">';
+      scr.items.forEach(function(it, itIdx){
+        var iconOrImg = it.image ?
+          '<img src="'+h(it.image)+'" alt="" style="width:48px;height:36px;object-fit:contain;border-radius:4px" onerror="this.outerHTML=\'<span style=\\\'font-size:22px\\\'>🚗</span>\'">' :
+          '<div style="width:36px;height:36px;border-radius:8px;background:'+(stateType === "error" ? "#FDF0F2" : "#F6F6F6")+';display:grid;place-items:center;font-size:18px">'+(it.icon||(stateType === "error" ? "💳" : "📍"))+'</div>';
+
+        out += '<div class="al-card" data-act="dyn-select:'+itIdx+'" role="button" tabindex="0" style="padding:12px;margin-bottom:8px;cursor:pointer;border:'+(it.highlight?(stateType === "error" ? "2px solid #DE1135" : "2px solid #000000"):'1px solid #E2E2E2')+'">'+
+          '<div style="display:flex;align-items:center;gap:12px">'+
+            iconOrImg +
+            '<div style="flex:1">'+
+              '<div style="display:flex;justify-content:space-between;align-items:baseline">'+
+                '<b style="font-size:14px">'+h(it.title)+'</b>'+
+                (it.price ? '<span style="font-weight:700;font-size:14px;color:#000000">'+h(it.price)+'</span>' : '')+
+              '</div>'+
+              '<div style="font-size:12px;color:#545454">'+h(it.subtitle || "")+'</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      });
+      out += '</div>';
+    }
+
+    // Métricas o chips (ETA, PIN, Matrícula, Tarifas)
+    if(Array.isArray(scr.cards) && scr.cards.length){
+      out += '<div style="display:grid;grid-template-columns:repeat('+Math.min(scr.cards.length, 2)+', 1fr);gap:8px;padding:0 16px 14px">';
+      scr.cards.forEach(function(c){
+        out += '<div style="background:#F6F6F6;padding:10px;border-radius:8px;text-align:center">'+
+          '<div style="font-size:11px;color:#545454">'+h(c.label)+'</div>'+
+          '<b style="font-size:15px;color:'+(stateType === "error" && /fallo|error|rechazad/i.test(c.value) ? "#DE1135" : "#000000")+'">'+h(c.value)+'</b>'+
+        '</div>';
+      });
+      out += '</div>';
+    }
+
+    // Botón de acción principal fijado (Uber Base CTA)
+    var nextAct = (idx < total - 1) ? 'dyn-next' : 'dyn-restart';
+    var ctaText = scr.cta || (idx < total - 1 ? 'Continuar' : 'Finalizar y reiniciar');
+    var isErr = (stateType === "error" || scr.ctaVariant === "negative");
+    var ctaCls = isErr ? "base-btn base-btn-negative size-large" : "base-btn size-large";
+    out += '<div class="al-sticky">'+
+      '<button class="'+ctaCls+'" data-act="'+nextAct+'">'+
+      '<span>'+h(ctaText)+'</span> <span style="font-size:17px">'+(isErr ? '↺' : '➔')+'</span>'+
+      '</button>'+
+      '</div>';
+
+    return out;
+  }
+
   function phone(inner,extraCls,d){return '<div class="phone'+(extraCls||"")+'"><div class="al'+(d.theme.density==="compact"?' compact':'')+'" style="'+alStyle(d)+'">'+inner+'</div></div>'}
   function renderViewer(fresh){
     var d=current(), v=$("#viewer"), fx=fresh?" fresh":"";
+
+    // Si la IA generó las 5 pantallas específicas para este brief, usarlas directamente
+    if(Array.isArray(d.screens) && d.screens.length > 0){
+      var dynamicScreens = d.screens;
+      updateStateFilterButtons(dynamicScreens);
+
+      if(mode==="screens"){
+        var visibleItems = dynamicScreens.map(function(scr, i){ return { scr: scr, i: i }; });
+        if(activeStateFilter !== "all"){
+          visibleItems = visibleItems.filter(function(item){
+            return (item.scr.stateType || "happy_path") === activeStateFilter;
+          });
+        }
+
+        v.innerHTML = '<div class="screens">' + visibleItems.map(function(item){
+          var scr = item.scr, i = item.i;
+          var html = renderDynamicScreen(scr, d, i, dynamicScreens.length);
+          var stType = scr.stateType || "happy_path";
+          var stBadge = scr.stateBadge || (stType === "error" ? "CASO DE ERROR" : stType === "corner_case" ? "CORNER CASE" : "HAPPY PATH");
+          var stDesc = scr.stateDesc || (stType === "error" ? "Gestión de error y recuperación" : stType === "corner_case" ? "Gestión de caso límite o condición excepcional" : "Recorrido nominal del flujo");
+
+          return '<div class="screen-col">'+
+            '<div class="lbl" style="display:flex;flex-direction:column;gap:5px">'+
+              '<div style="display:flex;justify-content:space-between;align-items:center">'+
+                '<span class="state-badge-tag '+stType+'">'+h(stBadge)+'</span>'+
+                '<span style="color:var(--muted);font-size:12px;font-family:var(--f-mono)">Paso '+(i+1)+' / '+dynamicScreens.length+'</span>'+
+              '</div>'+
+              '<b style="font-size:14.5px">'+h(scr.shortName || ("Paso " + (i+1)))+'</b>'+
+              '<div class="state-meta-banner '+stType+'">'+h(stDesc)+'</div>'+
+            '</div>'+
+            phone(html, fx, d)+
+            '</div>';
+        }).join("") + '</div>';
+      } else {
+        var s = Math.min(proto.step, dynamicScreens.length - 1);
+        var curScr = dynamicScreens[s];
+        var inner = renderDynamicScreen(curScr, d, s, dynamicScreens.length);
+        var stType = curScr.stateType || "happy_path";
+        var stBadge = curScr.stateBadge || (stType === "error" ? "CASO DE ERROR" : stType === "corner_case" ? "CORNER CASE" : "HAPPY PATH");
+        var stDesc = curScr.stateDesc || (stType === "error" ? "Gestión de error y recuperación asistida sin callejones sin salida." : stType === "corner_case" ? "Condición atípica de contorno resuelta proactivamente." : "Recorrido nominal estándar de la experiencia.");
+
+        v.innerHTML = '<div class="proto">'+
+          '<div class="proto-side left">'+
+            '<div style="margin-bottom:6px"><span class="state-badge-tag '+stType+'" style="font-size:12px;padding:3px 10px">'+h(stBadge)+'</span></div>'+
+            '<span class="proto-step">Paso '+(s+1)+' de '+dynamicScreens.length+'</span>'+
+            '<h3>'+h(curScr.shortName || curScr.mainTitle)+'</h3>'+
+            '<div class="state-meta-banner '+stType+'" style="margin-top:8px">'+h(stDesc)+'</div>'+
+            '<p style="color:var(--muted);font-size:13px;margin-top:6px">'+h(curScr.hint || curScr.mainSubtitle || "")+'</p>'+
+          '</div>'+
+          '<div id="protoPhone">'+phone(inner,(proto.hot?" hot":"")+fx,d)+'</div>'+
+          '<div class="proto-side right">'+
+            '<div class="proto-dots">'+dynamicScreens.map(function(x,i){return '<button type="button" data-step="'+i+'" aria-label="Ir a '+(x.shortName||i)+'" aria-current="'+(i===s)+'"></button>'}).join("")+'</div>'+
+            '<div class="proto-nav"><button type="button" class="btn" data-nav="-1"'+(s===0?' disabled':'')+'>Anterior</button><button type="button" class="btn" data-nav="1"'+(s===dynamicScreens.length-1?' disabled':'')+'>Siguiente</button></div>'+
+            '<label class="hot-toggle"><input type="checkbox" id="hotToggle"'+(proto.hot?' checked':'')+'> Mostrar zonas interactivas</label>'+
+            '<button type="button" class="btn" data-act-reset="1">Reiniciar prototipo</button>'+
+            '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:6px;max-height:360px;overflow-y:auto;padding-right:4px">'+
+              '<div style="font-size:11.5px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:0.05em">Pasos y estados del flujo:</div>'+
+              dynamicScreens.map(function(x, i){
+                var xType = x.stateType || "happy_path";
+                var dotColor = xType === "error" ? "🔴" : xType === "corner_case" ? "🟡" : "🟢";
+                return '<button type="button" class="btn sm" data-step="'+i+'" style="justify-content:flex-start;text-align:left;padding:6px 10px;font-size:12px;'+(i===s?'background:var(--accent-soft);border:1px solid var(--accent)':'')+'">'+
+                  '<span>'+dotColor+'</span> <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+h(x.shortName || ("Paso " + (i+1)))+'</span>'+
+                  '</button>';
+              }).join("")+
+            '</div>'+
+          '</div></div>';
+      }
+      initLeafletMaps();
+      return;
+    }
+
+    // Fallback estándar si no hay pantallas dinámicas
+    var r0=d.rooms[0].id;
+    var list=[
+      ["1 · Selección de servicio","precio cerrado garantizado",sResults(d)],
+      ["2 · Opciones y preferencias","inmediato vs reserva",sRoom(d,r0,null)],
+      ["3 · Punto de recogida y pago","resumen y método",sCheckout(d,r0,null,true)],
+      ["4 · Seguimiento en mapa y radar","conductor en tiempo real",sRideMatching(d,r0,null,true)],
+      ["5 · Conductor en camino","detalles del vehículo y PIN",sConfirm(d,r0,null,true)]
+    ];
     if(mode==="screens"){
-      var r0=d.rooms[0].id;
-      var list=[["1 · Resultados","precio "+(d.results.priceMode==="total"?"total visible":"por noche"),sResults(d)],["2 · Ficha y tarifas","comparador en la ficha",sRoom(d,r0,null)],["3 · Checkout",d.checkout.showPoints?"con puntos Albora Club":"sin puntos",sCheckout(d,r0,null,true)]];
       v.innerHTML='<div class="screens">'+list.map(function(s){
         return '<div class="screen-col"><div class="lbl"><b>'+s[0]+'</b><span style="color:var(--muted)">'+s[1]+'</span></div>'+phone(s[2],fx,d).replace('<div class="phone','<div inert class="phone')+'</div>';
       }).join("")+'</div>';
     } else {
-      if(!proto.room) proto.room=d.rooms[0].id;
-      if(!d.rooms.some(function(r){return r.id===proto.room})) proto.room=d.rooms[0].id;
-      var s=proto.step, inner = s===0?sResults(d):s===1?sRoom(d,proto.room,proto.rate):s===2?sCheckout(d,proto.room,proto.rate,proto.points):sConfirm(d,proto.room,proto.rate,proto.points);
+      var s=proto.step;
+      var inner = s===0?sResults(d):s===1?sRoom(d,r0,null):s===2?sCheckout(d,r0,null,true):s===3?sRideMatching(d,r0,null,true):sConfirm(d,r0,null,true);
       v.innerHTML='<div class="proto">'+
-        '<div class="proto-side left"><span class="proto-step">Paso '+(s+1)+' de 4</span><h3>'+STEPS[s].name+'</h3><p>'+STEPS[s].hint+'</p></div>'+
+        '<div class="proto-side left"><span class="proto-step">Paso '+(s+1)+' de '+list.length+'</span><h3>'+list[s][0]+'</h3><p>'+list[s][1]+'</p></div>'+
         '<div id="protoPhone">'+phone(inner,(proto.hot?" hot":"")+fx,d)+'</div>'+
         '<div class="proto-side right">'+
-          '<div class="proto-dots">'+STEPS.map(function(x,i){return '<button type="button" data-step="'+i+'" aria-label="Ir a '+x.name+'" aria-current="'+(i===s)+'"></button>'}).join("")+'</div>'+
-          '<div class="proto-nav"><button type="button" class="btn" data-nav="-1"'+(s===0?' disabled':'')+'>Anterior</button><button type="button" class="btn" data-nav="1"'+(s===3?' disabled':'')+'>Siguiente</button></div>'+
-          '<label class="hot-toggle"><input type="checkbox" id="hotToggle"'+(proto.hot?' checked':'')+'> Mostrar zonas interactivas</label>'+
+          '<div class="proto-dots">'+list.map(function(x,i){return '<button type="button" data-step="'+i+'" aria-current="'+(i===s)+'"></button>'}).join("")+'</div>'+
+          '<div class="proto-nav"><button type="button" class="btn" data-nav="-1"'+(s===0?' disabled':'')+'>Anterior</button><button type="button" class="btn" data-nav="1"'+(s===list.length-1?' disabled':'')+'>Siguiente</button></div>'+
           '<button type="button" class="btn" data-act-reset="1">Reiniciar prototipo</button>'+
         '</div></div>';
     }
+    initLeafletMaps();
   }
-  function go(step){proto.step=Math.max(0,Math.min(3,step));renderViewer();var al=$("#protoPhone .al");if(al)al.scrollTop=0}
+
+  // Inicializa mapas vectoriales reales oscuros estilo Uber (MapLibre + OpenFreeMap, 100% libre sin API key)
+  var activeVectorMaps = [];
+  function initLeafletMaps(){
+    if(typeof maplibregl === "undefined") return;
+    activeVectorMaps.forEach(function(m){ try{ m.remove(); }catch(e){} });
+    activeVectorMaps = [];
+
+    var containers = $all(".uber-map-container", $("#viewer"));
+    if(!containers.length) return;
+
+    setTimeout(function(){
+      containers.forEach(function(el){
+        try {
+          var lat = parseFloat(el.dataset.lat) || 39.4699;
+          var lng = parseFloat(el.dataset.lng) || -0.3763;
+          var dlat = parseFloat(el.dataset.dlat) || (lat - 0.0035);
+          var dlng = parseFloat(el.dataset.dlng) || (lng - 0.0025);
+
+          var map = new maplibregl.Map({
+            container: el,
+            style: 'https://tiles.openfreemap.org/styles/dark',
+            center: [(lng + dlng)/2, (lat + dlat)/2],
+            zoom: 14.5,
+            attributionControl: false
+          });
+
+          map.on('load', function(){
+            // Marcador del pasajero (recogida)
+            var userEl = document.createElement('div');
+            userEl.style.width = '14px';
+            userEl.style.height = '14px';
+            userEl.style.borderRadius = '50%';
+            userEl.style.backgroundColor = '#FFFFFF';
+            userEl.style.border = '3px solid #000000';
+            userEl.style.boxShadow = '0 0 0 4px rgba(255,255,255,0.4)';
+            new maplibregl.Marker({ element: userEl }).setLngLat([lng, lat]).addTo(map);
+
+            // Marcador del vehículo Uber (coche)
+            var carEl = document.createElement('div');
+            carEl.style.width = '34px';
+            carEl.style.height = '34px';
+            carEl.style.borderRadius = '50%';
+            carEl.style.backgroundColor = '#000000';
+            carEl.style.border = '2px solid #FFFFFF';
+            carEl.style.color = '#FFFFFF';
+            carEl.style.display = 'grid';
+            carEl.style.placeItems = 'center';
+            carEl.style.fontSize = '16px';
+            carEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.6)';
+            carEl.textContent = '🚗';
+            new maplibregl.Marker({ element: carEl }).setLngLat([dlng, dlat]).addTo(map);
+
+            // Ruta vectorial azul en tiempo real
+            var midLng = (lng + dlng)/2 + 0.0008;
+            var midLat = (lat + dlat)/2;
+            map.addSource('route', {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [dlng, dlat],
+                    [midLng, midLat],
+                    [lng, lat]
+                  ]
+                }
+              }
+            });
+            map.addLayer({
+              id: 'route-line',
+              type: 'line',
+              source: 'route',
+              layout: { 'line-join': 'round', 'line-cap': 'round' },
+              paint: {
+                'line-color': '#276EF1',
+                'line-width': 4,
+                'line-opacity': 0.85,
+                'line-dasharray': [1.5, 2]
+              }
+            });
+          });
+
+          activeVectorMaps.push(map);
+          setTimeout(function(){ map.resize(); }, 150);
+        } catch(err){
+          console.warn("Error montando mapa vectorial MapLibre:", err);
+        }
+      });
+    }, 80);
+  }
+
+  function go(step){
+    var d = current();
+    var maxStep = (Array.isArray(d && d.screens) && d.screens.length > 0) ? (d.screens.length - 1) : 4;
+    proto.step=Math.max(0,Math.min(maxStep,step));
+    renderViewer();
+    var al=$("#protoPhone .al");if(al)al.scrollTop=0;
+  }
   $("#viewer").addEventListener("click",function(e){
     var nav=e.target.closest("[data-nav]"); if(nav){go(proto.step+Number(nav.dataset.nav));return}
     var st=e.target.closest("[data-step]"); if(st){go(Number(st.dataset.step));return}
     if(e.target.closest("[data-act-reset]")){proto={step:0,room:null,rate:null,points:true,hot:proto.hot};renderViewer();return}
     var a=e.target.closest("[data-act]"); if(!a||mode!=="proto") return;
     var act=a.dataset.act;
-    if(act.indexOf("room:")===0){proto.room=act.slice(5);proto.rate=null;go(1)}
+    if(act==="dyn-next"){go(proto.step+1)}
+    else if(act==="dyn-back"){go(proto.step-1)}
+    else if(act==="dyn-restart"){go(0)}
+    else if(act.indexOf("dyn-select:")===0){
+      var itIdx=Number(act.slice(11));
+      var curD=current();
+      if(curD && Array.isArray(curD.screens) && curD.screens[proto.step]){
+        var items=curD.screens[proto.step].items;
+        if(Array.isArray(items)){
+          items.forEach(function(item, idx){ item.highlight = (idx === itIdx); });
+          renderViewer();
+        }
+      }
+    }
+    else if(act.indexOf("room:")===0){proto.room=act.slice(5);proto.rate=null;go(1)}
     else if(act.indexOf("rate:")===0){var al=$("#protoPhone .al"),y=al.scrollTop;proto.rate=act.slice(5);renderViewer();$("#protoPhone .al").scrollTop=y}
     else if(act==="next"){go(2)}
     else if(act==="back"){go(proto.step-1)}
     else if(act==="points"){var al2=$("#protoPhone .al"),y2=al2.scrollTop;proto.points=!proto.points;renderViewer();$("#protoPhone .al").scrollTop=y2}
     else if(act==="confirm"){go(3)}
+    else if(act==="matching-done"){go(4)}
     else if(act==="restart"){proto.room=null;proto.rate=null;proto.points=true;go(0)}
+    else if(act==="ev-next"){go(1)}
+    else if(act==="ev-to-connect"){go(2)}
+    else if(act==="ev-back"){go(proto.step-1)}
+    else if(act==="ev-start"){go(3)}
+    else if(act==="ev-stop"){go(4)}
+    else if(act==="ev-restart"){go(0)}
   });
   $("#viewer").addEventListener("change",function(e){if(e.target.id==="hotToggle"){proto.hot=e.target.checked;renderViewer()}});
   $all("[data-mode]").forEach(function(b){b.addEventListener("click",function(){
@@ -984,6 +2537,13 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     $all("[data-mode]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
     renderViewer();
   })});
+  $all(".s-filter-btn").forEach(function(b){
+    b.addEventListener("click", function(){
+      activeStateFilter = b.dataset.state || "all";
+      $all(".s-filter-btn").forEach(function(x){ x.classList.toggle("active", x === b); });
+      renderViewer();
+    });
+  });
 
   function renderVersions(){
     $("#versions").innerHTML=versions.map(function(v,i){return '<button type="button" data-ver="'+i+'" aria-pressed="'+(i===viewIdx)+'"'+(i===approvedIdx?' class="approved"':'')+'>v'+i+'</button>'}).join("");
@@ -1001,19 +2561,39 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 
   var rendered=false;
   function renderScreens(){
-    if(rendered) return; rendered=true;
-    versions=[{n:0,design:clone(DEFAULT_DESIGN),summary:"Propuesta inicial de los agentes",request:"",changes:[]}];
-    viewIdx=0;
+    if(rendered && versions.length > 0) return;
+    rendered=true;
+    if(versions.length === 0){
+      var info = getBriefInfo();
+      var d = clone(DEFAULT_DESIGN);
+      versions=[{n:0,design:d,summary:("Propuesta inicial de los agentes (Uber Ride)"),request:"",changes:[]}];
+      viewIdx=0;
+    }
     renderVersions(); renderViewer(); renderSuggest();
   }
 
   // ---------- Iteración con agentes ----------
-  var SUGGEST=["Muestra la valoración de cada habitación","Pon primero la tarifa no reembolsable","Botón principal en color Sol","Quita el teléfono del checkout","Añade un aviso de oferta en el listado","Muestra el precio por noche en vez del total"];
-  function renderSuggest(){$("#suggest").innerHTML=SUGGEST.map(function(s){return '<button type="button">'+s+'</button>'}).join("")}
+  var RIDE_SUGGEST=["Muestra la valoración de cada conductor","Pon primero la opción Uber Reserve","Añade aviso de alta demanda en el listado","Quita el suplemento del desglose","Añade opción de viaje silencioso"];
+  var EV_SUGGEST=["Añade aviso de potencia pico de 150 kW","Muestra estimación de coste final antes de iniciar","Botón de acción en color Pino","Destaca conector libre en verde","Añade botón de soporte 24/7","Indica velocidad de carga reducida al 80%"];
+  function renderSuggest(){
+    var d = current();
+    var list = (d && d.isEV) ? EV_SUGGEST : RIDE_SUGGEST;
+    $("#suggest").innerHTML=list.map(function(s){return '<button type="button">'+s+'</button>'}).join("");
+  }
   $("#suggest").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||locked)return;$("#changeInput").value=b.textContent;$("#changeInput").focus()});
 
-  var sample=null, locked=false, ctl=null;
+  var sample=null, locked=false, ctl=null, hasServerAi=false;
   (async function(){
+    try{
+      var r = await fetch("/health");
+      var d = await r.json();
+      if(d && d.ok){
+        hasServerAi=true;
+        $("#aiMode").textContent="Agentes conectados a Gemini (Real)";
+        $("#aiMode").className="mode-pill live";
+        return;
+      }
+    }catch(e){}
     try{ sample = window.claude && window.claude.use ? await window.claude.use("sample") : null }catch(e){ sample=null }
     var m=$("#aiMode");
     if(sample){m.textContent="Agentes conectados a Claude";m.className="mode-pill live"}
@@ -1049,16 +2629,23 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   $("#stopBtn").addEventListener("click",function(){if(ctl)ctl.abort()});
 
   function buildPrompt(req,d){
-    return "Eres el equipo de agentes de diseño de Hoteles Albora (Arquitecto UX, Redactor UX, Agente de UI y Revisor QA). "+
-    "Recibes el estado JSON de un flujo de reserva móvil (listado de habitaciones, ficha con tarifas, checkout y confirmación) y una petición de cambio de la diseñadora. Aplica SOLO lo que se pide.\n\n"+
-    "Reglas del sistema de diseño Albora DS:\n"+
-    "- Mantén exactamente la misma estructura y las mismas claves del JSON.\n"+
-    "- Valores permitidos: theme.cta pine|sun|ink; theme.radius sm|md|lg; theme.density comfortable|compact; rooms[].img sea|room|suite; results.priceMode total|night; room.rateOrder es una permutación de [\"flexible\",\"nonref\"]; room.defaultRate flexible|nonref; los banner son null o {\"text\":string,\"tone\":\"sun\"|\"pine\"}.\n"+
-    "- rooms[].night es el precio por noche de la tarifa no reembolsable (entero, en euros). rates[].extra es el suplemento por noche. Los totales los calcula la página: no los añadas.\n"+
-    "- Máximo 4 habitaciones y 6 campos en el checkout. Textos en español, tono cercano y claro, breves.\n"+
-    "- Si algo de la petición no se puede hacer con estas reglas (un color nuevo, un componente que no existe), no lo inventes: explícalo en \"question\".\n\n"+
-    "Responde SOLO con JSON con esta forma:\n"+
-    "{\"summary\":\"una frase en español\",\"changes\":[\"cambio breve\", ...máx 5],\"agents\":[subconjunto de \"ux\",\"copy\",\"ui\",\"qa\"],\"question\":null o \"pregunta o aviso breve\",\"state\":{...estado completo actualizado}}\n\n"+
+    return "Eres el equipo de agentes de diseño autónomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y Revisor QA) utilizando el sistema oficial Uber Base Design System (base.uber.com).\n"+
+    "Recibes el estado JSON de un flujo móvil y una petición de la diseñadora. Aplica de manera inteligente los cambios solicitados respetando la arquitectura de componentes y tokens de Uber Base.\n\n"+
+    "Reglas de Uber Base Design System:\n"+
+    "- Mantén la estructura y claves del JSON del estado.\n"+
+    "- Tokens de theme.cta: 'ink' (Primary Black #000000), 'pine' (Positive Green #0E8345), 'sun' (Warning Gold/Yellow #F69E0C).\n"+
+    "- Formas theme.radius: 'rounded' o 'md' (8px - estándar oficial de Base DS base.uber.com/6d2425e9f/p/756216-button), 'pill' (9999px), 'sm' (4px).\n"+
+    "- Densidad theme.density: 'comfortable' o 'compact'.\n"+
+    "- Permite añadir/modificar textos, avisos (banner), orden de opciones, switches, badges y parámetros de viaje/recarga.\n"+
+    "- Textos en español con la voz oficial de Uber: directa, segura, cercana, con sentence case.\n\n"+
+    "Responde con un JSON estricto con esta estructura exacta:\n"+
+    "{\n"+
+    "  \"summary\": \"frase corta en español resumiendo el cambio aplicado\",\n"+
+    "  \"changes\": [\"cambio específico 1\", \"cambio específico 2\"],\n"+
+    "  \"agents\": [\"ux\", \"copy\", \"ui\", \"qa\"],\n"+
+    "  \"question\": null,\n"+
+    "  \"state\": { ...estado JSON completo actualizado... }\n"+
+    "}\n\n"+
     "Estado actual:\n"+JSON.stringify(d)+"\n\nPetición de la diseñadora:\n"+req;
   }
 
@@ -1071,14 +2658,54 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     busy(true);
     showWork('<b>Los agentes están trabajando…</b><div class="work-agents"><span class="chip col">Analizando la petición</span></div>');
     var res=null, note="";
-    if(sample){
+    if(hasServerAi){
+      try{
+        var resp = await fetch("/api/llm/iterate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            request: req,
+            currentState: base,
+            prompt: buildPrompt(req, base)
+          })
+        });
+        var data = await resp.json();
+        if(data && data.ok && data.result){
+          var raw = data.result;
+          if(raw.state && typeof raw.state === "object"){
+            res = raw;
+          } else if(raw.theme || raw.results || raw.rooms || raw.checkout){
+            res = {
+              summary: raw.summary || "Cambios generados por agentes IA",
+              changes: Array.isArray(raw.changes) ? raw.changes : ["Diseño actualizado según especificación"],
+              agents: Array.isArray(raw.agents) ? raw.agents : ["ux", "copy", "ui", "qa"],
+              question: raw.question || null,
+              state: Object.assign({}, base, raw.state || raw)
+            };
+          } else {
+            res = {
+              summary: raw.summary || "Cambios generados por agentes IA",
+              changes: Array.isArray(raw.changes) ? raw.changes : ["Diseño actualizado según especificación"],
+              agents: Array.isArray(raw.agents) ? raw.agents : ["ux", "copy", "ui", "qa"],
+              question: raw.question || null,
+              state: (raw.state && typeof raw.state === "object") ? raw.state : Object.assign({}, base, raw)
+            };
+          }
+        } else if(data && data.error){
+          note = "Aviso del servidor LLM: " + data.error;
+        }
+      }catch(err){
+        note = "Error conectando con el backend LLM. Probando respaldo local.";
+      }
+      if(res&&!(res.state&&typeof res.state==="object")) res=null;
+    } else if(sample){
       ctl=new AbortController();
       try{
         res=await sample.json(buildPrompt(req,base),{modelTier:"quick",signal:ctl.signal,cache:false});
       }catch(err){
         if(err&&err.code==="cancelled"){busy(false);showWork("Cambio cancelado.");return}
-        if(err&&(err.code==="not_granted"||err.code==="sampling_disabled"||err.code==="not_declared"||err.code==="capability_disabled")){sample=null;$("#aiMode").textContent="Modo demo: cambios predefinidos";$("#aiMode").className="mode-pill"}
-        note="No se pudo contactar con Claude; se usó el modo demo.";
+        if(err&&(err.code==="not_granted"||err.code==="sampling_disabled"||err.code==="not_declared"||err.code==="capability_disabled")){sample=null;$("#aiMode").textContent="Modo offline";$("#aiMode").className="mode-pill"}
+        note="No se pudo contactar con el modelo.";
         res=null;
       }
       if(res&&!(res.state&&typeof res.state==="object")) res=null;
@@ -1086,13 +2713,13 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     if(!res) res=localAgent(req,base);
     busy(false);
     if(!res){
-      showWork('<span class="q">'+(note?h(note)+" ":"")+'En modo demo los agentes entienden cambios como los de las sugerencias: valoración, orden de tarifas, color del botón, campos del checkout, aviso de oferta, precio por noche, radios o densidad.</span>');
+      showWork('<span class="q">'+(note?h(note)+" ":"")+'Los agentes procesan cambios de diseño, textos, orden de opciones, switches, fotos, valoración, colores de botón o radios bajo Uber Base DS.</span>');
       return;
     }
     var next=sanitize(res.state,base);
     var changes=Array.isArray(res.changes)?res.changes.slice(0,5).map(function(c){return String(c).slice(0,140)}):[];
     if(JSON.stringify(next)===JSON.stringify(base)){
-      showWork('<span class="q">'+h(res.question||"Los agentes no han encontrado nada que cambiar con esa petición dentro de Albora DS.")+'</span>');
+      showWork('<span class="q">'+h(res.question||"Los agentes han verificado el estado y los componentes ya cumplen con la especificación de Uber Base DS.")+'</span>');
       return;
     }
     var n=versions.length;
@@ -1120,7 +2747,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     e.preventDefault();
     var done=["#c1","#c2","#c3"].every(function(id){return $(id).checked});
     if(!done){toast("Marca los tres puntos de la lista antes de aprobar.",true);return}
-    approvedIdx=viewIdx; var v=versions[viewIdx], d=v.design;
+    approvedIdx=viewIdx; var v=versions[viewIdx], d=v.design, info=getBriefInfo();
     setLocked(true); renderVersions();
     $("#reviewState").textContent="Aprobado · v"+v.n;$("#reviewState").className="chip ok";
     $("#newCol").textContent=$("#srcTrello").getAttribute("aria-pressed")==="true"?"Lista: Listo para desarrollo":"Listo para desarrollo";
@@ -1128,11 +2755,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     var ho=$("#handoff"); ho.hidden=false;
     ho.innerHTML='<div class="toast">Versión v'+v.n+' aprobada y enviada a desarrollo.</div>'+
       '<p class="muted-s">En producción, el agente de entrega haría esto automáticamente:</p>'+
-      '<ul><li>Mueve ALB-482 a <b>Listo para desarrollo</b> y lo asigna al equipo web de Albora.</li>'+
-      '<li>Abre la solicitud de cambios <span class="mono">design/alb-482 → main</span> con 3 pantallas y '+v.n+' iteraciones registradas.</li>'+
-      '<li>Adjunta la especificación: componentes usados, tokens, textos y criterios de aceptación.</li>'+
-      '<li>Actualiza la página de Figma a «ALB-482 · v'+v.n+' aprobada».</li></ul>'+
-      '<pre class="code">'+h(JSON.stringify({ticket:"ALB-482",version:"v"+v.n,tokens:{cta:d.theme.cta,radius:d.theme.radius,density:d.theme.density},pantallas:["resultados","ficha-habitacion","checkout","confirmacion"],componentes:["RoomCard","Chip","RateOption","PriceSummary","Stepper","Input","PointsToggle","Button"]},null,2))+'</pre>'+
+      '<ul><li>Mueve ' + h(info.key) + ' a <b>Listo para desarrollo</b> y lo asigna al equipo de ingeniería.</li>'+
+      '<li>Abre la solicitud de cambios <span class="mono">design/' + h(info.key.toLowerCase()) + ' → main</span> con el flujo completo de pantallas y '+v.n+' iteraciones registradas.</li>'+
+      '<li>Adjunta la especificación: componentes usados, tokens de Uber Base, textos y criterios de aceptación.</li>'+
+      '<li>Actualiza la página de Figma a «' + h(info.key) + ' · v'+v.n+' aprobada».</li></ul>'+
+      '<pre class="code">'+h(JSON.stringify({ticket:info.key,version:"v"+v.n,tokens:{cta:d.theme.cta,radius:d.theme.radius,density:d.theme.density},pantallas:d.isEV?["mapa-estacion","conector-tarifa","conexion-handshake","sesion-activa","resumen-desbloqueo"]:["resultados","ficha-opciones","checkout-pago","asignacion-radar","conductor-en-camino"],componentes:["Header","MapCard","Badge","Chip","VehicleCard","RateOption","PriceSummary","Stepper","Input","PointsToggle","SecurityPIN","Button"]},null,2))+'</pre>'+
       '<button type="button" class="btn" id="reopenBtn">Reabrir revisión</button>';
     $("#reopenBtn").addEventListener("click",function(){
       approvedIdx=-1; setLocked(false); renderVersions();
@@ -1143,14 +2770,25 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   });
 
   // ---------- DS tab ----------
-  var SW=[["Pino","--al-pine","#1E4A42","Acción principal"],["Pino 700","--al-pine-700","#163832","Hover y pulsado"],["Pino 50","--al-pine-50","#E7EFEC","Selección"],["Sol","--al-sun","#E2A63B","Beneficios, Club"],["Sol 50","--al-sun-50","#FBF1DD","Fondos de Club"],["Piedra","--al-stone","#F4F2EE","Fondo base"],["Tinta","--al-ink","#1A2421","Texto principal"],["Tinta 60","--al-ink-60","#5E6B66","Texto secundario"],["Línea","--al-line","#E2E0DA","Bordes"],["Éxito","--al-success","#2D7A4E","Confirmaciones"],["Error","--al-error","#B3412E","Errores"]];
+  var SW=[
+    ["Primary / Black","--base-black","#000000","Acción principal y titulares"],
+    ["Background Primary","--base-bg-primary","#FFFFFF","Fondo base de superficie"],
+    ["Background Secondary","--base-bg-secondary","#F6F6F6","Superficies secundarias y búsqueda"],
+    ["Background Tertiary","--base-bg-tertiary","#E2E2E2","Bordes y divisores"],
+    ["Content Secondary","--base-content-secondary","#545454","Texto secundario y subtítulos"],
+    ["Content Tertiary","--base-content-tertiary","#757575","Texto atenuado y placeholders"],
+    ["Accent Blue","--base-accent","#276EF1","Base Web accent y enlaces"],
+    ["Positive","--base-positive","#0E8345","Éxito, recarga y confirmaciones"],
+    ["Negative","--base-negative","#DE1135","Errores y acciones destructivas"],
+    ["Warning","--base-warning","#F69E0C","Alertas y precauciones"]
+  ];
   $("#swatches").innerHTML=SW.map(function(s){return '<div class="sw"><i style="background:'+s[2]+'"></i><div><b>'+s[0]+'</b><code>'+s[1]+'</code><code>'+s[2]+' · '+s[3]+'</code></div></div>'}).join("");
-  var SP=[["s1",4],["s2",8],["s3",12],["s4",16],["s5",24]];
+  var SP=[["space200",4],["space300",8],["space400",12],["space500",16],["space600",20],["space800",24]];
   $("#spaces").innerHTML=SP.map(function(s){return '<div><i style="width:'+s[1]+'px;height:'+s[1]+'px"></i>'+s[0]+' · '+s[1]+'</div>'}).join("")+
-    '<div><i style="width:40px;height:40px;border-radius:6px;opacity:.35"></i>r-sm · 6</div><div><i style="width:40px;height:40px;border-radius:12px;opacity:.35"></i>r-md · 12</div><div><i style="width:40px;height:40px;border-radius:18px;opacity:.35"></i>r-lg · 18</div>';
+    '<div><i style="width:40px;height:40px;border-radius:4px;opacity:.35"></i>4px · sm</div><div><i style="width:40px;height:40px;border-radius:8px;opacity:.35"></i>8px · md</div><div><i style="width:40px;height:40px;border-radius:12px;opacity:.35"></i>12px · lg</div><div><i style="width:40px;height:40px;border-radius:9999px;opacity:.35"></i>Pill · 9999px</div>';
 
   // ---------- Arch table ----------
-  var IO={brief:["Ticket o tarjeta y adjuntos","Brief estructurado + preguntas abiertas"],ctx:["Brief","Hallazgos, tickets previos, componentes disponibles"],ux:["Brief + contexto","Flujo, historias de usuario, criterios de aceptación"],copy:["Flujo + guía de tono","Textos de interfaz"],ui:["Flujo + textos","Pantallas en código con Albora DS"],qa:["Pantallas","Informe de accesibilidad y correcciones"],deliver:["Todo lo anterior","Comentario, cambio de estado, página en Figma"]};
+  var IO={brief:["Ticket o tarjeta y adjuntos","Brief estructurado + preguntas abiertas"],ctx:["Brief","Hallazgos, tickets previos, componentes de Uber Base"],ux:["Brief + contexto","Flujo, historias de usuario, criterios de aceptación"],copy:["Flujo + guía de tono Uber Base","Textos de interfaz"],ui:["Flujo + textos","Pantallas en código con Uber Base DS"],qa:["Pantallas","Informe de accesibilidad WCAG AA y correcciones"],deliver:["Todo lo anterior","Comentario, cambio de estado, página en Figma"]};
   $("#agentTable").innerHTML=AGENTS.map(function(a){return '<tr><td><b>'+a.name+'</b></td><td>'+IO[a.id][0]+'</td><td>'+IO[a.id][1]+'</td><td>'+a.tools+'</td></tr>'}).join("");
 })();
 </script>

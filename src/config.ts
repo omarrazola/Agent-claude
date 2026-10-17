@@ -25,7 +25,7 @@ export const config = {
   anthropicApiKey: env("ANTHROPIC_API_KEY"),
   model: env("CLAUDE_MODEL", "claude-3-5-sonnet-20241022"),
   geminiApiKey: env("GEMINI_API_KEY") || env("GOOGLE_API_KEY"),
-  geminiModel: env("GEMINI_MODEL", "gemini-2.5-flash"),
+  geminiModel: env("GEMINI_MODEL", "gemini-3.8-flash"),
 
   jira: {
     baseUrl: env("JIRA_BASE_URL").replace(/\/$/, ""),

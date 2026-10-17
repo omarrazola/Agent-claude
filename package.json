@@ -1,8 +1,8 @@
 {
-  "name": "albora-design-agents",
+  "name": "uber-base-design-agents",
   "version": "0.1.0",
   "private": true,
-  "description": "Agentes de diseño UX/UI conectados a Jira y Trello para Hoteles Albora (caso de ejemplo).",
+  "description": "Agentes autónomos de diseño UX/UI con Uber Base Design System (base.uber.com).",
   "type": "module",
   "engines": {
     "node": ">=20"

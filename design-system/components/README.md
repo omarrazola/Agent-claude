@@ -1,44 +1,60 @@
-# Catálogo de componentes · Albora DS v2.3
+# Catálogo de componentes · Uber Base Design System (v10.02.26)
 
-Cada componente existe con el **mismo nombre** en código (clases `al-*` de `css/albora.css`) y en la librería de Figma. Este catálogo es el que leen los agentes de contexto, UX y UI: si un componente no está aquí, no existe.
+Fuente oficial: [Base Design System](https://base.uber.com/6d2425e9f/p/294ab4-base-design-system)
 
-| Componente | Clases | Uso |
-|------------|--------|-----|
-| Page | `al-page` | Contenedor de pantalla móvil (máx. 430 px) |
-| TopBar | `al-bar`, `al-back`, `al-logo` | Barra superior con volver o logo |
-| SearchSummary | `al-search` | Resumen de destino, fechas y huéspedes |
-| Chip | `al-chips`, `al-chip`, `is-on` | Filtros rápidos |
-| Banner | `al-banner`, `al-banner--sun`, `al-banner--pine` | Avisos y ofertas. Sun para beneficios, pine para información |
-| RoomCard | `al-card`, `al-card__img`, `al-card__body`, `al-badge`, `al-row` | Habitación en un listado |
-| Section | `al-sec` | Bloque blanco de contenido |
-| AmenityList | `al-amenities` | Lista de servicios en dos columnas |
-| RateOption | `al-rates` (fieldset), `al-rate` (label con radio) | Elección de tarifa |
-| Button | `al-btn`, `al-btn--ghost`, `al-btn--sm`, `al-btn--sun`, `al-btn--ink` | Acciones |
-| StickyFooter | `al-sticky` | Precio y acción fijos abajo |
-| Stepper | `al-steps` (ol), `is-done` | Progreso en el checkout |
-| Input | `al-field`, `al-input`, `al-field--error`, `al-field__error` | Campos de formulario |
-| PointsToggle | `al-points`, `al-switch` (checkbox) | Usar puntos de Albora Club |
-| PriceSummary | `al-sum` (dl), `is-discount`, `is-total` | Desglose de precio |
-| Confirmation | `al-confirm`, `al-check`, `al-code` | Pantalla de reserva confirmada |
+Cada componente de la interfaz sigue el sistema de diseño **Base de Uber**, garantizando coherencia visual, accesibilidad AA estricta y sincronización directa con Figma y tokens W3C.
 
-## Texto y datos
+---
 
-| Clase | Uso |
-|-------|-----|
-| `al-display`, `al-h`, `al-title` | Titulares de mayor a menor |
-| `al-sub`, `al-legal` | Texto secundario y legal |
-| `al-price`, `al-old-price` | Precios (con cifras tabulares) |
-| `al-perk` | Beneficio destacado en verde |
-| `al-rating` | Valoración y número de opiniones |
+## 1. Mapeo de Componentes CSS Oficiales
 
-## Reglas
+| Componente | Clase Principal | Variantes / Elementos | Uso |
+|------------|-----------------|-----------------------|-----|
+| **Page Container** | `base-page` | — | Marco de pantalla móvil (ancho máx. 430 px) |
+| **Navigation Header** | `base-header` | `base-header-title` | Barra superior con título o logo y botón de regreso |
+| **Button (Pill)** | `base-btn` | `base-btn-primary`, `base-btn-secondary`, `base-btn-tertiary` | Botón negro icónico con texto blanco y esquinas en píldora (`border-radius: 9999px`) |
+| **Input Field** | `base-input` | `base-input-pill` | Campo de entrada de texto (direcciones, búsqueda, formularios) |
+| **Product / Ride Card** | `base-card` | `base-card-selected` | Tarjetas de vehículos (UberX, Comfort, Black) o servicios |
+| **Tag / Pill Filter** | `base-tag` | `base-tag-positive`, `base-tag-negative` | Filtros rápidos y etiquetas de estado en píldora |
+| **Banner / Notification** | `base-banner` | `base-banner-warning`, `base-banner-positive` | Alertas del sistema, promociones y avisos |
+| **Sticky Footer** | `base-sticky` | — | Barra fija inferior para precio final y botón de acción principal |
 
-- El botón principal usa `--al-cta`. Pino por defecto; Sol (`al-btn--sun`) solo en campañas de Albora Club; Tinta (`al-btn--ink`) solo en fondos claros sin otro acento.
-- Un solo botón principal por pantalla.
-- Sol nunca se usa para texto sobre blanco (no cumple contraste).
-- Los precios siempre indican si son por noche o totales, y si incluyen impuestos.
-- Las imágenes `al-img--*` son marcadores de ejemplo; en producción se sustituyen por fotos con `alt` descriptivo.
+---
 
-## Ejemplos
+## 2. Componentes React Base Web (`baseui`)
 
-Las pantallas de `screens/ALB-482/` usan todos estos componentes y sirven de referencia.
+Si el agente genera código React, debe importar directamente de la librería oficial `baseui`:
+
+* **Button**: `import { Button, KIND, SIZE, SHAPE } from 'baseui/button';`
+  * Primario: `kind={KIND.primary}` (Fondo negro)
+  * Secundario: `kind={KIND.secondary}`
+  * Píldora: `shape={SHAPE.pill}`
+* **Input**: `import { Input, SIZE } from 'baseui/input';`
+* **Card**: `import { Card, StyledBody, StyledAction } from 'baseui/card';`
+* **Select**: `import { Select } from 'baseui/select';`
+* **Modal**: `import { Modal, ModalHeader, ModalBody, ModalFooter } from 'baseui/modal';`
+* **Typography**: `import { HeadingLarge, HeadingMedium, LabelLarge, ParagraphMedium } from 'baseui/typography';`
+
+---
+
+## 3. Tipografía (Uber Move & Uber Move Text)
+
+| Escala | Token / Clase | Fuente | Tamaño / Altura | Peso | Uso |
+|--------|---------------|--------|-----------------|------|-----|
+| **Display** | `--base-fs-display` | Uber Move | 36px / 44px | Bold (700) | Titulares de bienvenida o impacto |
+| **Heading Large** | `--base-fs-h-lg` | Uber Move | 24px / 32px | Bold (700) | Título principal de pantalla |
+| **Heading Medium** | `--base-fs-h-md` | Uber Move | 20px / 28px | Bold (700) | Títulos de sección o tarjetas |
+| **Heading Small** | `--base-fs-h-sm` | Uber Move | 16px / 24px | Bold (700) | Subtítulos y nombres de productos |
+| **Label Large** | `--base-fs-label-lg` | Uber Move Text | 16px / 24px | Bold (700) | Botones principales y acciones |
+| **Paragraph Medium**| `--base-fs-body-md` | Uber Move Text | 14px / 20px | Regular (400) | Texto de cuerpo y descripciones |
+| **Label Small** | `--base-fs-label-sm` | Uber Move Text | 12px / 16px | Medium (500) | Metadatos y badges |
+| **Caption** | `--base-fs-caption` | Uber Move Text | 11px / 16px | Regular (400) | Textos legales y notas al pie |
+
+---
+
+## 4. Reglas de diseño fundamentales de Uber Base
+
+1. **Color negro como elemento unificador**: El botón principal y los titulares destacados usan `#000000`.
+2. **Geometría y píldoras**: Los botones de acción y tags usan bordes píldora (`border-radius: 9999px`), característicos de la identidad de Uber.
+3. **Alto contraste**: Todo el texto sobre blanco o gris `#F6F6F6` cumple sobradamente el ratio de contraste WCAG AA (>4.5:1).
+4. **Voz activa y concisa**: Los textos son directos, sin relleno y centrados en la acción que realiza el usuario.

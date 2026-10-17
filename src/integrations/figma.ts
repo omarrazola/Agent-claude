@@ -6,7 +6,7 @@ import type { RunState, ScreenFile } from "../types.js";
  * Punto de enganche para llevar las pantallas a Figma.
  *
  * La API REST de Figma permite leer archivos y comentar, pero no crear diseños.
- * Para crear la página «<clave> · v<n>» con componentes de la librería de Albora DS
+ * Para crear la página «<clave> · v<n>» con componentes de la librería de Uber Base DS
  * se recomienda un agente con el conector MCP de Figma (Claude Agent SDK), que sí
  * puede escribir en el archivo usando los componentes publicados.
  *

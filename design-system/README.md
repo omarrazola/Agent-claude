@@ -1,25 +1,29 @@
-# Albora DS v2.3
+# Uber Base Design System (v10.02.26)
 
-Sistema de diseño de Hoteles Albora (ficticio). Es la **única** fuente de estilos que pueden usar los agentes, y la misma que usa el equipo en Figma.
+Implementación consolidada del sistema de diseño oficial de Uber para el equipo de agentes de diseño.
+Fuente oficial de referencia: [https://base.uber.com/6d2425e9f/p/294ab4-base-design-system](https://base.uber.com/6d2425e9f/p/294ab4-base-design-system)
+
+Es la **única** fuente de estilos que pueden usar los agentes, y está sincronizada con los tokens en formato W3C y la librería de componentes.
 
 ```
 design-system/
-├── tokens/albora.tokens.json   Tokens en formato Design Tokens (W3C): color, tipo, espacio, radios
-├── css/albora.css              Variables --al-* y componentes .al-*
-├── components/README.md        Catálogo de componentes y reglas de uso
+├── tokens/base.tokens.json     Tokens oficiales en formato W3C: color, tipografía, espacio, radios, elevación
+├── css/base.css                Variables CSS (--base-*) y componentes de utilidad (.base-*)
+├── components/README.md        Catálogo de componentes autorizados y equivalencias con baseui
 └── guidelines/
-    ├── tono-de-voz.md          Cómo escribe Albora
-    └── accesibilidad.md        Reglas AA que revisa el agente de QA
+    ├── tono-de-voz.md          Directrices de voz, tono y redacción de Uber Base
+    └── accesibilidad.md        Reglas WCAG AA que revisa el agente de QA
 ```
 
-## Principios visuales
+## Principios visuales de Uber Base
 
-- **Pino** es el color de acción. **Sol** destaca beneficios y Albora Club. **Piedra** es el fondo base.
-- **Young Serif** para titulares con carácter mediterráneo; **Figtree** para todo lo funcional.
-- Móvil primero, con un ancho máximo de 430 px por pantalla.
+- **Negro (#000000)** es el color primario de acción y contraste. **Blanco (#FFFFFF)** y **Gris (#F6F6F6 / #E2E2E2)** son los fondos y divisores base.
+- **Uber Move** para titulares con impacto geométrico; **Uber Move Text** para todo lo funcional y textos de lectura.
+- Botones de acción y etiquetas con esquinas en píldora (`border-radius: 9999px`).
+- Móvil primero, con un ancho máximo de 430 px por pantalla (`.base-page`).
 
 ## Mantener código y Figma alineados
 
-1. Los tokens se editan en `tokens/albora.tokens.json`.
-2. Se regenera `css/albora.css` y se sincronizan las variables de Figma (por ejemplo, con un plugin de importación de tokens).
-3. Un componente nuevo se añade a la vez en el CSS, en Figma y en `components/README.md`. Si no está en el catálogo, los agentes no lo usarán.
+1. Los tokens residen en `tokens/base.tokens.json`.
+2. Se generan `css/base.css` y variables correspondientes para prototipos web o CSS puro.
+3. El catálogo `components/README.md` define los únicos componentes autorizados para los agentes de UI y UX.

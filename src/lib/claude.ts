@@ -40,22 +40,33 @@ export async function complete({ system, user, model, maxTokens = 8000 }: Comple
   // 1. Proveedor Gemini (Google Antigravity nativo)
   if (provider === "gemini") {
     const ai = getGeminiClient();
-    const geminiModel = model && model.startsWith("gemini") ? model : config.geminiModel;
-    try {
-      const response = await ai.models.generateContent({
-        model: geminiModel,
-        contents: user,
-        config: {
-          systemInstruction: system,
-          maxOutputTokens: maxTokens,
-          responseMimeType: "application/json",
-        },
-      });
-      return response.text ?? "{}";
-    } catch (err) {
-      log.error(`Error llamando a Gemini (${geminiModel}):`, err);
-      throw err;
+    const candidateModels = [
+      model && model.startsWith("gemini") ? model : config.geminiModel,
+      "gemini-3.8-flash",
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-lite"
+    ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
+
+    let lastError: unknown = null;
+    for (const m of candidateModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model: m,
+          contents: user,
+          config: {
+            systemInstruction: system,
+            maxOutputTokens: maxTokens,
+            responseMimeType: "application/json",
+          },
+        });
+        if (response.text) return response.text;
+      } catch (err) {
+        lastError = err;
+        log.warn(`Gemini (${m}) no disponible, intentando modelo alternativo...`);
+      }
     }
+    log.error("Todos los modelos Gemini fallaron:", lastError);
+    throw lastError;
   }
 
   // 2. Proveedor Anthropic (Claude)

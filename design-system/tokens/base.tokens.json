@@ -1,0 +1,100 @@
+{
+  "$description": "Uber Base Design System Tokens (W3C standard format) · Official: https://base.uber.com/6d2425e9f/p/294ab4-base-design-system",
+  "name": "Base Design System",
+  "version": "10.02.26",
+  "author": "Uber Design Systems",
+  "color": {
+    "black": { "$type": "color", "$value": "#000000", "$description": "Primary brand color, primary CTA, heading text" },
+    "white": { "$type": "color", "$value": "#FFFFFF", "$description": "Primary background, inverse text" },
+    "backgroundPrimary": { "$type": "color", "$value": "#FFFFFF", "$description": "Default surface" },
+    "backgroundSecondary": { "$type": "color", "$value": "#F6F6F6", "$description": "Secondary surface, search fields, pills" },
+    "backgroundTertiary": { "$type": "color", "$value": "#E2E2E2", "$description": "Dividers, subtle borders" },
+    "backgroundInverse": { "$type": "color", "$value": "#000000", "$description": "Inverted surface, tooltips, primary button" },
+    "contentPrimary": { "$type": "color", "$value": "#000000", "$description": "Headings, titles, high-emphasis text" },
+    "contentSecondary": { "$type": "color", "$value": "#545454", "$description": "Body, subtitles, metadata" },
+    "contentTertiary": { "$type": "color", "$value": "#757575", "$description": "Placeholders, disabled text" },
+    "contentInversePrimary": { "$type": "color", "$value": "#FFFFFF", "$description": "Text on black buttons and dark surfaces" },
+    "borderOpaque": { "$type": "color", "$value": "#E2E2E2", "$description": "Solid borders" },
+    "borderTransparent": { "$type": "color", "$value": "rgba(0, 0, 0, 0.08)", "$description": "Translucent borders" },
+    "borderSelected": { "$type": "color", "$value": "#000000", "$description": "Active or selected element border" },
+    "accent": { "$type": "color", "$value": "#276EF1", "$description": "Base Web accent blue for links, highlights, and focus" },
+    "positive": { "$type": "color", "$value": "#0E8345", "$description": "Success, completed states, positive tags" },
+    "positiveLight": { "$type": "color", "$value": "#EAF6ED", "$description": "Positive badge and banner background" },
+    "negative": { "$type": "color", "$value": "#DE1135", "$description": "Errors, cancellations, destructive actions" },
+    "negativeLight": { "$type": "color", "$value": "#FFF0EE", "$description": "Error banner background" },
+    "warning": { "$type": "color", "$value": "#F69E0C", "$description": "Alerts, caution indicators" },
+    "warningLight": { "$type": "color", "$value": "#FDF2DC", "$description": "Warning callouts background" }
+  },
+  "font": {
+    "display": {
+      "$type": "fontFamily",
+      "$value": ["Uber Move", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"]
+    },
+    "body": {
+      "$type": "fontFamily",
+      "$value": ["Uber Move Text", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"]
+    }
+  },
+  "fontSize": {
+    "displayLarge": { "$type": "dimension", "$value": "52px" },
+    "display": { "$type": "dimension", "$value": "36px" },
+    "headingLarge": { "$type": "dimension", "$value": "24px" },
+    "headingMedium": { "$type": "dimension", "$value": "20px" },
+    "headingSmall": { "$type": "dimension", "$value": "16px" },
+    "labelLarge": { "$type": "dimension", "$value": "16px" },
+    "labelMedium": { "$type": "dimension", "$value": "14px" },
+    "labelSmall": { "$type": "dimension", "$value": "12px" },
+    "paragraphLarge": { "$type": "dimension", "$value": "16px" },
+    "paragraphMedium": { "$type": "dimension", "$value": "14px" },
+    "paragraphSmall": { "$type": "dimension", "$value": "12px" },
+    "paragraphXSmall": { "$type": "dimension", "$value": "11px" }
+  },
+  "lineHeight": {
+    "displayLarge": { "$type": "dimension", "$value": "64px" },
+    "display": { "$type": "dimension", "$value": "44px" },
+    "headingLarge": { "$type": "dimension", "$value": "32px" },
+    "headingMedium": { "$type": "dimension", "$value": "28px" },
+    "headingSmall": { "$type": "dimension", "$value": "24px" },
+    "labelLarge": { "$type": "dimension", "$value": "24px" },
+    "labelMedium": { "$type": "dimension", "$value": "20px" },
+    "labelSmall": { "$type": "dimension", "$value": "16px" },
+    "paragraphMedium": { "$type": "dimension", "$value": "20px" },
+    "paragraphSmall": { "$type": "dimension", "$value": "16px" }
+  },
+  "fontWeight": {
+    "regular": { "$type": "fontWeight", "$value": "400" },
+    "medium": { "$type": "fontWeight", "$value": "500" },
+    "bold": { "$type": "fontWeight", "$value": "700" }
+  },
+  "space": {
+    "scale0": { "$type": "dimension", "$value": "0px" },
+    "scale100": { "$type": "dimension", "$value": "4px" },
+    "scale200": { "$type": "dimension", "$value": "8px" },
+    "scale300": { "$type": "dimension", "$value": "12px" },
+    "scale400": { "$type": "dimension", "$value": "16px" },
+    "scale500": { "$type": "dimension", "$value": "20px" },
+    "scale600": { "$type": "dimension", "$value": "24px" },
+    "scale800": { "$type": "dimension", "$value": "32px" },
+    "scale1000": { "$type": "dimension", "$value": "40px" },
+    "scale1200": { "$type": "dimension", "$value": "48px" }
+  },
+  "radius": {
+    "none": { "$type": "dimension", "$value": "0px" },
+    "soft": { "$type": "dimension", "$value": "4px" },
+    "rounded": { "$type": "dimension", "$value": "8px" },
+    "medium": { "$type": "dimension", "$value": "12px" },
+    "large": { "$type": "dimension", "$value": "16px" },
+    "pill": { "$type": "dimension", "$value": "9999px", "$description": "Standard Uber button, input, and tag pill radius" },
+    "circle": { "$type": "dimension", "$value": "50%" }
+  },
+  "elevation": {
+    "shadow400": { "$type": "shadow", "$value": "0 1px 4px rgba(0, 0, 0, 0.12)" },
+    "shadow500": { "$type": "shadow", "$value": "0 2px 8px rgba(0, 0, 0, 0.16)" },
+    "shadow600": { "$type": "shadow", "$value": "0 4px 16px rgba(0, 0, 0, 0.16)" },
+    "shadow700": { "$type": "shadow", "$value": "0 8px 24px rgba(0, 0, 0, 0.20)" }
+  },
+  "size": {
+    "touchTargetMin": { "$type": "dimension", "$value": "48px", "$description": "Minimum accessible touch target" },
+    "pageMax": { "$type": "dimension", "$value": "430px", "$description": "Mobile layout maximum width" }
+  }
+}

@@ -10,7 +10,7 @@ export interface AgentDef {
   prompt: string;
   /** Salidas de agentes anteriores que recibe. */
   needs: StepId[];
-  /** Material de referencia de Albora DS que se le adjunta (rutas relativas a design-system/). */
+  /** Material de referencia de Uber Base DS que se le adjunta (rutas relativas a design-system/). */
   references: string[];
   maxTokens: number;
   /** Modelo propio; si no se indica, usa CLAUDE_MODEL. */
@@ -31,7 +31,7 @@ export const AGENTS: AgentDef[] = [
     name: "Agente de contexto",
     prompt: "02-context.md",
     needs: ["brief"],
-    references: ["components/README.md", "tokens/albora.tokens.json"],
+    references: ["components/README.md", "tokens/base.tokens.json"],
     maxTokens: 4000,
   },
   {
@@ -55,7 +55,7 @@ export const AGENTS: AgentDef[] = [
     name: "Agente de UI",
     prompt: "05-ui.md",
     needs: ["ux", "copy", "context"],
-    references: ["css/albora.css", "components/README.md"],
+    references: ["css/base.css", "components/README.md"],
     maxTokens: 8192,
   },
   {
@@ -63,7 +63,7 @@ export const AGENTS: AgentDef[] = [
     name: "Revisor QA",
     prompt: "06-qa.md",
     needs: ["ux", "ui"],
-    references: ["css/albora.css", "guidelines/accesibilidad.md"],
+    references: ["css/base.css", "guidelines/accesibilidad.md"],
     maxTokens: 8192,
   },
   {

@@ -1,0 +1,296 @@
+/* =========================================================
+   Uber Base Design System · CSS (v10.02.26)
+   Fuente Oficial: https://base.uber.com/6d2425e9f/p/294ab4-base-design-system
+   Basado en tokens/base.tokens.json
+   ========================================================= */
+
+@font-face {
+  font-family: "Uber Move";
+  src: url("https://d1a3f4spazzrp4.cloudfront.net/dotcom-assets/fonts/UberMove-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("https://d1a3f4spazzrp4.cloudfront.net/dotcom-assets/fonts/UberMoveText-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("https://uber-common-public.s3-us-west-2.amazonaws.com/design-platform/UberMoveText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Color Tokens */
+  --base-black: #000000;
+  --base-white: #FFFFFF;
+  --base-bg-primary: #FFFFFF;
+  --base-bg-secondary: #F6F6F6;
+  --base-bg-tertiary: #EEEEEE;
+  --base-bg-inverse: #000000;
+
+  --base-content-primary: #000000;
+  --base-content-secondary: #545454;
+  --base-content-tertiary: #757575;
+  --base-content-inverse: #FFFFFF;
+
+  --base-border-opaque: #E2E2E2;
+  --base-border-transparent: rgba(0, 0, 0, 0.08);
+  --base-border-selected: #000000;
+
+  --base-accent: #276EF1;
+  --base-positive: #0E8345;
+  --base-positive-light: #EAF6ED;
+  --base-negative: #DE1135;
+  --base-negative-light: #FFF0EE;
+  --base-warning: #F69E0C;
+  --base-warning-light: #FDF2DC;
+
+  /* Typography */
+  --base-font-display: "Uber Move", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --base-font-body: "Uber Move Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --base-fs-display-lg: 52px;
+  --base-fs-display: 36px;
+  --base-fs-h-lg: 24px;
+  --base-fs-h-md: 20px;
+  --base-fs-h-sm: 16px;
+  --base-fs-label-lg: 16px;
+  --base-fs-label-md: 14px;
+  --base-fs-label-sm: 12px;
+  --base-fs-body-lg: 16px;
+  --base-fs-body-md: 14px;
+  --base-fs-body-sm: 12px;
+  --base-fs-caption: 11px;
+
+  /* Spacing */
+  --base-space-100: 4px;
+  --base-space-200: 8px;
+  --base-space-300: 12px;
+  --base-space-400: 16px;
+  --base-space-500: 20px;
+  --base-space-600: 24px;
+  --base-space-800: 32px;
+  --base-space-1000: 40px;
+  --base-space-1200: 48px;
+
+  /* Border Radii */
+  --base-radius-none: 0px;
+  --base-radius-soft: 4px;
+  --base-radius-rounded: 8px;
+  --base-radius-md: 12px;
+  --base-radius-lg: 16px;
+  --base-radius-pill: 9999px;
+  --base-radius-circle: 50%;
+
+  /* Elevation */
+  --base-elevation-400: 0 1px 4px rgba(0, 0, 0, 0.12);
+  --base-elevation-500: 0 2px 8px rgba(0, 0, 0, 0.16);
+  --base-elevation-600: 0 4px 16px rgba(0, 0, 0, 0.16);
+  --base-elevation-700: 0 8px 24px rgba(0, 0, 0, 0.20);
+
+  /* Touch & Layout */
+  --base-touch-target: 48px;
+  --base-page-max-width: 430px;
+}
+
+/* Reset y caja base */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--base-font-body);
+  background-color: var(--base-bg-secondary);
+  color: var(--base-content-primary);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Contenedor móvil */
+.base-page {
+  max-width: var(--base-page-max-width);
+  margin: 0 auto;
+  background-color: var(--base-bg-primary);
+  min-height: 100vh;
+  position: relative;
+  box-shadow: var(--base-elevation-500);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra superior */
+.base-header {
+  height: 56px;
+  padding: 0 var(--base-space-400);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--base-border-opaque);
+  background-color: var(--base-bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.base-header-title {
+  font-family: var(--base-font-display);
+  font-size: var(--base-fs-h-md);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Botones Uber */
+.base-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--base-space-200);
+  height: var(--base-touch-target);
+  padding: 0 var(--base-space-500);
+  font-family: var(--base-font-body);
+  font-size: var(--base-fs-label-lg);
+  font-weight: 700;
+  border-radius: var(--base-radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+  text-decoration: none;
+  width: 100%;
+}
+
+.base-btn:active {
+  transform: scale(0.98);
+}
+
+.base-btn-primary {
+  background-color: var(--base-black);
+  color: var(--base-white);
+}
+
+.base-btn-primary:hover {
+  background-color: #222222;
+}
+
+.base-btn-secondary {
+  background-color: var(--base-bg-secondary);
+  color: var(--base-content-primary);
+}
+
+.base-btn-secondary:hover {
+  background-color: var(--base-bg-tertiary);
+}
+
+.base-btn-tertiary {
+  background-color: transparent;
+  color: var(--base-content-primary);
+}
+
+.base-btn:disabled {
+  background-color: var(--base-bg-secondary);
+  color: var(--base-content-tertiary);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Inputs */
+.base-input {
+  width: 100%;
+  height: var(--base-touch-target);
+  padding: 0 var(--base-space-400);
+  font-family: var(--base-font-body);
+  font-size: var(--base-fs-body-lg);
+  background-color: var(--base-bg-secondary);
+  border: 1px solid transparent;
+  border-radius: var(--base-radius-rounded);
+  color: var(--base-content-primary);
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.base-input:focus {
+  background-color: var(--base-bg-primary);
+  border-color: var(--base-black);
+}
+
+.base-input-pill {
+  border-radius: var(--base-radius-pill);
+}
+
+/* Tarjetas */
+.base-card {
+  background-color: var(--base-bg-primary);
+  border: 1px solid var(--base-border-opaque);
+  border-radius: var(--base-radius-md);
+  padding: var(--base-space-400);
+  box-shadow: var(--base-elevation-400);
+  margin-bottom: var(--base-space-400);
+}
+
+.base-card-selected {
+  border: 2px solid var(--base-border-selected);
+}
+
+/* Tags y Píldoras */
+.base-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 var(--base-space-300);
+  border-radius: var(--base-radius-pill);
+  font-size: var(--base-fs-label-sm);
+  font-weight: 500;
+  background-color: var(--base-bg-secondary);
+  color: var(--base-content-primary);
+}
+
+.base-tag-positive {
+  background-color: var(--base-positive-light);
+  color: var(--base-positive);
+}
+
+.base-tag-negative {
+  background-color: var(--base-negative-light);
+  color: var(--base-negative);
+}
+
+/* Notificaciones / Banners */
+.base-banner {
+  padding: var(--base-space-300) var(--base-space-400);
+  border-radius: var(--base-radius-rounded);
+  font-size: var(--base-fs-body-md);
+  display: flex;
+  align-items: center;
+  gap: var(--base-space-300);
+  margin-bottom: var(--base-space-400);
+}
+
+.base-banner-warning {
+  background-color: var(--base-warning-light);
+  color: var(--base-black);
+}
+
+.base-banner-positive {
+  background-color: var(--base-positive-light);
+  color: var(--base-positive);
+}
+
+/* Barra inferior fija (Sticky CTA) */
+.base-sticky {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--base-bg-primary);
+  padding: var(--base-space-400);
+  border-top: 1px solid var(--base-border-opaque);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  margin-top: auto;
+}

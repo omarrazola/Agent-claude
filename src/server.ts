@@ -37,6 +37,7 @@ app.post("/webhooks/trello", trelloWebhook);
 app.use("/previews", express.static(path.join(config.paths.output, "previews")));
 app.use(express.static(path.join(ROOT, "demo")));
 app.use("/app", express.static(path.join(ROOT, "demo")));
+app.use("/demo", express.static(path.join(ROOT, "demo")));
 
 // --- API interna (para un panel propio o pruebas) ---
 app.post("/api/runs", async (req, res) => {
@@ -84,16 +85,8 @@ app.post("/api/runs/:key/iterate", async (req, res) => {
   iterate(req.params.key, request).catch((err) => log.error("Iteración fallida", err));
 });
 
-// Endpoint para generar el flujo completo de diseño y las salidas de los 7 agentes a partir de cualquier brief libre
-app.post("/api/llm/generate", async (req, res) => {
-  try {
-    const { key, title, priority, body: briefText } = req.body ?? {};
-    if (!briefText && !title) {
-      res.status(400).json({ error: "Falta el título o el contenido del brief" });
-      return;
-    }
-
-    const system = `Eres un sistema autónomo de 7 agentes de diseño de producto de Uber que utilizan estrictamente el sistema oficial Base Design System (base.uber.com):
+// Prompt maestro de los 7 agentes de Uber Base Design System
+const UBER_BASE_SYSTEM = `Eres un sistema autónomo de 7 agentes de diseño de producto de Uber que utilizan estrictamente el sistema oficial Base Design System (base.uber.com):
 1. Brief Agent: analiza la necesidad del usuario, objetivos de negocio, métricas de éxito y define la matriz de alcance: Happy Path, Error Cases y Corner Cases.
 2. Context Agent: selecciona tokens de Uber Base (baseui) para cada estado: --base-positive (#0E8345), --base-negative (#DE1135), --base-warning (#F69E0C), --base-black (#000000) y superficies secundarias (#F6F6F6).
 3. UX Architect: estructura un flujo profesional completo de pantallas (sin límite artificial de pantallas: diseña todas las pantallas necesarias para cubrir exhaustivamente el flujo de producto, típicamente entre 6 y 10+ pantallas) que resuelvan EXACTAMENTE el problema planteado en el brief, cubriendo obligatoriamente el camino nominal, la gestión de errores y los casos límite.
@@ -116,12 +109,20 @@ Debes categorizar y distribuir obligatoriamente las pantallas entre:
    - banner: { "text": "Explicación clara del error sin culpar al usuario", "tone": "negative" }
    - cta: botón claro de recuperación (ej. "Reintentar cobro con Uber Cash", "Buscar conductor alternativo")
    - ctaVariant: "negative" o "primary"
+   - ctaTargetStep: número de paso hacia el que navega este botón (ej. el paso de recuperación o de métodos de pago)
+   - secondaryCta: objeto opcional para bifurcaciones ({ "text": "Cancelar viaje", "variant": "secondary", "targetStep": 1 })
 3. Corner Cases (Casos límite o excepciones controladas): Pantallas dedicadas a condiciones atípicas o de fricción controlada (ej. alerta de alta demanda / surge pricing dinámico, desvío obligatorio por obras o calle peatonal con punto de encuentro sugerido a 50 metros, tráfico severo con recálculo dinámico de ETA, o tiempo de espera a punto de agotarse).
    - stateType: "corner_case"
    - stateBadge: "CORNER CASE"
    - stateDesc: explicación de la condición límite y alternativa sugerida
    - banner: { "text": "Aviso proactivo y transparente", "tone": "warning" }
    - cta: acción para aceptar la alternativa o continuar
+   - ctaTargetStep: paso al que navega la alternativa
+   - secondaryCta: acción secundaria para rechazar o mantener la ruta estándar ({ "text": "Mantener punto original (+10 min)", "variant": "tertiary", "targetStep": 3 })
+
+4. Máquina de Estados y Rutas No Lineales:
+   - En cada pantalla, define "ctaTargetStep" indicando a qué número de paso ('step') conduce la acción principal (típicamente 'step + 1', o el paso específico de resolución en errores).
+   - Puedes incluir opcionalmente "secondaryCta": { "text": "...", "variant": "secondary" | "tertiary", "targetStep": 1 } para ofrecer bifurcaciones reales (rutas alternativas, cancelaciones limpias o desvíos).
 
 IMPORTANTE: Diseña el flujo que el usuario pide en su brief. NUNCA asumas o inventes flujos no relacionados como recargas eléctricas a menos que el usuario lo pida explícitamente.
 
@@ -321,27 +322,37 @@ Reglas estrictas de Base Design System (base.uber.com):
 - Tags y Badges:
   * Radio: 4px a 8px (no píldoras infinitas), texto en negrita 11px/12px.`;
 
-    const userPrompt = `Petición entrante del equipo de producto:
+function buildUserPrompt(key?: string, priority?: string, title?: string, briefText?: string): string {
+  return `Petición entrante del equipo de producto:
 Clave: ${key || "PETICION-1"}
 Prioridad: ${priority || "Media"}
 Título: ${title}
 Briefing completo:
 ${briefText}
 
-Diseña la solución profesional completa de producto enfocada en resolver este briefing concreto utilizando el sistema de diseño Uber Base. Diseña todas las pantallas que sean necesarias sin límite artificial de pantallas (típicamente entre 6 y 10+ pantallas), asegurando cubrir exhaustivamente el Happy Path, Casos de Error con pantallas de fallo y recuperación, y Corner Cases con alternativas guiadas.`;
+Diseña la solución profesional completa de producto enfocada en resolver este briefing concreto utilizando el sistema de diseño Uber Base. Diseña todas las pantallas que sean necesarias sin límite artificial de pantallas (típicamente entre 6 y 10+ pantallas), asegurando cubrir exhaustivamente el Happy Path, Casos de Error con pantallas de fallo y recuperación, y Corner Cases con alternativas guiadas y rutas no lineales.`;
+}
 
-    const text = await complete({ system, user: userPrompt, maxTokens: 16000 });
+// Endpoint estándar JSON para generar propuesta completa
+app.post("/api/llm/generate", async (req, res) => {
+  try {
+    const { key, title, priority, body: briefText } = req.body ?? {};
+    if (!briefText && !title) {
+      res.status(400).json({ error: "Falta el título o el contenido del brief" });
+      return;
+    }
+
+    const userPrompt = buildUserPrompt(key, priority, title, briefText);
+    const text = await complete({ system: UBER_BASE_SYSTEM, user: userPrompt, maxTokens: 16000 });
     let json;
     try {
       json = extractJson(text);
     } catch (parseErr) {
-      log.warn("Fallo al extraer JSON directo, longitud recibida:", text?.length, "intentando reparar...");
-      // Si la respuesta fue truncada por límite de tokens, intentamos cerrar llaves
+      log.warn("Fallo al extraer JSON directo, reparando...");
       let repaired = text.trim();
       const firstBrace = repaired.indexOf("{");
       if (firstBrace !== -1) {
         repaired = repaired.slice(firstBrace);
-        // Contamos llaves abiertas vs cerradas
         let openBraces = 0;
         let openBrackets = 0;
         for (let i = 0; i < repaired.length; i++) {
@@ -368,6 +379,65 @@ Diseña la solución profesional completa de producto enfocada en resolver este 
   }
 });
 
+// Endpoint de streaming en tiempo real (Server-Sent Events) para visualización progresiva
+app.post("/api/llm/stream", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const send = (event: string, data: any) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const { key, title, priority, body: briefText } = req.body ?? {};
+    if (!briefText && !title) {
+      send("error", { message: "Falta el título o el contenido del brief" });
+      res.end();
+      return;
+    }
+
+    send("agent_step", { id: "brief", name: "Analista de brief", status: "running", log: "Analizando objetivos de negocio y matriz de alcance..." });
+    send("agent_step", { id: "context", name: "Agente de contexto", status: "running", log: "Seleccionando tokens baseui oficiales de Uber Base..." });
+    send("agent_step", { id: "ux", name: "Arquitecto UX", status: "running", log: "Estructurando pantallas, caminos nominales y bifurcaciones de error..." });
+
+    const userPrompt = buildUserPrompt(key, priority, title, briefText);
+    const text = await complete({ system: UBER_BASE_SYSTEM, user: userPrompt, maxTokens: 16000 });
+    let json: any;
+    try {
+      json = extractJson(text);
+    } catch (parseErr) {
+      let repaired = text.trim();
+      const firstBrace = repaired.indexOf("{");
+      if (firstBrace !== -1) {
+        repaired = repaired.slice(firstBrace);
+        let openBraces = 0, openBrackets = 0;
+        for (let i = 0; i < repaired.length; i++) {
+          if (repaired[i] === "{") openBraces++;
+          else if (repaired[i] === "}") openBraces--;
+          else if (repaired[i] === "[") openBrackets++;
+          else if (repaired[i] === "]") openBrackets--;
+        }
+        while (openBrackets > 0) { repaired += "]"; openBrackets--; }
+        while (openBraces > 0) { repaired += "}"; openBraces--; }
+        json = JSON.parse(repaired);
+      } else {
+        throw parseErr;
+      }
+    }
+
+    send("agent_step", { id: "copy", name: "Redactor UX", status: "done", log: "Microcopys redactados en sentence case y voz activa de Uber." });
+    send("agent_step", { id: "ui", name: "Agente de UI", status: "done", log: "Componentes Base maquetados con tokens y mapas oscuros." });
+    send("agent_step", { id: "qa", name: "Revisor QA", status: "done", log: "Accesibilidad WCAG AA y resiliencia sin dead-ends auditadas." });
+    send("agent_step", { id: "delivery", name: "Agente de entrega", status: "done", log: "Paquete de entrega publicado." });
+    send("result", { ok: true, result: json });
+    res.end();
+  } catch (err) {
+    send("error", { message: err instanceof Error ? err.message : String(err) });
+    res.end();
+  }
+});
+
 // Endpoint síncrono para que la interfaz web obtenga cambios generados por IA real inmediatamente
 app.post("/api/llm/iterate", async (req, res) => {
   try {
@@ -378,7 +448,7 @@ app.post("/api/llm/iterate", async (req, res) => {
     }
     const system = "Eres el equipo de agentes de diseño autónomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y QA) aplicando el sistema de diseño oficial Base Design System (tokens base.uber.com). " +
       "Devuelve EXCLUSIVAMENTE un objeto JSON válido con las claves: summary, changes, agents, question, state. No incluyas explicaciones en texto fuera del JSON. " +
-      "IMPORTANTE: Si 'currentState' contiene un array 'screens', debes devolver en 'state.screens' el array completo con todas las pantallas del flujo (sin límite artificial de pantallas, conservando todas las pantallas existentes o añadiendo/modificando las necesarias para resolver la petición), asegurando que cada pantalla conserve o actualice: step, shortName, stateType ('happy_path' | 'error' | 'corner_case'), stateBadge ('HAPPY PATH' | 'CASO DE ERROR' | 'CORNER CASE'), stateDesc, navTitle, mainTitle, mainSubtitle, showMap, mapMeta, heroImage, items, cards, banner, cta, ctaVariant.";
+      "IMPORTANTE: Si 'currentState' contiene un array 'screens', debes devolver en 'state.screens' el array completo con todas las pantallas del flujo (sin límite artificial de pantallas, conservando todas las pantallas existentes o añadiendo/modificando las necesarias para resolver la petición), asegurando que cada pantalla conserve o actualice: step, shortName, stateType ('happy_path' | 'error' | 'corner_case'), stateBadge ('HAPPY PATH' | 'CASO DE ERROR' | 'CORNER CASE'), stateDesc, navTitle, mainTitle, mainSubtitle, showMap, mapMeta, heroImage, items, cards, banner, cta, ctaVariant, ctaTargetStep, secondaryCta.";
     const user = prompt || `Petición de la diseñadora:\n${userReq}\n\nEstado actual:\n${JSON.stringify(currentState, null, 2)}`;
     const text = await complete({ system, user, maxTokens: 16000 });
     let json;

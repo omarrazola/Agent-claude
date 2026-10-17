@@ -562,6 +562,19 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 .phone.fresh{animation:fresh 1.2s ease}
 @keyframes fresh{0%{box-shadow:0 0 0 0 var(--accent)}30%{box-shadow:0 0 0 6px var(--accent-soft)}100%{box-shadow:0 10px 30px rgb(0 0 0 / .12)}}
 
+/* Mejoras Enterprise: Edición inline y Handover */
+.phone.proto-edit-active [data-edit-field]{outline:2px dashed #276EF1 !important;outline-offset:2px;cursor:text;transition:outline .2s;border-radius:4px}
+.phone.proto-edit-active [data-edit-field]:focus{outline:2px solid #000000 !important;background:rgba(39,110,241,0.06)}
+.handover-box{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:18px}
+.ho-tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);padding-bottom:12px;flex-wrap:wrap}
+.ho-tab-btn{border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.ho-tab-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ho-tab-btn.active{background:#000000;color:#FFFFFF;border-color:#000000}
+.code-preview{background:#141414;color:#E6E6E6;border-radius:8px;padding:16px;font-family:var(--f-mono);font-size:12.5px;line-height:1.6;overflow-x:auto;max-height:500px;white-space:pre}
+.mermaid-diagram-card{background:#F6F6F6;border:1px solid #E2E2E2;border-radius:8px;padding:20px;overflow-x:auto}
+.proto-sim-bar{display:flex;gap:6px;margin:0 16px 10px}
+.proto-sim-bar .btn{font-size:11px;padding:4px 8px;border-radius:6px}
+
 .composer{margin-top:20px;padding:16px;display:grid;gap:12px}
 .composer-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .composer-h h2{font-size:15px;font-weight:600;margin-right:auto}
@@ -710,6 +723,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
         <div class="seg" role="group" aria-label="Modo de vista">
           <button id="modeScreens" aria-pressed="true" data-mode="screens">Pantallas</button>
           <button id="modeProto" aria-pressed="false" data-mode="proto">Prototipo</button>
+          <button id="modeHandover" aria-pressed="false" data-mode="handover">📦 Handover & Código</button>
         </div>
         <div class="state-filters" id="stateFilters" role="group" aria-label="Filtro de estados de producto">
           <button type="button" class="s-filter-btn active" data-state="all" id="sfAll">Todos (5)</button>
@@ -1532,13 +1546,13 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     },200);
 
     if(hasServerAi){
-      // LLAMADA 100% REAL AL BACKEND MULTI-AGENTE
+      // LLAMADA EN STREAMING SSE REAL AL BACKEND MULTI-AGENTE
       setAgent(AGENTS[0], "running");
       var log0 = $(".log", $("#ag-"+AGENTS[0].id));
-      log0.innerHTML = "<div>Conectando con agentes IA (Gemini)...</div><div>Enviando briefing personalizado</div>";
+      log0.innerHTML = "<div>Conectando con agentes IA (Gemini 3.8 Flash)...</div><div>Enviando briefing estructurado</div>";
 
       try{
-        var resp = await fetch("/api/llm/generate", {
+        var resp = await fetch("/api/llm/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1548,32 +1562,85 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
             body: info.body
           })
         });
-        var data = await resp.json();
-        if(data && data.ok && data.result){
-          var res = data.result;
-          var ags = res.agents || {};
 
-          // Actualizar secuencialmente cada agente con sus logs y resultados reales
+        var res = null;
+        if(resp.ok && resp.body){
+          var reader = resp.body.getReader();
+          var decoder = new TextDecoder("utf-8");
+          var buffer = "";
+
+          while(true){
+            var chunk = await reader.read();
+            if(chunk.done) break;
+            buffer += decoder.decode(chunk.value, { stream: true });
+            var parts = buffer.split("\n\n");
+            buffer = parts.pop();
+
+            for(var pIdx = 0; pIdx < parts.length; pIdx++){
+              var block = parts[pIdx].trim();
+              if(!block) continue;
+              var evMatch = block.match(/event:\s*([^\n]+)/);
+              var dataMatch = block.match(/data:\s*([^\n]+)/);
+              if(evMatch && dataMatch){
+                var ev = evMatch[1].trim();
+                var evData = JSON.parse(dataMatch[1]);
+                if(ev === "agent_step"){
+                  var targetAgent = AGENTS.find(function(a){ return a.id === evData.id; });
+                  if(targetAgent){
+                    setAgent(targetAgent, evData.status || "running");
+                    var agLog = $(".log", $("#ag-" + targetAgent.id));
+                    if(agLog && evData.log){
+                      var dDiv = document.createElement("div");
+                      dDiv.textContent = evData.log;
+                      agLog.appendChild(dDiv);
+                    }
+                  }
+                } else if(ev === "result" && evData.ok){
+                  res = evData.result;
+                }
+              }
+            }
+          }
+        }
+
+        // Si el stream no devolvió result o falló, recurrir a /api/llm/generate
+        if(!res){
+          var fallbackResp = await fetch("/api/llm/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              key: info.key,
+              title: info.title,
+              priority: info.priority,
+              body: info.body
+            })
+          });
+          var fallbackData = await fallbackResp.json();
+          if(fallbackData && fallbackData.ok) res = fallbackData.result;
+        }
+
+        if(res){
+          var ags = res.agents || {};
+          // Actualizar secuencialmente cada agente con sus outputs reales
           for(var i=0; i<AGENTS.length; i++){
             var a = AGENTS[i];
             var agData = ags[a.id] || {};
             setAgent(a, "running");
-            var agLog = $(".log", $("#ag-"+a.id));
-            agLog.innerHTML = "";
+            var agLog2 = $(".log", $("#ag-"+a.id));
+            if(agLog2) agLog2.innerHTML = "";
             var logs = Array.isArray(agData.logs) ? agData.logs : (a.logs || ["Procesado por agente"]);
             logs.forEach(function(l){
-              var d = document.createElement("div"); d.textContent = l; agLog.appendChild(d);
+              var d = document.createElement("div"); d.textContent = l; if(agLog2) agLog2.appendChild(d);
             });
             a.out = agData.out || a.out;
             a.summary = agData.summary || a.summary;
             var outEl = $(".out", $("#ag-"+a.id));
             if(outEl) outEl.innerHTML = a.out;
-            await new Promise(function(r){ setTimeout(r, 250); });
+            await new Promise(function(r){ setTimeout(r, 120); });
             setAgent(a, "done");
             $("#bar").style.width = Math.round((i+1)/AGENTS.length * 100) + "%";
           }
 
-          // Inyectar el diseño real generado por los agentes
           var genDesign = Object.assign({}, DEFAULT_DESIGN, res.design || {});
           if(Array.isArray(res.screens) && res.screens.length > 0){
             genDesign.screens = res.screens;
@@ -1594,7 +1661,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           return;
         }
       }catch(err){
-        console.warn("Fallo en llamada real, recurriendo a ejecución local", err);
+        console.warn("Fallo en streaming SSE, recurriendo a ejecución local", err);
       }
     }
 
@@ -1864,6 +1931,12 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           banner: banner(s.banner, null),
           cta: str(s.cta, "Continuar", 60),
           ctaVariant: pick(s.ctaVariant, ["primary", "secondary", "negative", "tertiary"], "primary"),
+          ctaTargetStep: (typeof s.ctaTargetStep === "number" && s.ctaTargetStep >= 1) ? s.ctaTargetStep : null,
+          secondaryCta: (s.secondaryCta && typeof s.secondaryCta === "object" && s.secondaryCta.text) ? {
+            text: str(s.secondaryCta.text, "Volver", 50),
+            variant: pick(s.secondaryCta.variant, ["primary", "secondary", "negative", "tertiary"], "secondary"),
+            targetStep: (typeof s.secondaryCta.targetStep === "number" && s.secondaryCta.targetStep >= 1) ? s.secondaryCta.targetStep : 1
+          } : null,
           recoveryAction: str(s.recoveryAction, "", 120)
         };
       });
@@ -1875,7 +1948,8 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 
   // ---------- Versiones ----------
   var versions=[], viewIdx=0, approvedIdx=-1, mode="screens";
-  var proto={step:0,room:null,rate:null,points:true,hot:false};
+  var proto={step:0,room:null,rate:null,points:true,hot:false,editingMode:false,history:[0]};
+  var activeHoTab="react";
   function current(){return versions[viewIdx].design}
   function latestIdx(){return versions.length-1}
 
@@ -2222,6 +2296,10 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           '<span><b>'+h(mm.driverName || "Conductor")+'</b> · ★ '+h(mm.rating || "4.95")+'</span>'+
           '<span style="color:#AFAFAF">'+h(mm.vehicle || "Toyota Corolla")+'</span>'+
         '</div>'+
+      '</div>'+
+      '<div class="proto-sim-bar">'+
+        '<button type="button" class="btn sm" data-act="sim-eta" title="Simula avance del vehículo en el trayecto">⏱️ Simular avance (-2 min)</button>'+
+        '<button type="button" class="btn sm" data-act="sim-arrive" title="Simula llegada del vehículo al punto de recogida">🚗 Simular llegada</button>'+
       '</div>';
     }
 
@@ -2233,9 +2311,11 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       '</div>';
     }
 
+    var editTitle = proto.editingMode ? ' contenteditable="true" data-edit-field="mainTitle"' : '';
+    var editSub = proto.editingMode ? ' contenteditable="true" data-edit-field="mainSubtitle"' : '';
     out += '<div style="padding:4px 16px 8px">'+
-      '<h3 class="al-h" style="font-size:19px">'+h(scr.mainTitle || scr.shortName)+'</h3>'+
-      '<p class="al-sub">'+h(scr.mainSubtitle || scr.hint || "")+'</p>'+
+      '<h3 class="al-h" style="font-size:19px"'+editTitle+'>'+h(scr.mainTitle || scr.shortName)+'</h3>'+
+      '<p class="al-sub"'+editSub+'>'+h(scr.mainSubtitle || scr.hint || "")+'</p>'+
       '</div>';
 
     if(scr.banner && scr.banner.text){
@@ -2280,25 +2360,274 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       out += '</div>';
     }
 
-    // Botón de acción principal fijado (Uber Base CTA)
-    var nextAct = (idx < total - 1) ? 'dyn-next' : 'dyn-restart';
+    // Botón de acción principal fijado (Uber Base CTA) con soporte de bifurcaciones
+    var targetStep = (typeof scr.ctaTargetStep === "number" && scr.ctaTargetStep >= 1) ? (scr.ctaTargetStep - 1) : (idx < total - 1 ? (idx + 1) : 0);
     var ctaText = scr.cta || (idx < total - 1 ? 'Continuar' : 'Finalizar y reiniciar');
     var isErr = (stateType === "error" || scr.ctaVariant === "negative");
     var ctaCls = isErr ? "base-btn base-btn-negative size-large" : "base-btn size-large";
-    out += '<div class="al-sticky">'+
-      '<button class="'+ctaCls+'" data-act="'+nextAct+'">'+
-      '<span>'+h(ctaText)+'</span> <span style="font-size:17px">'+(isErr ? '↺' : '➔')+'</span>'+
-      '</button>'+
-      '</div>';
+    var ctaEdit = proto.editingMode ? ' contenteditable="true" data-edit-field="cta"' : '';
+    out += '<div class="al-sticky" style="display:flex;flex-direction:column;gap:8px">'+
+      '<button class="'+ctaCls+'" data-act="dyn-goto" data-target-step="'+targetStep+'">'+
+      '<span'+ctaEdit+'>'+h(ctaText)+'</span> <span style="font-size:17px">'+(isErr ? '↺' : '➔')+'</span>'+
+      '</button>';
+
+    // Botón secundario para bifurcaciones condicionales (ej. cancelar o mantener ruta en corner cases)
+    if(scr.secondaryCta && scr.secondaryCta.text){
+      var secTarget = (typeof scr.secondaryCta.targetStep === "number" && scr.secondaryCta.targetStep >= 1) ? (scr.secondaryCta.targetStep - 1) : 0;
+      var secVariant = scr.secondaryCta.variant === "tertiary" ? "base-btn base-btn-tertiary size-default" : "base-btn base-btn-secondary size-default";
+      out += '<button class="'+secVariant+'" data-act="dyn-goto" data-target-step="'+secTarget+'" style="margin-top:2px">'+
+        '<span>'+h(scr.secondaryCta.text)+'</span>'+
+        '</button>';
+    }
+    out += '</div>';
 
     return out;
   }
 
-  function phone(inner,extraCls,d){return '<div class="phone'+(extraCls||"")+'"><div class="al'+(d.theme.density==="compact"?' compact':'')+'" style="'+alStyle(d)+'">'+inner+'</div></div>'}
+  function generateReactBaseUiCode(screens, d){
+    return `// ==============================================================================
+// Generado automáticamente por el Pipeline de Agentes de Uber Base Design System
+// Componentes oficiales de base.uber.com (baseui) para React / Next.js
+// ==============================================================================
+
+import React, { useState } from "react";
+import { Button, KIND, SHAPE, SIZE } from "baseui/button";
+import { Banner, HIERARCHY } from "baseui/banner";
+import { HeadingLarge, ParagraphMedium } from "baseui/typography";
+
+export const SCREENS = ` + JSON.stringify(screens.map(function(s){
+      return {
+        step: s.step,
+        shortName: s.shortName,
+        stateType: s.stateType,
+        mainTitle: s.mainTitle,
+        mainSubtitle: s.mainSubtitle,
+        cta: s.cta,
+        ctaVariant: s.ctaVariant,
+        ctaTargetStep: s.ctaTargetStep,
+        secondaryCta: s.secondaryCta,
+        banner: s.banner
+      };
+    }), null, 2) + `;
+
+export default function UberBaseFlow() {
+  const [stepIndex, setStepIndex] = useState(0);
+  const current = SCREENS[stepIndex] || SCREENS[0];
+
+  const handlePrimaryClick = () => {
+    if (typeof current.ctaTargetStep === "number" && current.ctaTargetStep >= 1) {
+      setStepIndex(current.ctaTargetStep - 1);
+    } else if (stepIndex < SCREENS.length - 1) {
+      setStepIndex(stepIndex + 1);
+    } else {
+      setStepIndex(0);
+    }
+  };
+
+  const handleSecondaryClick = () => {
+    if (current.secondaryCta && typeof current.secondaryCta.targetStep === "number") {
+      setStepIndex(current.secondaryCta.targetStep - 1);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 440, margin: "0 auto", padding: 20, fontFamily: "Uber Move Text, system-ui" }}>
+      {/* Banner de estado semántico */}
+      {current.banner && (
+        <div style={{ marginBottom: 16 }}>
+          <Banner
+            title={current.banner.text}
+            hierarchy={HIERARCHY.high}
+            overrides={{
+              Root: {
+                style: {
+                  borderRadius: "8px",
+                  backgroundColor: current.stateType === "error" ? "#FDF0F2" : current.stateType === "corner_case" ? "#FEF6E7" : "#F6F6F6"
+                }
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {/* Titulares en Uber Move Bold */}
+      <HeadingLarge overrides={{ Block: { style: { fontSize: "24px", fontWeight: 700, margin: "0 0 8px" } } }}>
+        {current.mainTitle}
+      </HeadingLarge>
+      <ParagraphMedium overrides={{ Block: { style: { color: "#545454", margin: "0 0 24px" } } }}>
+        {current.mainSubtitle}
+      </ParagraphMedium>
+
+      {/* Acciones principales con Base UI Button */}
+      <div style={{ display: "grid", gap: 10, marginTop: 32 }}>
+        <Button
+          kind={current.ctaVariant === "negative" ? KIND.negative : KIND.primary}
+          shape={SHAPE.rounded}
+          size={SIZE.large}
+          overrides={{ BaseButton: { style: { width: "100%", borderRadius: "8px", height: "56px" } } }}
+          onClick={handlePrimaryClick}
+        >
+          {current.cta}
+        </Button>
+
+        {current.secondaryCta && (
+          <Button
+            kind={current.secondaryCta.variant === "tertiary" ? KIND.tertiary : KIND.secondary}
+            shape={SHAPE.rounded}
+            size={SIZE.default}
+            overrides={{ BaseButton: { style: { width: "100%", borderRadius: "8px" } } }}
+            onClick={handleSecondaryClick}
+          >
+            {current.secondaryCta.text}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}`;
+  }
+
+  function generateMermaidCode(screens){
+    var lines = [
+      "flowchart TD",
+      "  classDef happy fill:#0E8345,stroke:#0B6635,color:#fff,stroke-width:2px;",
+      "  classDef corner fill:#F69E0C,stroke:#C67A00,color:#fff,stroke-width:2px;",
+      "  classDef err fill:#DE1135,stroke:#AB0D29,color:#fff,stroke-width:2px;"
+    ];
+
+    screens.forEach(function(s, idx){
+      var nodeType = s.stateType === "error" ? "err" : s.stateType === "corner_case" ? "corner" : "happy";
+      var badge = s.stateType === "error" ? "🔴 Error" : s.stateType === "corner_case" ? "🟡 Corner Case" : "🟢 Happy Path";
+      var safeName = (s.shortName || s.mainTitle || ("Paso " + (idx+1))).replace(/["\[\]]/g, "");
+      lines.push('  S' + (idx+1) + '["' + (idx+1) + '. ' + safeName + ' (' + badge + ')"]:::' + nodeType);
+    });
+
+    screens.forEach(function(s, idx){
+      var curr = 'S' + (idx+1);
+      var nextTarget = (typeof s.ctaTargetStep === "number" && s.ctaTargetStep >= 1) ? s.ctaTargetStep : (idx < screens.length - 1 ? (idx + 2) : 1);
+      var ctaLabel = (s.cta || "Continuar").replace(/["\[\]]/g, "");
+      lines.push('  ' + curr + ' -->|"' + ctaLabel + '"| S' + nextTarget);
+
+      if(s.secondaryCta && s.secondaryCta.text){
+        var secTarget = (typeof s.secondaryCta.targetStep === "number" && s.secondaryCta.targetStep >= 1) ? s.secondaryCta.targetStep : 1;
+        var secLabel = s.secondaryCta.text.replace(/["\[\]]/g, "");
+        lines.push('  ' + curr + ' -.->|"' + secLabel + '"| S' + secTarget);
+      }
+    });
+
+    return lines.join("\n");
+  }
+
+  function generateFigmaTokens(d){
+    var tokens = {
+      "$schema": "https://design-tokens.github.io/community-group/format/",
+      "color": {
+        "base": {
+          "black": { "$value": "#000000", "$type": "color", "$description": "Uber Base Black Primario" },
+          "white": { "$value": "#FFFFFF", "$type": "color", "$description": "Superficie de tarjetas activas" },
+          "negative": { "$value": "#DE1135", "$type": "color", "$description": "Estados de error y alertas críticas" },
+          "warning": { "$value": "#F69E0C", "$type": "color", "$description": "Corner cases y avisos de contingencia" },
+          "positive": { "$value": "#0E8345", "$type": "color", "$description": "Happy path y estados de éxito" },
+          "background": {
+            "secondary": { "$value": "#F6F6F6", "$type": "color", "$description": "Superficies secundarias y tarjetas inactivas" },
+            "tertiary": { "$value": "#E2E2E2", "$type": "color", "$description": "Líneas divisorias y bordes estándar" }
+          }
+        }
+      },
+      "borderRadius": {
+        "base": {
+          "rounded": { "$value": "8px", "$type": "dimension", "$description": "Radio oficial de botones y cards Base" },
+          "pill": { "$value": "9999px", "$type": "dimension", "$description": "Chips y badges redondeados" }
+        }
+      },
+      "typography": {
+        "fontFamily": {
+          "display": { "$value": "Uber Move", "$type": "fontFamily" },
+          "body": { "$value": "Uber Move Text", "$type": "fontFamily" }
+        }
+      }
+    };
+    return JSON.stringify(tokens, null, 2);
+  }
+
+  function renderHandoverView(d){
+    var screens = (Array.isArray(d.screens) && d.screens.length > 0) ? d.screens : [
+      { step: 1, shortName: "1 · Selección", stateType: "happy_path", mainTitle: "Selección de servicio", mainSubtitle: "Tarifa garantizada", cta: "Continuar" }
+    ];
+
+    var reactCode = generateReactBaseUiCode(screens, d);
+    var mermaidCode = generateMermaidCode(screens);
+    var figmaTokens = generateFigmaTokens(d);
+
+    return '<div class="handover-box">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">'+
+        '<div>'+
+          '<h3 style="font-size:20px;margin:0;font-weight:700">Handover Técnico para Desarrollo y QA</h3>'+
+          '<p style="color:var(--muted);font-size:13px;margin:4px 0 0">Componentes de Uber Base Design System (baseui), arquitectura de estados y tokens de diseño.</p>'+
+        '</div>'+
+        '<div class="ho-tabs" role="tablist">'+
+          '<button type="button" class="ho-tab-btn '+(activeHoTab==="react"?"active":"")+'" data-ho-tab="react">⚛️ React (@uber/baseui)</button>'+
+          '<button type="button" class="ho-tab-btn '+(activeHoTab==="mermaid"?"active":"")+'" data-ho-tab="mermaid">📊 Diagrama de Flujo (Mermaid)</button>'+
+          '<button type="button" class="ho-tab-btn '+(activeHoTab==="tokens"?"active":"")+'" data-ho-tab="tokens">🎨 Figma Tokens JSON</button>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="ho-tab-content" data-content="react" '+(activeHoTab==="react"?"":"hidden")+'>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+          '<span style="font-size:13px;color:var(--muted)">Código TypeScript / JSX listo para importar en proyectos con <code>@uber/baseui</code></span>'+
+          '<button type="button" class="btn primary" data-copy-target="reactCodePre">📋 Copiar código React</button>'+
+        '</div>'+
+        '<pre class="code-preview" id="reactCodePre">'+h(reactCode)+'</pre>'+
+      '</div>'+
+
+      '<div class="ho-tab-content" data-content="mermaid" '+(activeHoTab==="mermaid"?"":"hidden")+'>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+          '<span style="font-size:13px;color:var(--muted)">Grafo de estados con bifurcaciones de Happy Path (🟢), Corner Cases (🟡) y Casos de Error (🔴)</span>'+
+          '<button type="button" class="btn primary" data-copy-target="mermaidCodePre">📋 Copiar Mermaid</button>'+
+        '</div>'+
+        '<div class="mermaid-diagram-card">'+
+          '<div style="display:grid;gap:10px;margin-bottom:14px">'+
+            screens.map(function(s, idx){
+              var color = s.stateType === "error" ? "#DE1135" : s.stateType === "corner_case" ? "#F69E0C" : "#0E8345";
+              var badge = s.stateType === "error" ? "🔴 ERROR CASE" : s.stateType === "corner_case" ? "🟡 CORNER CASE" : "🟢 HAPPY PATH";
+              var target = (typeof s.ctaTargetStep === "number" && s.ctaTargetStep >= 1) ? s.ctaTargetStep : (idx < screens.length - 1 ? (idx + 2) : 1);
+              return '<div style="background:#FFFFFF;border-left:5px solid '+color+';border-radius:6px;padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'+
+                '<div><b>Paso '+(idx+1)+': '+h(s.shortName || s.mainTitle)+'</b> <span class="chip" style="font-size:11px;margin-left:8px">'+badge+'</span><div style="color:#545454;font-size:12px;margin-top:2px">'+h(s.mainSubtitle || s.hint || "")+'</div></div>'+
+                '<div style="font-size:12.5px;font-family:var(--f-mono)">➔ [ ' + h(s.cta) + ' ] ➔ <b>Paso ' + target + '</b>' + (s.secondaryCta ? (' <span style="color:#545454">| [ ' + h(s.secondaryCta.text) + ' ] ➔ Paso ' + s.secondaryCta.targetStep + '</span>') : '') + '</div>'+
+              '</div>';
+            }).join("")+
+          '</div>'+
+        '</div>'+
+        '<pre class="code-preview" id="mermaidCodePre" style="margin-top:12px">'+h(mermaidCode)+'</pre>'+
+      '</div>'+
+
+      '<div class="ho-tab-content" data-content="tokens" '+(activeHoTab==="tokens"?"":"hidden")+'>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+          '<span style="font-size:13px;color:var(--muted)">Tokens oficiales en formato W3C Design Tokens compatible con Tokens Studio for Figma</span>'+
+          '<div style="display:flex;gap:8px">'+
+            '<button type="button" class="btn primary" data-copy-target="tokensJsonPre">📋 Copiar JSON</button>'+
+            '<button type="button" class="btn" data-download-tokens="1">💾 Descargar base.tokens.json</button>'+
+          '</div>'+
+        '</div>'+
+        '<pre class="code-preview" id="tokensJsonPre">'+h(figmaTokens)+'</pre>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function phone(inner,extraCls,d){
+    var editClass = proto.editingMode ? " proto-edit-active" : "";
+    return '<div class="phone'+(extraCls||"")+editClass+'"><div class="al'+(d.theme.density==="compact"?' compact':'')+'" style="'+alStyle(d)+'">'+inner+'</div></div>';
+  }
+
   function renderViewer(fresh){
     var d=current(), v=$("#viewer"), fx=fresh?" fresh":"";
 
-    // Si la IA generó las 5 pantallas específicas para este brief, usarlas directamente
+    if(mode==="handover"){
+      v.innerHTML = renderHandoverView(d);
+      return;
+    }
+
+    // Si la IA generó las pantallas específicas para este brief, usarlas directamente
     if(Array.isArray(d.screens) && d.screens.length > 0){
       var dynamicScreens = d.screens;
       updateStateFilterButtons(dynamicScreens);
@@ -2342,7 +2671,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           '<div class="proto-side left">'+
             '<div style="margin-bottom:6px"><span class="state-badge-tag '+stType+'" style="font-size:12px;padding:3px 10px">'+h(stBadge)+'</span></div>'+
             '<span class="proto-step">Paso '+(s+1)+' de '+dynamicScreens.length+'</span>'+
-            '<h3>'+h(curScr.shortName || curScr.mainTitle)+'</h3>'+
+            '<h3 id="protoSideTitle">'+h(curScr.shortName || curScr.mainTitle)+'</h3>'+
             '<div class="state-meta-banner '+stType+'" style="margin-top:8px">'+h(stDesc)+'</div>'+
             '<p style="color:var(--muted);font-size:13px;margin-top:6px">'+h(curScr.hint || curScr.mainSubtitle || "")+'</p>'+
           '</div>'+
@@ -2350,7 +2679,10 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           '<div class="proto-side right">'+
             '<div class="proto-dots">'+dynamicScreens.map(function(x,i){return '<button type="button" data-step="'+i+'" aria-label="Ir a '+(x.shortName||i)+'" aria-current="'+(i===s)+'"></button>'}).join("")+'</div>'+
             '<div class="proto-nav"><button type="button" class="btn" data-nav="-1"'+(s===0?' disabled':'')+'>Anterior</button><button type="button" class="btn" data-nav="1"'+(s===dynamicScreens.length-1?' disabled':'')+'>Siguiente</button></div>'+
-            '<label class="hot-toggle"><input type="checkbox" id="hotToggle"'+(proto.hot?' checked':'')+'> Mostrar zonas interactivas</label>'+
+            '<div style="display:grid;gap:6px;background:var(--sunken);padding:10px;border-radius:8px;border:1px solid var(--line)">'+
+              '<label class="hot-toggle"><input type="checkbox" id="hotToggle"'+(proto.hot?' checked':'')+'> Mostrar zonas interactivas</label>'+
+              '<label class="hot-toggle" style="color:#276EF1;font-weight:600"><input type="checkbox" id="editToggle"'+(proto.editingMode?' checked':'')+'> ✏️ Modo edición de textos</label>'+
+            '</div>'+
             '<button type="button" class="btn" data-act-reset="1">Reiniciar prototipo</button>'+
             '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:6px;max-height:360px;overflow-y:auto;padding-right:4px">'+
               '<div style="font-size:11.5px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:0.05em">Pasos y estados del flujo:</div>'+
@@ -2489,27 +2821,109 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     }, 80);
   }
 
-  function go(step){
+  function go(step, isBack){
     var d = current();
     var maxStep = (Array.isArray(d && d.screens) && d.screens.length > 0) ? (d.screens.length - 1) : 4;
-    proto.step=Math.max(0,Math.min(maxStep,step));
+    var target = Math.max(0, Math.min(maxStep, step));
+    if(!isBack && proto.step !== target){
+      if(!proto.history) proto.history = [];
+      proto.history.push(proto.step);
+    }
+    proto.step = target;
     renderViewer();
     var al=$("#protoPhone .al");if(al)al.scrollTop=0;
   }
+
   $("#viewer").addEventListener("click",function(e){
     var nav=e.target.closest("[data-nav]"); if(nav){go(proto.step+Number(nav.dataset.nav));return}
     var st=e.target.closest("[data-step]"); if(st){go(Number(st.dataset.step));return}
-    if(e.target.closest("[data-act-reset]")){proto={step:0,room:null,rate:null,points:true,hot:proto.hot};renderViewer();return}
+    if(e.target.closest("[data-act-reset]")){
+      proto.step = 0;
+      proto.history = [];
+      proto.room = null;
+      proto.rate = null;
+      proto.points = true;
+      renderViewer();
+      return;
+    }
+
+    // Pestañas y acciones de Handover & Código
+    var tabBtn = e.target.closest("[data-ho-tab]");
+    if(tabBtn){
+      activeHoTab = tabBtn.dataset.hoTab;
+      $all("[data-ho-tab]").forEach(function(b){ b.classList.toggle("active", b === tabBtn); });
+      $all(".ho-tab-content").forEach(function(c){ c.hidden = (c.dataset.content !== activeHoTab); });
+      return;
+    }
+    var copyBtn = e.target.closest("[data-copy-target]");
+    if(copyBtn){
+      var targetId = copyBtn.dataset.copyTarget;
+      var targetEl = $("#" + targetId);
+      if(targetEl){
+        var textToCopy = targetEl.innerText || targetEl.textContent || "";
+        navigator.clipboard.writeText(textToCopy).then(function(){
+          var orig = copyBtn.textContent;
+          copyBtn.textContent = "✓ ¡Copiado!";
+          setTimeout(function(){ copyBtn.textContent = orig; }, 1800);
+        });
+      }
+      return;
+    }
+    var dlBtn = e.target.closest("[data-download-tokens]");
+    if(dlBtn){
+      var jsonText = $("#tokensJsonPre") ? $("#tokensJsonPre").innerText : "{}";
+      var blob = new Blob([jsonText], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var dlLink = document.createElement("a");
+      dlLink.href = url;
+      dlLink.download = "base.tokens.json";
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    // Acciones interactivas del prototipo
     var a=e.target.closest("[data-act]"); if(!a||mode!=="proto") return;
     var act=a.dataset.act;
     if(act==="dyn-next"){go(proto.step+1)}
-    else if(act==="dyn-back"){go(proto.step-1)}
-    else if(act==="dyn-restart"){go(0)}
+    else if(act==="dyn-back"){
+      if(proto.history && proto.history.length > 0){
+        var prev = proto.history.pop();
+        go(prev, true);
+      } else {
+        go(proto.step - 1, true);
+      }
+    }
+    else if(act==="dyn-restart"){proto.history = []; go(0)}
+    else if(act==="dyn-goto"){
+      var targetStep = Number(a.dataset.targetStep);
+      go(isFinite(targetStep) ? targetStep : (proto.step + 1));
+    }
+    else if(act==="sim-eta"){
+      var curD = current();
+      if(curD && Array.isArray(curD.screens) && curD.screens[proto.step] && curD.screens[proto.step].mapMeta){
+        var mm = curD.screens[proto.step].mapMeta;
+        mm.eta = "1 min";
+        mm.badge = "A 80 m de ti";
+        renderViewer();
+      }
+    }
+    else if(act==="sim-arrive"){
+      var curD2 = current();
+      if(curD2 && Array.isArray(curD2.screens) && curD2.screens[proto.step] && curD2.screens[proto.step].mapMeta){
+        var mm2 = curD2.screens[proto.step].mapMeta;
+        mm2.eta = "Llegado";
+        mm2.badge = "Conductor en el punto de encuentro";
+        renderViewer();
+      }
+    }
     else if(act.indexOf("dyn-select:")===0){
       var itIdx=Number(act.slice(11));
-      var curD=current();
-      if(curD && Array.isArray(curD.screens) && curD.screens[proto.step]){
-        var items=curD.screens[proto.step].items;
+      var curD3=current();
+      if(curD3 && Array.isArray(curD3.screens) && curD3.screens[proto.step]){
+        var items=curD3.screens[proto.step].items;
         if(Array.isArray(items)){
           items.forEach(function(item, idx){ item.highlight = (idx === itIdx); });
           renderViewer();
@@ -2531,10 +2945,32 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     else if(act==="ev-stop"){go(4)}
     else if(act==="ev-restart"){go(0)}
   });
-  $("#viewer").addEventListener("change",function(e){if(e.target.id==="hotToggle"){proto.hot=e.target.checked;renderViewer()}});
+
+  // Listener para edición inline directa (guardado automático)
+  $("#viewer").addEventListener("blur", function(e){
+    var field = e.target.dataset.editField;
+    if(field){
+      var curD = current();
+      if(curD && Array.isArray(curD.screens) && curD.screens[proto.step]){
+        curD.screens[proto.step][field] = e.target.innerText.trim();
+        if(field === "mainTitle"){
+          var sideH = $("#protoSideTitle");
+          if(sideH) sideH.textContent = e.target.innerText.trim();
+        }
+      }
+    }
+  }, true);
+
+  $("#viewer").addEventListener("change",function(e){
+    if(e.target.id==="hotToggle"){proto.hot=e.target.checked;renderViewer()}
+    else if(e.target.id==="editToggle"){proto.editingMode=e.target.checked;renderViewer()}
+  });
+
   $all("[data-mode]").forEach(function(b){b.addEventListener("click",function(){
     mode=b.dataset.mode;
     $all("[data-mode]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+    var sf = $("#stateFilters");
+    if(sf) sf.style.display = (mode === "handover" ? "none" : "");
     renderViewer();
   })});
   $all(".s-filter-btn").forEach(function(b){

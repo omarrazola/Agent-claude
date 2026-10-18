@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Uber Base Design System (baseui)",
+  "version": "10.02.26",
+  "source": "https://base.uber.com/6d2425e9f/p/294ab4-base-design-system",
+  "description": "Especificación estricta de componentes, props, tokens y patrones para consumo de agentes autónomos de diseño.",
+  "tokens": {
+    "colors": {
+      "primary": "#000000",
+      "backgroundPrimary": "#FFFFFF",
+      "backgroundSecondary": "#F6F6F6",
+      "backgroundTertiary": "#E2E2E2",
+      "contentPrimary": "#000000",
+      "contentSecondary": "#545454",
+      "accent": "#276EF1",
+      "positive": "#0E8345",
+      "positiveLight": "#EAF6ED",
+      "negative": "#DE1135",
+      "negativeLight": "#FFF0EE",
+      "warning": "#F69E0C",
+      "warningLight": "#FDF2DC"
+    },
+    "typography": {
+      "displayFont": "Uber Move, -apple-system, sans-serif",
+      "textFont": "Uber Move Text, -apple-system, sans-serif",
+      "trackingHeading": "-0.02em"
+    },
+    "radius": {
+      "none": "0px",
+      "rounded": "8px",
+      "medium": "12px",
+      "large": "16px",
+      "pill": "9999px"
+    },
+    "touchTarget": {
+      "min": "48px",
+      "cta": "56px"
+    }
+  },
+  "components": {
+    "Button": {
+      "package": "baseui/button",
+      "description": "Control de acción táctil primordial en Uber Base.",
+      "props": {
+        "kind": {
+          "type": "string",
+          "enum": ["primary", "secondary", "tertiary", "negative"],
+          "default": "primary",
+          "description": "primary (#000000 texto blanco), secondary (#F6F6F6 texto negro), tertiary (transparente con borde), negative (#DE1135 para errores y reintentos)."
+        },
+        "shape": {
+          "type": "string",
+          "enum": ["default", "pill", "round", "square"],
+          "default": "default",
+          "description": "default aplica border-radius: 8px (SHAPE.rounded); pill aplica 9999px."
+        },
+        "size": {
+          "type": "string",
+          "enum": ["compact", "default", "large"],
+          "default": "large",
+          "description": "compact: 36px, default: 48px, large: 56px (requerido para CTAs de navegación principal en móvil)."
+        },
+        "isLoading": { "type": "boolean", "default": false },
+        "disabled": { "type": "boolean", "default": false }
+      },
+      "figmaMapping": {
+        "componentName": "Button",
+        "variants": {
+          "Kind": "Primary | Secondary | Tertiary | Negative",
+          "Shape": "Rounded | Pill",
+          "Size": "Large (56px) | Default (48px) | Compact (36px)"
+        }
+      }
+    },
+    "Banner": {
+      "package": "baseui/banner",
+      "description": "Alertas y avisos de producto en tiempo real para estados nominales, advertencias y fallos.",
+      "props": {
+        "tone": {
+          "type": "string",
+          "enum": ["info", "positive", "warning", "negative", "sun"],
+          "default": "info",
+          "description": "negative (#DE1135) para Casos de Error, warning (#F69E0C) para Corner Cases/demanda alta, positive (#0E8345) para confirmación, sun para avisos neutros."
+        },
+        "text": { "type": "string", "description": "Mensaje en sentence case constructivo." },
+        "action": { "type": "string", "description": "Texto del botón de recuperación opcional dentro del banner." }
+      },
+      "figmaMapping": {
+        "componentName": "Banner",
+        "variants": { "Tone": "Negative | Warning | Positive | Info" }
+      }
+    },
+    "ProductCard": {
+      "package": "baseui/card",
+      "description": "Ficha de servicio de movilidad (UberX, Comfort, Black) o vehículo.",
+      "props": {
+        "title": { "type": "string" },
+        "subtitle": { "type": "string", "description": "ETA de recogida y características (ej: Llegada en 3 min · 4 plazas)." },
+        "price": { "type": "string", "description": "Tarifa cerrada en formato europeo (ej: 14,20 €)." },
+        "icon": { "type": "string" },
+        "highlight": { "type": "boolean", "default": false, "description": "Si está seleccionado por defecto." },
+        "badge": { "type": "string", "description": "Etiqueta opcional (ej: Más popular, Eco, Espacio extra)." }
+      },
+      "figmaMapping": {
+        "componentName": "ProductCard",
+        "variants": { "State": "Default | Selected" }
+      }
+    },
+    "MapCard": {
+      "package": "custom/maplibre-base",
+      "description": "Visualizador de mapa vectorial oscuro nocturno con radar y telemetría de conductor.",
+      "props": {
+        "eta": { "type": "string", "description": "Tiempo de llegada en vivo (ej: 3 min)." },
+        "driverName": { "type": "string", "description": "Nombre y valoración del conductor (ej: Carlos M. · 4.96 ★)." },
+        "vehicle": { "type": "string", "description": "Modelo y matrícula (ej: Toyota Corolla · 4821 LKY)." },
+        "badge": { "type": "string", "description": "Estado de tráfico o ruta (ej: En ruta, Tráfico denso)." },
+        "location": { "type": "string", "description": "Punto de encuentro o aproximación." }
+      },
+      "figmaMapping": {
+        "componentName": "MapTelemetryView",
+        "variants": { "Theme": "Night Mode" }
+      }
+    },
+    "PinInput": {
+      "package": "baseui/pin-code",
+      "description": "Código de seguridad PIN de 4 dígitos para validación de conductor.",
+      "props": {
+        "values": { "type": "array", "items": { "type": "string" }, "description": "Array con 4 números (ej: ['4', '8', '9', '1'])." },
+        "size": { "type": "string", "enum": ["default", "large"], "default": "large" }
+      }
+    },
+    "Tag": {
+      "package": "baseui/tag",
+      "description": "Etiquetas de estado de viaje y filtros de movilidad.",
+      "props": {
+        "kind": { "type": "string", "enum": ["neutral", "positive", "warning", "negative", "accent"] },
+        "closeable": { "type": "boolean", "default": false }
+      }
+    }
+  },
+  "patterns": {
+    "happy_path": {
+      "description": "Flujo nominal de servicio: Selección ➔ Punto de encuentro ➔ Seguimiento ➔ Llegada.",
+      "requiredElements": ["ProductCard", "Button (primary)", "MapCard (con ETA)", "PinInput"]
+    },
+    "error_recovery": {
+      "description": "Gestión asistida de incidencias sin callejones sin salida.",
+      "requiredElements": [
+        "Banner (tone: negative)",
+        "Explicación constructiva sin culpar al usuario",
+        "Button (ctaVariant: negative o primary de resolución directa)",
+        "ctaTargetStep válido que conduce al paso de solución (ej: cambiar tarjeta a Uber Cash)",
+        "secondaryCta de retorno o ruta alternativa"
+      ]
+    },
+    "corner_case": {
+      "description": "Condición atípica de alta demanda, desvíos u obras.",
+      "requiredElements": [
+        "Banner (tone: warning)",
+        "Sugerencia proactiva (ej: caminar 50m a punto exprés)",
+        "Button (primary) para aceptar alternativa",
+        "secondaryCta (tertiary) para mantener ruta original"
+      ]
+    }
+  }
+}

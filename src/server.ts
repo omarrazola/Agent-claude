@@ -296,31 +296,46 @@ Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
   ],
   "theme": { "cta": "ink", "radius": "rounded", "density": "comfortable" }
 }
-Reglas estrictas de Base Design System (base.uber.com):
-- Botones (baseui/button):
-  * Forma por defecto: SHAPE.rounded (border-radius: 8px).
-  * Variantes: KIND.primary (#000000, texto blanco), KIND.secondary (#EEEEEE, texto negro), KIND.negative (#DE1135 para errores), KIND.tertiary (borde #E2E2E2).
-  * Tamaños: SIZE.large (56px para CTAs principales), SIZE.default (48px para formularios), SIZE.compact (36px).
-- Tarjetas y Contenedores (Card / Surface):
-  * Bordes: border-radius: 8px (tokens estándar de Base Web/Mobile).
-  * Fondos: #FFFFFF para tarjetas activas, #F6F6F6 (Background Secondary) para fondos secundarios.
-  * Líneas y bordes: 1px solid #E2E2E2 (Background Tertiary).
-- Banners y Estados:
-  * Error: tone "negative" (#DE1135, fondo suave #FDF0F2).
-  * Advertencia / Corner Case: tone "warning" (#F69E0C, fondo suave #FEF6E7).
-  * Éxito / Info: tone "positive" (#0E8345) o "sun".
-- Imágenes fotográficas y visuales (cuando el flujo se beneficie de enriquecimiento visual):
-  * Puedes incluir en cualquier pantalla:
-    "heroImage": { "url": "https://images.unsplash.com/photo-...", "alt": "descripción", "caption": "pie opcional" }
-  * En "items": cada elemento puede incluir "image": "https://images.unsplash.com/..." y opcionalmente "price": "14,20 €".
-  * Usa URLs fotográficas limpias y directas de Unsplash acordes al tema (ej. coches, ciudades, movilidad, mapas, conductores).
-- Inputs y Campos de Búsqueda:
-  * Altura estándar: 48px con padding 10px 14px, radio 8px, fondo #F6F6F6.
-- Tipografía oficial:
-  * Titulares: Uber Move Bold (700) con tracking -0.02em.
-  * Texto y botones: Uber Move Text (Medium 500 / Bold 700) en sentence case.
-- Tags y Badges:
-  * Radio: 4px a 8px (no píldoras infinitas), texto en negrita 11px/12px.`;
+Reglas estrictas de Base Design System (base.uber.com · baseui v18):
+Los 7 agentes tienen a su disposición y deben emplear las 10 categorías completas del Design System de Uber:
+1. Inputs & Controles:
+   - Button (baseui/button): KIND: primary (#000000), secondary (#F6F6F6), tertiary (borde), negative (#DE1135). SHAPE: rounded (8px) o pill (9999px). SIZE: large (56px para CTAs), default (48px), compact (36px).
+   - Input (baseui/input): Altura 48px, fondo #F6F6F6, radio 8px, para origen, destino y búsqueda.
+   - PaymentCard (baseui/payment-card): Selector y formateador de tarjeta de crédito/débito.
+   - PhoneInput (baseui/phone-input): Selector de prefijo internacional e input de teléfono.
+   - PinCode (baseui/pin-code): PIN de seguridad de 4 dígitos para validación de recogida.
+   - Checkbox, Radio, Slider, Textarea (baseui/*): Controles de preferencias de confort y viaje silencioso.
+2. Pickers:
+   - Select (baseui/select): Desplegables con autocompletado y filtros.
+   - Rating (baseui/rating): Puntuación de estrellas (1 a 5) de conductores y viajes.
+3. Date & Time:
+   - DatePicker & TimePicker (baseui/datepicker, baseui/time-picker): Para reservas programadas (Uber Reserve).
+4. Navigation:
+   - HeaderNavigation (baseui/header-navigation): Barra superior con botón atrás, título y avatar.
+   - Tabs (baseui/tabs): Pestañas segmentadas para alternar servicios de movilidad.
+5. Content & Data:
+   - Avatar (baseui/avatar): Foto circular del conductor con estado verificado.
+   - List & ListItem (baseui/list): Lista estructurada de paradas, puntos de encuentro y desgloses.
+   - Tag (baseui/tag): Badges de estado (positive, negative, warning, accent).
+   - Accordion (baseui/accordion): Desplegables de preguntas frecuentes y condiciones.
+6. Surfaces:
+   - Card (baseui/card): Superficie blanca o #F6F6F6, borde 1px #E2E2E2, radio 8px.
+   - Drawer / BottomSheet (baseui/drawer): Hoja inferior deslizable icónica de la app móvil de Uber.
+   - Modal (baseui/modal): Diálogos para incidencias de cobro o confirmaciones de cancelación.
+7. Feedback & Status:
+   - Banner (baseui/banner): tone "negative" (#DE1135) para errores, tone "warning" (#F69E0C) para Corner Cases (alta demanda, desvíos), tone "positive" (#0E8345) para éxito.
+   - ProgressBar & ProgressSteps: Indicadores de avance en flujos multi-paso.
+   - Spinner: Animación de carga circular durante la búsqueda y emparejamiento.
+8. Map Markers & Geolocalización:
+   - LocationPuck (baseui/location-puck): Indicador azul pulsante de posición GPS del usuario.
+   - FloatingMarker (baseui/floating-marker): Pin con tiempo de llegada ETA (ej: "3 min") y conductor.
+   - FloatingRouteMarker: Marcador sobre el trazado de la ruta en mapa vectorial nocturno.
+9. Imágenes y Medios:
+   - "heroImage": { "url": "https://images.unsplash.com/...", "alt": "descripción" }
+   - "items": cada elemento puede incluir "image", "title", "subtitle", "price", "icon".
+10. Tipografía y Microcopy:
+   - Titulares: Uber Move Bold (700) con tracking -0.02em.
+   - Textos e interfaz: Uber Move Text (Medium 500 / Regular 400) en estricto sentence case sin culpar al usuario.`;
 
 function buildUserPrompt(key?: string, priority?: string, title?: string, briefText?: string): string {
   return `Petición entrante del equipo de producto:

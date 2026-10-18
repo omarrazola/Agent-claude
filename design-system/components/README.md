@@ -1,60 +1,80 @@
-# Catálogo de componentes · Uber Base Design System (v10.02.26)
+# Catálogo Completo de Componentes · Uber Base Design System (baseui v18.2.0)
 
-Fuente oficial: [Base Design System](https://base.uber.com/6d2425e9f/p/294ab4-base-design-system)
+Fuente oficial: [Base Design System](https://base.uber.com/6d2425e9f/p/294ab4-base-design-system) y [Base Web Docs](https://baseweb.design)
 
-Cada componente de la interfaz sigue el sistema de diseño **Base de Uber**, garantizando coherencia visual, accesibilidad AA estricta y sincronización directa con Figma y tokens W3C.
-
----
-
-## 1. Mapeo de Componentes CSS Oficiales
-
-| Componente | Clase Principal | Variantes / Elementos | Uso |
-|------------|-----------------|-----------------------|-----|
-| **Page Container** | `base-page` | — | Marco de pantalla móvil (ancho máx. 430 px) |
-| **Navigation Header** | `base-header` | `base-header-title` | Barra superior con título o logo y botón de regreso |
-| **Button (Pill)** | `base-btn` | `base-btn-primary`, `base-btn-secondary`, `base-btn-tertiary` | Botón negro icónico con texto blanco y esquinas en píldora (`border-radius: 9999px`) |
-| **Input Field** | `base-input` | `base-input-pill` | Campo de entrada de texto (direcciones, búsqueda, formularios) |
-| **Product / Ride Card** | `base-card` | `base-card-selected` | Tarjetas de vehículos (UberX, Comfort, Black) o servicios |
-| **Tag / Pill Filter** | `base-tag` | `base-tag-positive`, `base-tag-negative` | Filtros rápidos y etiquetas de estado en píldora |
-| **Banner / Notification** | `base-banner` | `base-banner-warning`, `base-banner-positive` | Alertas del sistema, promociones y avisos |
-| **Sticky Footer** | `base-sticky` | — | Barra fija inferior para precio final y botón de acción principal |
+Este catálogo documenta la totalidad de los componentes oficiales de Uber organizados en sus 10 categorías funcionales. Los agentes de diseño deben utilizar exclusivamente estos componentes, sus props y sus tokens W3C.
 
 ---
 
-## 2. Componentes React Base Web (`baseui`)
+## 1. Clasificación por Categorías de Componentes
 
-Si el agente genera código React, debe importar directamente de la librería oficial `baseui`:
+### 1.1 Inputs (Controles de Entrada)
+* **Button (`baseui/button`)**: Botón táctil principal (`kind`: `primary` #000, `secondary` #F6F6F6, `tertiary` borde, `negative` #DE1135; `shape`: `rounded` 8px, `pill` 9999px; `size`: `large` 56px, `default` 48px, `compact` 36px).
+* **ButtonGroup (`baseui/button-group`)**: Segmentos de selección con bordes compartidos.
+* **Checkbox (`baseui/checkbox`)**: Selección binaria y listas de opciones múltiples.
+* **FormControl (`baseui/form-control`)**: Envoltorio con `label`, `caption` y mensajes de error WCAG.
+* **Input (`baseui/input`)**: Campos de texto para direcciones, origen, destino y búsqueda.
+* **PaymentCard (`baseui/payment-card`)**: Detección de tarjeta bancaria, formato y código de seguridad.
+* **PhoneInput (`baseui/phone-input`)**: Selector de prefijo de país e input de teléfono móvil.
+* **PinCode (`baseui/pin-code`)**: Validación con PIN de seguridad de 4 dígitos para recogida de vehículo.
+* **Radio (`baseui/radio`)**: Opciones mutuamente excluyentes (ej: inmediato vs programado).
+* **Slider (`baseui/slider`)**: Ajuste continuo de rangos (ej: distancia o propina).
+* **Textarea (`baseui/textarea`)**: Instrucciones especiales para el conductor.
 
-* **Button**: `import { Button, KIND, SIZE, SHAPE } from 'baseui/button';`
-  * Primario: `kind={KIND.primary}` (Fondo negro)
-  * Secundario: `kind={KIND.secondary}`
-  * Píldora: `shape={SHAPE.pill}`
-* **Input**: `import { Input, SIZE } from 'baseui/input';`
-* **Card**: `import { Card, StyledBody, StyledAction } from 'baseui/card';`
-* **Select**: `import { Select } from 'baseui/select';`
-* **Modal**: `import { Modal, ModalHeader, ModalBody, ModalFooter } from 'baseui/modal';`
-* **Typography**: `import { HeadingLarge, HeadingMedium, LabelLarge, ParagraphMedium } from 'baseui/typography';`
+### 1.2 Pickers (Selectores)
+* **Select (`baseui/select`)**: Menú desplegable con autocompletado y selección filtrada.
+* **Rating (`baseui/rating`)**: Calificación por estrellas (1 a 5) para valoración de conductores y servicios.
+* **Menu (`baseui/menu`)**: Menú contextual de acciones rápidas.
+* **FileUploader (`baseui/file-uploader`)**: Carga de comprobantes o documentos.
+
+### 1.3 Date & Time (Fechas y Horarios)
+* **DatePicker (`baseui/datepicker`)**: Calendario para reservas programadas (*Uber Reserve*).
+* **TimePicker (`baseui/time-picker`)**: Selector de hora de recogida garantizada.
+* **TimezonePicker (`baseui/timezone-picker`)**: Selección de huso horario para viajes internacionales.
+
+### 1.4 Navigation (Navegación)
+* **HeaderNavigation (`baseui/header-navigation`)**: Barra superior fija con retroceso, título en sentence case y avatar.
+* **Tabs (`baseui/tabs`)**: Pestañas segmentadas para alternar servicios (Viaje / Envíos / Comida).
+* **Breadcrumbs (`baseui/breadcrumbs`)**: Migas de pan de contexto de pantalla.
+* **Pagination (`baseui/pagination`)**: Paginación de histórico de viajes y facturas.
+* **SideNav (`baseui/side-nav`)**: Menú lateral de opciones de cuenta y configuración.
+* **Link (`baseui/link`)**: Enlaces de soporte, términos y ayuda 24/7.
+
+### 1.5 Content & Data Display (Contenido)
+* **Card (`baseui/card`)**: Tarjeta base con radio de 8px, borde `#E2E2E2` y fondo `#FFFFFF` o `#F6F6F6`.
+* **Avatar (`baseui/avatar`)**: Foto circular del conductor o usuario con verificación.
+* **List (`baseui/list`)**: Lista de elementos con artwork izquierdo, subtítulo y contenido lateral.
+* **Tag (`baseui/tag`)**: Píldora de estado (`positive`, `negative`, `warning`, `neutral`).
+* **Accordion (`baseui/accordion`)**: Secciones desplegables de preguntas frecuentes y desglose de tarifas.
+* **Heading & Typography (`baseui/typography`)**: Escala oficial con fuentes *Uber Move* y *Uber Move Text*.
+
+### 1.6 Feedback & Status (Notificaciones y Estados)
+* **Banner (`baseui/banner`)**: Alertas contextuales: `tone="negative"` para errores, `tone="warning"` para Corner Cases (alta demanda, obras) y `tone="positive"` para confirmación.
+* **Notification (`baseui/notification`)**: Notificaciones en línea sobre el estado del trayecto.
+* **ProgressBar (`baseui/progress-bar`)**: Barra de progreso de fases o nivel de recarga.
+* **ProgressSteps (`baseui/progress-steps`)**: Indicador de etapas del flujo de producto.
+* **Spinner (`baseui/spinner`)**: Animación circular oficial durante el emparejamiento con conductor.
+* **Toast & Snackbar (`baseui/toast`, `baseui/snackbar`)**: Feedback efímero de confirmación.
+* **Skeleton (`baseui/skeleton`)**: Estados de carga esqueleto para evitar saltos de maquetación (*CLS*).
+
+### 1.7 Surfaces & Overlays (Superficies)
+* **Drawer / BottomSheet (`baseui/drawer`)**: Hoja inferior deslizable insigne de la app de Uber.
+* **Modal (`baseui/modal`)**: Diálogos modales para incidencias, confirmación de cancelación o cobros.
+* **Popover (`baseui/popover`)**: Contenedores flotantes de información contextual.
+* **Tooltip (`baseui/tooltip`)**: Ayudas contextuales sobre tarifas o términos.
+
+### 1.8 Map Markers (Geolocalización & Movilidad)
+* **LocationPuck (`baseui/location-puck`)**: Indicador pulsante azul de la posición GPS del usuario.
+* **FloatingMarker (`baseui/floating-marker`)**: Pin flotante con tiempo de llegada (ETA) y conductor.
+* **FloatingRouteMarker (`baseui/floating-route-marker`)**: Marcador animado sobre el trazado de la ruta.
+* **FixedMarker (`baseui/fixed-marker`)**: Pin estático de punto de encuentro o parada intermedia.
 
 ---
 
-## 3. Tipografía (Uber Move & Uber Move Text)
+## 2. Archivos de Definición en el Repositorio
 
-| Escala | Token / Clase | Fuente | Tamaño / Altura | Peso | Uso |
-|--------|---------------|--------|-----------------|------|-----|
-| **Display** | `--base-fs-display` | Uber Move | 36px / 44px | Bold (700) | Titulares de bienvenida o impacto |
-| **Heading Large** | `--base-fs-h-lg` | Uber Move | 24px / 32px | Bold (700) | Título principal de pantalla |
-| **Heading Medium** | `--base-fs-h-md` | Uber Move | 20px / 28px | Bold (700) | Títulos de sección o tarjetas |
-| **Heading Small** | `--base-fs-h-sm` | Uber Move | 16px / 24px | Bold (700) | Subtítulos y nombres de productos |
-| **Label Large** | `--base-fs-label-lg` | Uber Move Text | 16px / 24px | Bold (700) | Botones principales y acciones |
-| **Paragraph Medium**| `--base-fs-body-md` | Uber Move Text | 14px / 20px | Regular (400) | Texto de cuerpo y descripciones |
-| **Label Small** | `--base-fs-label-sm` | Uber Move Text | 12px / 16px | Medium (500) | Metadatos y badges |
-| **Caption** | `--base-fs-caption` | Uber Move Text | 11px / 16px | Regular (400) | Textos legales y notas al pie |
-
----
-
-## 4. Reglas de diseño fundamentales de Uber Base
-
-1. **Color negro como elemento unificador**: El botón principal y los titulares destacados usan `#000000`.
-2. **Geometría y píldoras**: Los botones de acción y tags usan bordes píldora (`border-radius: 9999px`), característicos de la identidad de Uber.
-3. **Alto contraste**: Todo el texto sobre blanco o gris `#F6F6F6` cumple sobradamente el ratio de contraste WCAG AA (>4.5:1).
-4. **Voz activa y concisa**: Los textos son directos, sin relleno y centrados en la acción que realiza el usuario.
+* **`design-system/components/baseui.manifest.json`**: Manifiesto JSON formal con props, enums y mapeo a Figma.
+* **`design-system/tokens/base.tokens.json`**: Tokens W3C oficiales (color, tipografía, radios, sombras, espaciado).
+* **`design-system/css/base.css`**: Clases CSS con variables nativas para renderizado instantáneo en el prototipo.
+* **`design-system/guidelines/tono-de-voz.md`**: Voz de marca oficial de Uber en sentence case.
+* **`design-system/guidelines/accesibilidad.md`**: Criterios WCAG AA (áreas táctiles ≥ 44px/56px, contraste > 4.5:1).

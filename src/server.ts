@@ -77,6 +77,22 @@ app.get("/api/jira/issues", async (_req, res) => {
   }
 });
 
+app.get("/api/figma/pending", async (_req, res) => {
+  try {
+    const { getLatestFigmaDesign } = await import("./integrations/figma.js");
+    const design = getLatestFigmaDesign();
+    res.json({
+      ok: true,
+      fileKey: config.figma.fileKey,
+      fileUrl: config.figma.fileUrl,
+      ...design,
+      script: generateFigmaPluginScript(design.screens || [])
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 app.get("/api/runs/:key", async (req, res) => {
   const run = await loadRun(req.params.key);
   if (!run) {
@@ -456,6 +472,7 @@ app.post("/api/llm/stream", async (req, res) => {
     send("agent_step", { id: "ui", name: "Agente de UI", status: "done", subagent: "Maquetador HTML/CSS", log: "Componentes Base maquetados con tokens oficiales y mapas oscuros." });
     send("agent_step", { id: "qa", name: "Revisor QA", status: "done", subagent: "Auditor WCAG AA", log: "Accesibilidad WCAG AA y resiliencia sin dead-ends auditadas." });
     send("agent_step", { id: "deliver", name: "Agente de entrega", status: "done", subagent: "Figma AutoLayout Sync", log: "Paquete de entrega publicado con enlaces a Figma y ticket." });
+    if (json?.screens) { import("./integrations/figma.js").then(m => m.setLatestFigmaDesign(req.body?.key || "KAN-1", json.screens)); }
     send("result", { ok: true, result: json });
     res.end();
   } catch (err) {

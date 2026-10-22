@@ -48,7 +48,8 @@ export const config = {
 
   figma: {
     accessToken: env("FIGMA_ACCESS_TOKEN"),
-    fileKey: env("FIGMA_FILE_KEY"),
+    fileKey: env("FIGMA_FILE_KEY", "dcKVRyGjsYiK3Cl1iBHeXc"),
+    fileUrl: env("FIGMA_FILE_URL", "https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1"),
   },
 
   paths: {

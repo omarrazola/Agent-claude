@@ -1790,7 +1790,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           </div>
           <p style="font-size:12px;color:var(--muted);margin:0">Pega el enlace de la pantalla o frame modificado en Figma (ej. clic derecho en el Frame en Figma › <i>Copy link to selection</i>). Los agentes detectarán los cambios y actualizarán el flujo respetando Uber Base DS.</p>
           <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center">
-            <input type="url" id="figmaSyncUrl" placeholder="https://www.figma.com/design/:file_key/:nombre?node-id=402-12" class="figma-input" />
+            <input type="url" id="figmaSyncUrl" value="https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1" placeholder="https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1" class="figma-input" />
             <select id="figmaSyncStep" class="figma-select">
               <option value="auto">Detectar pantalla automática</option>
               <option value="1">Paso 1: Selección inicial</option>
@@ -1837,7 +1837,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
                 <li>Accesibilidad AA superada en todos los estados.</li>
                 <li><b>2 preguntas abiertas para negocio:</b> ¿se puede pagar parte con Uber Cash y parte con tarjeta? ¿El PIN es obligatorio para todos los trayectos nocturnos?</li>
               </ul>
-              <div class="links" id="commentLinks"><span>preview.internal/kan-1</span><span>Figma › KAN-1</span><span>rama: design/kan-1</span></div>
+              <div class="links" id="commentLinks"><span>preview.internal/kan-1</span><a href="https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1" target="_blank" style="color:inherit;text-decoration:underline">Figma › dcKVRyGjsYiK3Cl1iBHeXc</a><span>rama: design/kan-1</span></div>
             </div>
           </div>
         </div>
@@ -3184,7 +3184,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     if($("#commentKey")) $("#commentKey").textContent = info.key;
     if($("#commentLinks")){
       var kLower = info.key.toLowerCase();
-      $("#commentLinks").innerHTML = '<span>preview.uber.internal/' + h(kLower) + '</span><span>Figma › ' + h(info.key) + '</span><span>rama: design/' + h(kLower) + '</span>';
+      $("#commentLinks").innerHTML = '<span>preview.internal/' + h(kLower) + '</span><a href="https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1" target="_blank" style="color:inherit;text-decoration:underline">Figma › ' + h(info.key) + ' (dcKVRyGjsYiK3Cl1iBHeXc)</a><span>rama: design/' + h(kLower) + '</span>';
     }
     if($("#commentLead")){
       $("#commentLead").textContent = curVer.summary ? (curVer.summary + " · Resumen:") : "Flujo generado por los 7 agentes para: " + info.title;
@@ -4377,6 +4377,16 @@ export default function UberBaseFlow() {
         '<div style="margin-bottom:12px">'+
           '<h4 style="margin:0;font-size:16px;font-weight:700">Exportación Directa al Canva de Figma</h4>'+
           '<p style="font-size:13px;color:var(--muted);margin:4px 0 0">Lleva este flujo de pantallas de Uber Base directamente a tu lienzo de Figma sin necesidad de plugins de pago.</p>'+
+        '</div>'+
+        '<div style="background:#EFF4FE;border:1.5px solid #276EF1;border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'+
+          '<div style="display:flex;align-items:center;gap:10px">'+
+            '<span style="font-size:20px">🎨</span>'+
+            '<div>'+
+              '<b style="color:#174EA6;font-size:14px">Archivo Figma Vinculado:</b>'+
+              '<span style="font-size:13px;color:var(--fg);margin-left:6px;font-family:var(--f-mono)">dcKVRyGjsYiK3Cl1iBHeXc</span>'+
+            '</div>'+
+          '</div>'+
+          '<a href="https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1" target="_blank" rel="noopener noreferrer" class="btn primary sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">🔗 Abrir en Figma ➔</a>'+
         '</div>'+
         '<div class="figma-export-grid">'+
           '<div class="figma-export-card">'+

@@ -157,11 +157,12 @@
     }
 
     function triggerRender() {
-      if (!latestData || !Array.isArray(latestData.screens) || latestData.screens.length === 0) return;
+      if (!latestData || (!Array.isArray(latestData.screens) && !Array.isArray(latestData.screenSvgs))) return;
       parent.postMessage({
         pluginMessage: {
           type: "RENDER_SCREENS",
-          screens: latestData.screens,
+          screenSvgs: latestData.screenSvgs || [],
+          screens: latestData.screens || [],
           key: latestData.key || "KAN-1"
         }
       }, "*");

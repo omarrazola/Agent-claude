@@ -1,0 +1,15 @@
+{
+  "name": "Uber Base Auto-Design Agent",
+  "id": "uber-base-auto-design",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": [
+      "http://localhost:8787",
+      "http://127.0.0.1:8787",
+      "http://192.168.0.19:8787"
+    ]
+  }
+}

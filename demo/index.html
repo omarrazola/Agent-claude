@@ -3200,6 +3200,15 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
     }
 
     renderScreens();
+    try {
+      var activeD = (versions && versions[viewIdx] && versions[viewIdx].design) || DEFAULT_DESIGN;
+      var scrToExport = (activeD && Array.isArray(activeD.screens) && activeD.screens.length > 0) ? activeD.screens : [];
+      fetch("/api/figma/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ screens: scrToExport, d: activeD, key: info.key })
+      }).catch(function(){});
+    } catch(e){}
     $("#emptyState").hidden=true;$("#deliverables").hidden=false;
   }
 

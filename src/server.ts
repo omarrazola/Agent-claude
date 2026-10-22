@@ -12,6 +12,14 @@ import { startJiraPoller } from "./integrations/jiraPoller.js";
 
 const app = express();
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Figma-Token");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 // Guardamos el cuerpo original para verificar la firma de Trello
 app.use(
   express.json({
@@ -759,6 +767,10 @@ app.post("/api/figma/export", async (req, res) => {
     const { screens, d } = req.body ?? {};
     const screensList = Array.isArray(screens) && screens.length > 0 ? screens : (Array.isArray(d?.screens) ? d.screens : []);
     const pluginScript = generateFigmaPluginScript(screensList);
+    if (screensList.length > 0) {
+      const { setLatestFigmaDesign } = await import("./integrations/figma.js");
+      setLatestFigmaDesign(req.body?.key || "KAN-1", screensList);
+    }
 
     res.json({
       ok: true,

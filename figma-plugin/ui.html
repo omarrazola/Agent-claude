@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #FFFFFF;
+      color: #000000;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #E2E2E2;
+      padding-bottom: 10px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #EFF4FE;
+      color: #174EA6;
+      font-weight: 600;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #545454;
+    }
+    .dot.live {
+      background: #0E8345;
+      box-shadow: 0 0 6px rgba(14, 131, 69, 0.6);
+    }
+    .btn {
+      background: #000000;
+      color: #FFFFFF;
+      border: none;
+      padding: 12px;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #333333; }
+    .btn:disabled { background: #E2E2E2; color: #757575; cursor: not-allowed; }
+    .card {
+      background: #F6F6F6;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .status-text {
+      font-size: 11.5px;
+      color: #545454;
+    }
+    .auto-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span style="font-size: 20px">🤖</span>
+    <div>
+      <b style="font-size: 14px">Agente Uber Base</b>
+      <div style="font-size: 11px; color: #545454">Bridge Automático de Diseño</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span class="badge"><i class="dot" id="serverDot"></i> <span id="serverStatus">Buscando servidor...</span></span>
+      <span id="ticketBadge" style="font-weight: 700; font-family: monospace">---</span>
+    </div>
+    <div class="status-text" id="screensCountText">0 pantallas pendientes en servidor</div>
+  </div>
+
+  <button class="btn" id="renderBtn" disabled>
+    <span>🎨</span> Pintar Pantallas en Canva
+  </button>
+
+  <label class="auto-toggle">
+    <input type="checkbox" id="autoSyncCheck" checked>
+    <span>Pintar automáticamente al generar prototipo</span>
+  </label>
+
+  <div class="status-text" style="line-height: 1.4; border-top: 1px solid #E2E2E2; padding-top: 10px;">
+    Conectado a <code>http://localhost:8787</code>.<br>
+    Cuando el agente complete el flujo en la web, se dibujarán aquí todas las pantallas con tokens y estilos de Uber Base.
+  </div>
+
+  <script>
+    let latestData = null;
+    let lastRenderedVersion = null;
+
+    const dot = document.getElementById("serverDot");
+    const statusText = document.getElementById("serverStatus");
+    const countText = document.getElementById("screensCountText");
+    const renderBtn = document.getElementById("renderBtn");
+    const ticketBadge = document.getElementById("ticketBadge");
+    const autoCheck = document.getElementById("autoSyncCheck");
+
+    async function pollAgentServer() {
+      try {
+        const res = await fetch("http://localhost:8787/api/figma/pending");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        latestData = data;
+
+        dot.className = "dot live";
+        statusText.textContent = "Agente Online";
+        ticketBadge.textContent = data.key || "KAN";
+
+        const count = Array.isArray(data.screens) ? data.screens.length : 0;
+        countText.textContent = count + " pantallas listas (" + (data.key || "prototipo") + ")";
+
+        if (count > 0) {
+          renderBtn.disabled = false;
+          // Auto sync si está activado y cambió la versión o ticket
+          const versionKey = data.key + "_" + count + "_" + (data.screens[0]?.mainTitle || "");
+          if (autoCheck.checked && lastRenderedVersion !== versionKey) {
+            lastRenderedVersion = versionKey;
+            triggerRender();
+          }
+        } else {
+          renderBtn.disabled = true;
+        }
+      } catch (err) {
+        dot.className = "dot";
+        statusText.textContent = "Desconectado";
+        countText.textContent = "Asegúrate de que 'npm run dev' esté activo en puerto 8787";
+        renderBtn.disabled = true;
+      }
+    }
+
+    function triggerRender() {
+      if (!latestData || !Array.isArray(latestData.screens) || latestData.screens.length === 0) return;
+      parent.postMessage({
+        pluginMessage: {
+          type: "RENDER_SCREENS",
+          screens: latestData.screens,
+          key: latestData.key || "KAN-1"
+        }
+      }, "*");
+    }
+
+    renderBtn.addEventListener("click", triggerRender);
+
+    pollAgentServer();
+    setInterval(pollAgentServer, 2500);
+  </script>
+</body>
+</html>

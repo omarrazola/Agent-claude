@@ -8,6 +8,7 @@ import { approve, iterate, startRun } from "./pipeline/orchestrator.js";
 import { loadRun } from "./pipeline/store.js";
 import { jiraWebhook } from "./webhooks/jira.js";
 import { trelloWebhook } from "./webhooks/trello.js";
+import { startJiraPoller } from "./integrations/jiraPoller.js";
 
 const app = express();
 
@@ -754,4 +755,5 @@ app.post("/api/runs/:key/approve", async (req, res) => {
 app.listen(config.port, () => {
   log.info(`Uber Base Design Agents escuchando en http://localhost:${config.port}`);
   log.info(config.dryRun ? "DRY_RUN activo: no se escribirá en Jira ni en Trello." : "Modo real: se escribirá en Jira y Trello.");
+  if (config.jira.baseUrl && config.jira.email && config.jira.apiToken) { startJiraPoller(15000); }
 });

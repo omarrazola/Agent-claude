@@ -172,6 +172,9 @@ figma.ui.onmessage = async (msg) => {
       btn.x = 24;
       btn.y = 724;
       btn.cornerRadius = 999; // Base pill style
+      btn.layoutMode = "HORIZONTAL";
+      btn.primaryAxisAlignItems = "CENTER";
+      btn.counterAxisAlignItems = "CENTER";
       const isCtaNeg = isErr || scr.ctaVariant === "negative";
       btn.fills = [{
         type: "SOLID",
@@ -183,8 +186,6 @@ figma.ui.onmessage = async (msg) => {
       btnText.fontName = { family: "Inter", style: "Bold" };
       btnText.fontSize = 15;
       btnText.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-      btnText.x = Math.round(163 - (btnText.width / 2));
-      btnText.y = 18;
       btn.appendChild(btnText);
       frame.appendChild(btn);
 

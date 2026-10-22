@@ -4898,7 +4898,21 @@ export default function UberBaseFlow() {
     return '<div class="phone'+(extraCls||"")+editClass+'"><div class="al'+(d.theme.density==="compact"?' compact':'')+'" style="'+alStyle(d)+'">'+inner+'</div></div>';
   }
 
+  function syncFigmaExport(){
+    try {
+      var d = current();
+      var scr = (d && Array.isArray(d.screens) && d.screens.length > 0) ? d.screens : [];
+      var info = getBriefInfo();
+      fetch("/api/figma/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ screens: scr, d: d, key: info.key })
+      }).catch(function(){});
+    } catch(e){}
+  }
+
   function renderViewer(fresh){
+    syncFigmaExport();
     var d=current(), v=$("#viewer"), fx=fresh?" fresh":"";
 
     if(mode==="handover"){

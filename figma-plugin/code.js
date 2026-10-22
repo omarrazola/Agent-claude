@@ -18,14 +18,20 @@ figma.ui.onmessage = async (msg) => {
     const frameH = 812;
     const total = screenSvgs.length;
     const sectionW = pad * 2 + total * frameW + (total - 1) * spacing;
-    const sectionH = pad * 2 + frameH;
+    const sectionH = pad * 2 + frameH + 40;
 
     const startX = Math.round(figma.viewport.center.x - (sectionW / 2));
     const startY = Math.round(figma.viewport.center.y - (sectionH / 2));
 
+    const sectionName = `${ticketKey} · Prototipo Flujo Completo (Uber Base DS)`;
+    const existingSection = figma.currentPage.findOne(node => node.type === "SECTION" && node.name === sectionName);
+    if (existingSection) {
+      existingSection.remove();
+    }
+
     // Crear Section oficial de Figma
     const section = figma.createSection();
-    section.name = `${ticketKey} · Prototipo Flujo Completo (Uber Base DS)`;
+    section.name = sectionName;
     section.x = startX;
     section.y = startY;
 
@@ -43,11 +49,9 @@ figma.ui.onmessage = async (msg) => {
         const node = figma.createNodeFromSvg(scr.svg);
         node.name = (scr.step || (idx + 1)) + ". " + (scr.name || ("Pantalla " + (idx + 1)));
         
-        // Coordenadas relativas dentro de la sección
+        section.appendChild(node);
         node.x = pad + idx * (frameW + spacing);
         node.y = pad;
-
-        section.appendChild(node);
         createdNodes.push(node);
       } catch (err) {
         console.error("Error creando nodo SVG en Figma:", err);

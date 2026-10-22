@@ -19,7 +19,7 @@ export function renderScreenSvg(scr: any, idx: number, total: number): string {
   const stateBg = isErr ? "#FDF0F2" : (isCorner ? "#FEF6E7" : "#EBF7EE");
   const badgeText = scr.stateBadge || (isErr ? "CASO DE ERROR" : (isCorner ? "CORNER CASE" : "HAPPY PATH"));
 
-  let contentY = 106;
+  let contentY = 118;
   let bodyElements = "";
 
   // 1. Map container
@@ -144,9 +144,19 @@ export function renderScreenSvg(scr: any, idx: number, total: number): string {
     <text x="24" y="66" font-family="Inter, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#000000">Uber</text>
     <text x="351" y="66" text-anchor="end" font-family="Inter, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#545454">${escapeXml(scr.navTitle || ("Paso " + (idx + 1)))} · ${idx + 1}/${total}</text>
 
+    <!-- Step Progress Dots (Official Uber Base mobile) -->
+    <g id="Step_Dots" transform="translate(24, 76)">
+      ${Array.from({ length: total }).map((_, i) => {
+        const dotW = Math.round((327 - (total - 1) * 6) / total);
+        const dotX = i * (dotW + 6);
+        const dotCol = i <= idx ? "#000000" : "#E2E2E2";
+        return `<rect x="${dotX}" y="0" width="${dotW}" height="3" rx="1.5" fill="${dotCol}"/>`;
+      }).join("")}
+    </g>
+
     <!-- State Badge Tag -->
-    <rect x="24" y="78" width="112" height="22" rx="5" fill="${stateBg}"/>
-    <text x="80" y="93" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="10" font-weight="800" fill="${stateColor}">${escapeXml(badgeText)}</text>
+    <rect x="24" y="86" width="112" height="22" rx="5" fill="${stateBg}"/>
+    <text x="80" y="101" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="10" font-weight="800" fill="${stateColor}">${escapeXml(badgeText)}</text>
 
     <!-- Dynamic Content Body -->
     ${bodyElements}
@@ -294,6 +304,9 @@ let latestRunKey = "KAN-1";
 export function setLatestFigmaDesign(key: string, screens: any[]) {
   latestRunKey = key;
   if (Array.isArray(screens) && screens.length > 0) {
+    if (screens[0] && typeof screens[0].html === "string" && !screens[0].mainTitle) {
+      return;
+    }
     latestScreens = screens;
   }
 }
@@ -318,7 +331,10 @@ export function getLatestFigmaDesign() {
 }
 
 export async function pushToFigma(run: RunState, files: ScreenFile[]): Promise<string | null> {
-  setLatestFigmaDesign(run.key, files);
+  const uiScreens = (run.outputs.ui as any)?.screens;
+  if (Array.isArray(uiScreens) && uiScreens.length > 0) {
+    setLatestFigmaDesign(run.key, uiScreens);
+  }
   const fileKey = config.figma.fileKey || "dcKVRyGjsYiK3Cl1iBHeXc";
   log.info(`[FIGMA] Diseño preparado para archivo Figma: ${config.figma.fileUrl} (${files.length} pantallas)`);
 

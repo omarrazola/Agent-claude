@@ -102,6 +102,10 @@
     <span>🎨</span> Pintar Pantallas en Canva
   </button>
 
+  <button class="btn" id="createLibBtn" style="background:#276EF1;margin-top:2px">
+    <span>💎</span> Crear Librería de Componentes Base DS
+  </button>
+
   <label class="auto-toggle">
     <input type="checkbox" id="autoSyncCheck" checked>
     <span>Pintar automáticamente al generar prototipo</span>
@@ -169,6 +173,13 @@
     }
 
     renderBtn.addEventListener("click", triggerRender);
+
+    const createLibBtn = document.getElementById("createLibBtn");
+    if (createLibBtn) {
+      createLibBtn.addEventListener("click", function() {
+        parent.postMessage({ pluginMessage: { type: "CREATE_COMPONENT_LIBRARY" } }, "*");
+      });
+    }
 
     pollAgentServer();
     setInterval(pollAgentServer, 2500);

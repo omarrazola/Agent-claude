@@ -1,4 +1,4 @@
-// Plugin de Figma para renderizar el prototipo fiel del Agente Uber Base
+// Plugin de Figma para renderizar el prototipo fiel del Agente Uber Base dentro de una Section
 figma.showUI(__html__, { width: 340, height: 380, title: "Uber Base Auto-Design Agent" });
 
 figma.ui.onmessage = async (msg) => {
@@ -13,18 +13,41 @@ figma.ui.onmessage = async (msg) => {
 
     const createdNodes = [];
     const spacing = 60;
+    const pad = 60;
+    const frameW = 375;
+    const frameH = 812;
     const total = screenSvgs.length;
-    const startX = Math.round(figma.viewport.center.x - ((total * (375 + spacing)) / 2));
-    const startY = Math.round(figma.viewport.center.y - 400);
+    const sectionW = pad * 2 + total * frameW + (total - 1) * spacing;
+    const sectionH = pad * 2 + frameH;
+
+    const startX = Math.round(figma.viewport.center.x - (sectionW / 2));
+    const startY = Math.round(figma.viewport.center.y - (sectionH / 2));
+
+    // Crear Section oficial de Figma
+    const section = figma.createSection();
+    section.name = `${ticketKey} · Prototipo Flujo Completo (Uber Base DS)`;
+    section.x = startX;
+    section.y = startY;
+
+    if (typeof section.resizeWithoutConstraints === "function") {
+      section.resizeWithoutConstraints(sectionW, sectionH);
+    } else if (typeof section.resize === "function") {
+      section.resize(sectionW, sectionH);
+    }
+
+    figma.currentPage.appendChild(section);
 
     for (let idx = 0; idx < total; idx++) {
       const scr = screenSvgs[idx];
       try {
         const node = figma.createNodeFromSvg(scr.svg);
         node.name = (scr.step || (idx + 1)) + ". " + (scr.name || ("Pantalla " + (idx + 1)));
-        node.x = startX + idx * (375 + spacing);
-        node.y = startY;
-        figma.currentPage.appendChild(node);
+        
+        // Coordenadas relativas dentro de la sección
+        node.x = pad + idx * (frameW + spacing);
+        node.y = pad;
+
+        section.appendChild(node);
         createdNodes.push(node);
       } catch (err) {
         console.error("Error creando nodo SVG en Figma:", err);
@@ -32,8 +55,8 @@ figma.ui.onmessage = async (msg) => {
     }
 
     if (createdNodes.length > 0) {
-      figma.viewport.scrollAndZoomIntoView(createdNodes);
-      figma.notify(`✨ ${createdNodes.length} pantallas oficiales de ${ticketKey} renderizadas en Figma.`);
+      figma.viewport.scrollAndZoomIntoView([section]);
+      figma.notify(`✨ Sección "${section.name}" creada con ${createdNodes.length} pantallas.`);
     }
   }
 };

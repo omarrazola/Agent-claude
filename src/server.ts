@@ -67,6 +67,16 @@ app.post("/api/runs", async (req, res) => {
   }
 });
 
+app.get("/api/jira/issues", async (_req, res) => {
+  try {
+    const { fetchJiraKanIssues, toTicket } = await import("./integrations/jiraPoller.js");
+    const issues = await fetchJiraKanIssues();
+    res.json({ ok: true, issues: issues.map(toTicket) });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 app.get("/api/runs/:key", async (req, res) => {
   const run = await loadRun(req.params.key);
   if (!run) {

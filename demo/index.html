@@ -1602,12 +1602,18 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
         </div>
       </div>
       <div class="brief-bar">
-        <span>✏️ <strong>Brief editable</strong> (escribe tu briefing personalizado):</span>
+        <span>✏️ <strong>Brief editable</strong> (escribe tu briefing o elige de Jira):</span>
+        <div id="jiraTicketPicker" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;margin-left:auto">
+          <label for="jiraSelect" style="color:var(--muted);font-weight:600">Ticket Jira:</label>
+          <select id="jiraSelect" style="padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:12px;cursor:pointer">
+            <option value="">Cargando tickets KAN...</option>
+          </select>
+        </div>
       </div>
       <div class="ticket">
         <div class="trello-labels" aria-hidden="true"><i style="background:#000000"></i><i style="background:#276EF1"></i></div>
         <div class="t-meta">
-          <span class="t-key" id="tKey" contenteditable="true" spellcheck="false" title="Haz clic para editar la clave">UBER-402</span>
+          <span class="t-key" id="tKey" contenteditable="true" spellcheck="false" title="Haz clic para editar la clave">KAN-1</span>
           <span class="chip col" id="tCol">Diseño · Nuevo</span>
           <span class="chip" id="tPriority" contenteditable="true" spellcheck="false" title="Haz clic para editar la prioridad">Prioridad alta</span>
           <span class="chip" id="tType">Historia</span>
@@ -1823,7 +1829,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
           <div class="panel">
             <div class="panel-h"><h2>Comentario publicado en el ticket</h2><span class="chip col" id="newCol">Revisión diseño</span></div>
             <div class="comment">
-              <div class="who"><div class="avatar">AI</div><div><b>Agente de entrega</b><br><span class="time" id="commentKey">UBER-104</span></div></div>
+              <div class="who"><div class="avatar">AI</div><div><b>Agente de entrega</b><br><span class="time" id="commentKey">KAN-1</span></div></div>
               <p id="commentLead">Primera propuesta lista para revisión. Resumen:</p>
               <ul id="commentList">
                 <li>Flujo completo de producto: Happy Path, Casos de Error con recuperación y Corner Cases.</li>
@@ -1831,7 +1837,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
                 <li>Accesibilidad AA superada en todos los estados.</li>
                 <li><b>2 preguntas abiertas para negocio:</b> ¿se puede pagar parte con Uber Cash y parte con tarjeta? ¿El PIN es obligatorio para todos los trayectos nocturnos?</li>
               </ul>
-              <div class="links" id="commentLinks"><span>preview.uber.internal/uber-104</span><span>Figma › UBER-104</span><span>rama: design/uber-104</span></div>
+              <div class="links" id="commentLinks"><span>preview.internal/kan-1</span><span>Figma › KAN-1</span><span>rama: design/kan-1</span></div>
             </div>
           </div>
         </div>
@@ -2330,6 +2336,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       ? 'En producción esto se dispara solo: al crear la incidencia con la etiqueta <span class="mono">diseño</span>, Jira envía un webhook al orquestador.'
       : 'En producción esto se dispara solo: al mover la tarjeta a la lista <span class="mono">Diseño · Nuevo</span>, Trello envía un webhook al orquestador.';
     $("#newCol").textContent = src==="jira" ? "Revisión diseño" : "Lista: Revisión diseño";
+    if($("#jiraTicketPicker")) $("#jiraTicketPicker").style.display = src==="jira" ? "inline-flex" : "none";
   }
   $all(".seg button").forEach(function(b){b.addEventListener("click",function(){setSrc(b.dataset.src)})});
 
@@ -2401,7 +2408,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
       if(saved){
         var data = JSON.parse(saved);
         if(data && data.title && data.body && data.key !== "UBER-104" && data.key !== "EV-204" && data.key !== "UBER-894"){
-          $("#tKey").textContent = data.key || "UBER-402";
+          $("#tKey").textContent = data.key || "KAN-1";
           $("#tPriority").textContent = data.priority || "Prioridad alta";
           $("#tTitle").textContent = data.title;
           $("#tBody").innerHTML = data.body;
@@ -2422,7 +2429,7 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
   });
 
   function getBriefInfo(){
-    var key = ($("#tKey") && $("#tKey").textContent.trim()) || "UBER-104";
+    var key = ($("#tKey") && $("#tKey").textContent.trim()) || "KAN-1";
     var priority = ($("#tPriority") && $("#tPriority").textContent.trim()) || "Prioridad alta";
     var title = ($("#tTitle") && $("#tTitle").textContent.trim()) || "Petición de diseño";
     var body = ($("#tBody") && ($("#tBody").innerText || $("#tBody").textContent || "").trim()) || "";
@@ -2624,6 +2631,61 @@ textarea{width:100%;min-height:72px;font:inherit;font-size:14px;padding:10px;bor
 
   loadSavedBrief();
   prepareAgentsForBrief();
+
+  async function loadJiraIssues(){
+    try {
+      var res = await fetch("/api/jira/issues");
+      var data = await res.json();
+      var sel = $("#jiraSelect");
+      if(data && data.ok && Array.isArray(data.issues) && data.issues.length > 0){
+        if(sel){
+          sel.innerHTML = '<option value="">-- Elige ticket Jira KAN (' + data.issues.length + ') --</option>' +
+            data.issues.map(function(iss){
+              return '<option value="' + h(iss.key) + '">' + h(iss.key) + ' - ' + h(iss.title || 'Sin título') + '</option>';
+            }).join('');
+
+          sel.addEventListener("change", function(){
+            var chosen = data.issues.find(function(it){ return it.key === sel.value; });
+            if(chosen){
+              $("#tKey").textContent = chosen.key;
+              if(chosen.title) $("#tTitle").textContent = chosen.title;
+              if(chosen.description){
+                $("#tBody").innerHTML = '<p>' + h(chosen.description).replace(/\n/g, '<br>') + '</p>';
+              }
+              if(chosen.reporter){
+                $("#tAuthor").textContent = 'Creado por ' + chosen.reporter + ' · Jira Project KAN';
+              }
+              saveCustomBrief();
+              prepareAgentsForBrief();
+            }
+          });
+        }
+        var currKey = ($("#tKey") && $("#tKey").textContent.trim()) || "";
+        if(!currKey.startsWith("KAN-") || currKey === "UBER-402"){
+          var defaultIssue = data.issues.find(function(i){ return i.key === "KAN-1"; }) || data.issues[0];
+          if(defaultIssue){
+            $("#tKey").textContent = defaultIssue.key;
+            if(defaultIssue.title) $("#tTitle").textContent = defaultIssue.title;
+            if(defaultIssue.description){
+              $("#tBody").innerHTML = '<p>' + h(defaultIssue.description).replace(/\n/g, '<br>') + '</p>';
+            }
+            if(defaultIssue.reporter){
+              $("#tAuthor").textContent = 'Creado por ' + defaultIssue.reporter + ' · Jira Project KAN';
+            }
+            if(sel) sel.value = defaultIssue.key;
+            saveCustomBrief();
+            prepareAgentsForBrief();
+          }
+        }
+      } else if(sel) {
+        sel.innerHTML = '<option value="">(Sin tickets en Jira)</option>';
+      }
+    } catch(e){
+      console.warn("Jira issues fetch error:", e);
+    }
+  }
+
+  loadJiraIssues();
 
   // ---------- Pipeline & Visual Multi-Agent Network Graph ----------
   var pipe = $("#pipe");

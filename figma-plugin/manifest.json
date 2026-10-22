@@ -8,10 +8,8 @@
   "networkAccess": {
     "allowedDomains": ["none"],
     "devAllowedDomains": [
-      "http://localhost:8787",
-      "http://127.0.0.1:8787",
-      "http://192.168.0.19:8787"
+      "http://localhost:8787"
     ],
-    "reasoning": "Conectar con el servidor local del agente en localhost:8787 para renderizar prototipos generados"
+    "reasoning": "Conectar con servidor local del agente"
   }
 }

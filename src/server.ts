@@ -779,7 +779,8 @@ app.post("/api/runs/:key/approve", async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
+app.listen(config.port, "0.0.0.0", () => {
+  log.info(`Servidor activo en red local: http://192.168.0.19:${config.port}`);
   log.info(`Uber Base Design Agents escuchando en http://localhost:${config.port}`);
   log.info(config.dryRun ? "DRY_RUN activo: no se escribirá en Jira ni en Trello." : "Modo real: se escribirá en Jira y Trello.");
   if (config.jira.baseUrl && config.jira.email && config.jira.apiToken) { startJiraPoller(15000); }

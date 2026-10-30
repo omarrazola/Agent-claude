@@ -48,6 +48,39 @@ export interface JiraCreatedIssue {
   url: string;
 }
 
+function parseJiraErrorMessage(status: number, rawText: string, projectKey: string): string {
+  try {
+    const parsed = JSON.parse(rawText);
+    const parts: string[] = [];
+    if (Array.isArray(parsed.errorMessages) && parsed.errorMessages.length > 0) {
+      parts.push(...parsed.errorMessages);
+    }
+    if (parsed.errors && typeof parsed.errors === "object") {
+      for (const [key, val] of Object.entries(parsed.errors)) {
+        parts.push(`${key}: ${val}`);
+      }
+    }
+    const combined = parts.join(" | ") || rawText;
+
+    if (
+      status === 400 &&
+      (combined.includes("目标项目不存在") ||
+        combined.toLowerCase().includes("project does not exist") ||
+        combined.includes("project"))
+    ) {
+      return `El proyecto de Jira '${projectKey}' no existe en tu instancia (${config.jira.baseUrl}) o tu usuario (${config.jira.email}) no tiene permisos para crear incidencias en él. Por favor añade o revisa JIRA_PROJECT_KEY=<CLAVE_DE_TU_PROYECTO> en tu archivo .env con la clave correcta del proyecto en Jira.`;
+    }
+
+    if (status === 401) {
+      return `Error de autenticación con Jira (401). El token de API o el email (${config.jira.email}) no son válidos o han caducado. Genera un nuevo API Token en https://id.atlassian.com/manage-profile/security/api-tokens y actualiza JIRA_API_TOKEN en el archivo .env.`;
+    }
+
+    return `Jira respondió ${status}: ${combined}`;
+  } catch {
+    return `Jira respondió ${status}: ${rawText}`;
+  }
+}
+
 /**
  * Crea una incidencia o brief de diseño en Jira de manera automática.
  */
@@ -120,10 +153,11 @@ export async function createJiraIssue(params: CreateJiraIssueParams): Promise<Ji
         body: JSON.stringify({ fields }),
       });
       if (!res.ok) {
-        throw new Error(`Jira respondió ${res.status}: ${await res.text()}`);
+        const retryErr = await res.text();
+        throw new Error(parseJiraErrorMessage(res.status, retryErr, projectKey));
       }
     } else {
-      throw new Error(`Jira respondió ${res.status}: ${errText}`);
+      throw new Error(parseJiraErrorMessage(res.status, errText, projectKey));
     }
   }
 

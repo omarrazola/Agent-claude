@@ -143,7 +143,7 @@ app.post("/api/runs", async (req, res) => {
 
 app.post("/api/jira/create", async (req, res) => {
   try {
-    const { title, summary, description, body, priority, labels, autoRun } = req.body ?? {};
+    const { title, summary, description, body, priority, labels, autoRun, projectKey } = req.body ?? {};
     const ticketSummary = String(title || summary || "").trim();
     const ticketDesc = String(description || body || "").trim();
     if (!ticketSummary) {
@@ -154,6 +154,7 @@ app.post("/api/jira/create", async (req, res) => {
     const created = await createJiraIssue({
       summary: ticketSummary,
       description: ticketDesc,
+      projectKey: projectKey ? String(projectKey).trim() : undefined,
       priority: priority ? String(priority).trim() : undefined,
       labels: Array.isArray(labels) ? labels : undefined,
     });

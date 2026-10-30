@@ -10,7 +10,39 @@ import { jiraWebhook } from "./webhooks/jira.js";
 import { trelloWebhook } from "./webhooks/trello.js";
 import { startJiraPoller } from "./integrations/jiraPoller.js";
 
+import http from "node:http";
+import { WebSocketServer, WebSocket } from "ws";
+
 const app = express();
+import fs from "node:fs";
+
+
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+const connectedClients = new Set<WebSocket>();
+
+wss.on("connection", (ws) => {
+  connectedClients.add(ws);
+  log.info(`[FIGMA-WS] Cliente Figma conectado (Total: ${connectedClients.size})`);
+  ws.on("close", () => {
+    connectedClients.delete(ws);
+    log.info(`[FIGMA-WS] Cliente Figma desconectado (Total: ${connectedClients.size})`);
+  });
+});
+
+export function broadcastToFigma(payload: any) {
+  const msg = JSON.stringify(payload);
+  let sent = 0;
+  for (const client of connectedClients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(msg);
+      sent++;
+    }
+  }
+  log.info(`[FIGMA-WS] Mensaje emitido a ${sent} plugins de Figma: ${payload.type}`);
+  return sent;
+}
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -18,6 +50,22 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Figma-Token");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
+});
+
+app.get("/api/figma/console-script", async (req, res) => {
+  try {
+    const { getLatestFigmaDesign } = await import("./integrations/figma.js");
+    const latest = getLatestFigmaDesign();
+    const baseCode = fs.readFileSync("scripts/figma-console-full.js", "utf8");
+    const callReplace = "await renderFlowMap([], [], 'KAN-1');";
+    const newCall = "await renderFlowMap(" + JSON.stringify(latest.screens) + ", " + JSON.stringify(latest.screenSvgs) + ", " + JSON.stringify(latest.key || 'KAN-1') + ", " + JSON.stringify(latest.changelog || null) + ");";
+    const fullScript = baseCode.replace(callReplace, newCall);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.send(fullScript);
+  } catch(e) {
+    res.status(500).send("console.error('Error:', " + JSON.stringify(String(e)) + ");");
+  }
 });
 
 // Guardamos el cuerpo original para verificar la firma de Trello
@@ -51,10 +99,10 @@ app.use("/demo", express.static(path.join(ROOT, "demo")));
 // --- API interna (para un panel propio o pruebas) ---
 app.post("/api/runs", async (req, res) => {
   try {
-    const title = String(req.body?.title ?? "Petición de diseño").trim();
+    const title = String(req.body?.title ?? "PeticiÃ³n de diseÃ±o").trim();
     const description = String(req.body?.description ?? "").trim();
     if (!description) {
-      res.status(400).json({ error: "Falta 'description' con la petición de diseño" });
+      res.status(400).json({ error: "Falta 'description' con la peticiÃ³n de diseÃ±o" });
       return;
     }
     const key = req.body?.key ? String(req.body.key).trim() : `WEB-${Date.now().toString(36).toUpperCase()}`;
@@ -64,14 +112,62 @@ app.post("/api/runs", async (req, res) => {
       externalId: key,
       title,
       description,
-      labels: Array.isArray(req.body?.labels) ? req.body.labels : ["diseño", "uber-base"],
-      reporter: String(req.body?.reporter ?? "Diseñadora UI/UX"),
+      labels: Array.isArray(req.body?.labels) ? req.body.labels : ["diseÃ±o", "uber-base"],
+      reporter: String(req.body?.reporter ?? "DiseÃ±adora UI/UX"),
       attachments: [],
     };
     res.status(202).json({ ok: true, key, message: "Pipeline iniciado" });
-    startRun(ticket).catch((err) => log.error("Pipeline falló", err));
+    startRun(ticket).catch((err) => log.error("Pipeline fallÃ³", err));
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+app.post("/api/jira/create", async (req, res) => {
+  try {
+    const { title, summary, description, body, priority, labels, autoRun } = req.body ?? {};
+    const ticketSummary = String(title || summary || "").trim();
+    const ticketDesc = String(description || body || "").trim();
+    if (!ticketSummary) {
+      res.status(400).json({ ok: false, error: "El título del brief es obligatorio" });
+      return;
+    }
+    const { createJiraIssue } = await import("./integrations/jira.js");
+    const created = await createJiraIssue({
+      summary: ticketSummary,
+      description: ticketDesc,
+      priority: priority ? String(priority).trim() : undefined,
+      labels: Array.isArray(labels) ? labels : undefined,
+    });
+    const { markIssueHandled } = await import("./integrations/jiraPoller.js");
+    markIssueHandled(created.key);
+
+    let runStarted = false;
+    if (autoRun) {
+      const ticket = {
+        source: "jira" as const,
+        key: created.key,
+        externalId: created.key,
+        title: ticketSummary,
+        description: ticketDesc,
+        labels: Array.isArray(labels) && labels.length > 0 ? labels : ["diseño", "uber-base"],
+        reporter: config.jira.email || "Diseñador UX/UI",
+        url: created.url,
+        attachments: [],
+      };
+      startRun(ticket).catch((err) => log.error("[JIRA CREATE] Fallo al iniciar run:", err));
+      runStarted = true;
+    }
+
+    res.status(201).json({
+      ok: true,
+      issue: created,
+      runStarted,
+      message: `Incidencia ${created.key} creada automáticamente en Jira con éxito`,
+    });
+  } catch (err) {
+    log.error("[JIRA CREATE] Error al crear ticket en Jira:", err);
+    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -91,11 +187,39 @@ app.get("/api/figma/pending", async (_req, res) => {
     const design = getLatestFigmaDesign();
     res.json({
       ok: true,
-      fileKey: config.figma.fileKey,
-      fileUrl: config.figma.fileUrl,
       ...design,
       script: generateFigmaPluginScript(design.screens || [])
     });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+app.get("/api/figma/target", async (_req, res) => {
+  try {
+    const { getFigmaTarget } = await import("./integrations/figma.js");
+    res.json({ ok: true, ...getFigmaTarget() });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+app.post("/api/figma/target", async (req, res) => {
+  try {
+    const { url } = req.body ?? {};
+    if (!url || typeof url !== "string") {
+      res.status(400).json({ error: "Falta el campo 'url'" });
+      return;
+    }
+    const { setFigmaTarget, getFigmaTarget } = await import("./integrations/figma.js");
+    setFigmaTarget(url);
+    const target = getFigmaTarget();
+    broadcastToFigma({
+      type: "FIGMA_TARGET_UPDATED",
+      ...target
+    });
+    log.info(`[FIGMA] Nueva URL de destino configurada: ${target.fileUrl} (${target.fileKey})`);
+    res.json({ ok: true, ...target });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
@@ -107,6 +231,16 @@ app.get("/api/runs/:key", async (req, res) => {
     res.status(404).json({ error: "no encontrado" });
     return;
   }
+  const uiScreens = (run.outputs?.ui as any)?.screens;
+  if (Array.isArray(uiScreens) && uiScreens.length > 0) {
+    const { setLatestFigmaDesign } = await import("./integrations/figma.js");
+    setLatestFigmaDesign(run.key, uiScreens);
+    broadcastToFigma({
+      type: "RENDER_FLOW_MAP",
+      screens: uiScreens,
+      key: run.key
+    });
+  }
   res.json(run);
 });
 
@@ -117,260 +251,191 @@ app.post("/api/runs/:key/iterate", async (req, res) => {
     return;
   }
   res.status(202).json({ ok: true });
-  iterate(req.params.key, request).catch((err) => log.error("Iteración fallida", err));
+  iterate(req.params.key, request).catch((err) => log.error("IteraciÃ³n fallida", err));
 });
 
 // Prompt maestro de los 7 agentes de Uber Base Design System
 const UBER_BASE_SYSTEM = `Eres un sistema autónomo de 7 agentes de diseño de producto de Uber que utilizan estrictamente el sistema oficial Base Design System (base.uber.com), siguiendo las especificaciones del catálogo formal 'design-system/components/baseui.manifest.json':
 1. Brief Agent: analiza la necesidad del usuario, objetivos de negocio, métricas de éxito y define la matriz de alcance: Happy Path, Error Cases y Corner Cases.
 2. Context Agent: selecciona tokens de Uber Base (baseui) para cada estado: --base-positive (#0E8345), --base-negative (#DE1135), --base-warning (#F69E0C), --base-black (#000000) y superficies secundarias (#F6F6F6).
-3. UX Architect: estructura un flujo profesional completo de pantallas (sin límite artificial de pantallas: diseña todas las pantallas necesarias para cubrir exhaustivamente el flujo de producto, típicamente entre 6 y 10+ pantallas) que resuelvan EXACTAMENTE el problema planteado en el brief, cubriendo obligatoriamente el camino nominal, la gestión de errores y los casos límite.
+3. UX Architect: estructura un flujo profesional de pantallas y estados que resuelvan EXACTAMENTE el problema y la funcionalidad planteada en el brief, cubriendo el camino nominal, la gestión de incidencias y los casos límite.
 4. Copy Agent: redacta microcopys con la voz oficial de Uber (directo, empático y constructivo sin culpar al usuario en errores, sentence case).
-5. UI Agent: define componentes del manifest oficial de Base (MapCard, Header, ProductCard, Button con props KIND/SHAPE/SIZE, StatusPin, ETA, Banner con tone negative/warning, etc.).
+5. UI Agent: define componentes del manifest oficial de Base (Modal, Drawer/BottomSheet, Header, ProductCard, Button con props KIND/SHAPE/SIZE, StatusPin, ETA, Banner con tone negative/warning, etc.).
 6. QA Agent: valida accesibilidad WCAG AA, áreas táctiles ≥ 44px (o 56px para CTAs), contraste y resiliencia ante errores (sin dead-ends ni callejones sin salida).
 7. Delivery Agent: genera especificaciones y handover para desarrollo y QA documentando todos los estados con mapeo a componentes de Figma.
 
+REGLA DE ORO DE FIDELIDAD AL BRIEF (MÁXIMA PRIORIDAD):
+El diseño debe corresponder ÚNICA Y EXCLUSIVAMENTE a lo que se solicita en el brief (título y descripción).
+- Si el brief solicita una funcionalidad concreta, componente o modal (ejemplo: "Modal informativa", "Diálogo de confirmación", "Sistema de propinas", "Cancelación con reembolso", "Ajustes de cuenta", "Formulario de soporte", etc.):
+  * Diseña pantallas y estados centrados en esa funcionalidad específica (por ejemplo, para una modal informativa: pantalla disparadora con contexto, vista con la modal abierta mostrando la información solicitada con componentes Base Modal/Drawer, estado de incidencia/alerta y confirmación/cierre).
+  * NO inventes un flujo de solicitud de viaje en vehículo (UberX, conductores en mapa, Toyota Corolla, etc.) a menos que el brief lo pida de forma explícita.
+  * Solo activa mapa ('showMap: true') si el brief requiere geolocalización o rutas sobre mapa; en modales, formularios y avisos mantén 'showMap: false'.
+- Adapta el número de pantallas a la escala del requerimiento: típicamente entre 3 y 5 pantallas para componentes, modales o micro-flujos; más pantallas si el requerimiento describe un flujo multi-etapa largo.
+
 REGLA PROFESIONAL FUNDAMENTAL DE PRODUCTO:
-El flujo de pantallas debe representar una experiencia de producto completa, robusta y lista para producción, NO únicamente un camino idílico.
-NO HAY LÍMITE DE PANTALLAS: diseña todas las pantallas que hagan falta para cubrir el viaje de principio a fin (Happy Path completo, Casos de Error con pantalla de fallo Y pantalla de recuperación guiada, y Corner Cases o condiciones excepcionales).
-Debes categorizar y distribuir obligatoriamente las pantallas entre:
-1. Happy Path (Camino nominal): Pantallas del recorrido óptimo (ej. Selección inicial de servicio/producto, Configuración de opciones y preferencias, Confirmación y método de pago, Seguimiento/servicio en tiempo real, Cumplimiento o llegada).
+REGLA ESTRICTA DE PANTALLAS FINALES (CERO BOTONES O ACCIONES DE SIMULACION EN PANTALLA):
+Las pantallas generadas deben ser pantallas FINALES de diseño para producción, representando fielmente lo que un usuario final real ve y toca en la aplicación de Uber.
+Queda TERMINANTEMENTE PROHIBIDO incluir dentro del diseño de las pantallas botones, enlaces o textos ficticios de simulación (PROHIBIDO: "Simular avance", "Simular llegada", "Simular error", "Simular asignación", "Simular cobro", "Simular incidencia").
+Todos los botones de las pantallas deben ser 100% acciones reales de producto del usuario (ej. "Entendido", "Aceptar", "Ver detalles", "Confirmar", "Reintentar", "Guardar cambios").
+
+Debes categorizar y distribuir las pantallas entre:
+1. Happy Path (Camino nominal): Pantallas del recorrido óptimo de la funcionalidad pedida.
    - stateType: "happy_path"
    - stateBadge: "HAPPY PATH"
-2. Casos de Error (Error cases & Recovery): Pantallas que demuestren la gestión de un fallo crítico realista (ej. fallo de autorización o cobro de tarjeta, conductor cancela repentinamente, tiempo de emparejamiento agotado sin vehículos, o pérdida de conexión) Y la pantalla de recuperación asistida sin dead-ends.
+2. Casos de Error (Error cases & Recovery): Pantallas que demuestren la gestión de un fallo o rechazo contextual a la funcionalidad y la vía de recuperación asistida sin dead-ends.
    - stateType: "error"
    - stateBadge: "CASO DE ERROR"
    - stateDesc: explicación de la incidencia y la vía de escape guiada
    - banner: { "text": "Explicación clara del error sin culpar al usuario", "tone": "negative" }
-   - cta: botón claro de recuperación (ej. "Reintentar cobro con Uber Cash", "Buscar conductor alternativo")
+   - cta: botón claro de recuperación (ej. "Reintentar", "Elegir alternativa")
    - ctaVariant: "negative" o "primary"
-   - ctaTargetStep: número de paso hacia el que navega este botón (ej. el paso de recuperación o de métodos de pago)
-   - secondaryCta: objeto opcional para bifurcaciones ({ "text": "Cancelar viaje", "variant": "secondary", "targetStep": 1 })
-3. Corner Cases (Casos límite o excepciones controladas): Pantallas dedicadas a condiciones atípicas o de fricción controlada (ej. alerta de alta demanda / surge pricing dinámico, desvío obligatorio por obras o calle peatonal con punto de encuentro sugerido a 50 metros, tráfico severo con recálculo dinámico de ETA, o tiempo de espera a punto de agotarse).
+   - ctaTargetStep: número de paso hacia el que navega este botón
+   - secondaryCta: objeto opcional para bifurcaciones
+3. Corner Cases (Casos límite o excepciones controladas): Pantallas dedicadas a condiciones atípicas o advertencias preventivas de la funcionalidad pedida.
    - stateType: "corner_case"
    - stateBadge: "CORNER CASE"
    - stateDesc: explicación de la condición límite y alternativa sugerida
    - banner: { "text": "Aviso proactivo y transparente", "tone": "warning" }
    - cta: acción para aceptar la alternativa o continuar
-   - ctaTargetStep: paso al que navega la alternativa
-   - secondaryCta: acción secundaria para rechazar o mantener la ruta estándar ({ "text": "Mantener punto original (+10 min)", "variant": "tertiary", "targetStep": 3 })
 
-4. Máquina de Estados y Rutas No Lineales:
-   - En cada pantalla, define "ctaTargetStep" indicando a qué número de paso ('step') conduce la acción principal (típicamente 'step + 1', o el paso específico de resolución en errores).
-   - Puedes incluir opcionalmente "secondaryCta": { "text": "...", "variant": "secondary" | "tertiary", "targetStep": 1 } para ofrecer bifurcaciones reales (rutas alternativas, cancelaciones limpias o desvíos).
+4. Máquina de Estados y Navegación:
+   - En cada pantalla, define "ctaTargetStep" indicando a qué número de paso ('step') conduce la acción principal.
+   - Puedes incluir opcionalmente "secondaryCta": { "text": "...", "variant": "secondary" | "tertiary", "targetStep": 1 } para bifurcaciones reales.
 
-IMPORTANTE: Diseña el flujo que el usuario pide en su brief. NUNCA asumas o inventes flujos no relacionados como recargas eléctricas a menos que el usuario lo pida explícitamente.
+5. Documentación Funcional y Justificación de Diseño para Stakeholders (OBLIGATORIO):
+   - Cada pantalla debe incluir:
+     - "functionality": explicación clara y concisa de qué funcionalidad resuelve la pantalla y cómo opera el usuario en ella.
+     - "designJustification": justificación de diseño (UX & Negocio) explicando por qué se tomó esta decisión y cómo maximiza la conversión o reduce la fricción.
 
 Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
 {
-  "summary": "Resumen ejecutivo del flujo diseñado (Happy Path, Error Case y Corner Case)",
+  "summary": "Resumen ejecutivo del flujo diseñado adaptado al brief",
   "agents": {
     "brief": {
       "summary": "Resumen del brief y matriz de alcance",
       "logs": ["Analizando brief y métricas de éxito", "Mapeando Happy Path principal", "Identificando posibles fallos y casos límite"],
-      "out": "<h4>Alcance y Matriz de Estados</h4><p><b>Happy Path:</b> Selección y viaje nominal.<br><b>Casos de Error:</b> Mitigación de fallo de pago/conexión con recuperación directa.<br><b>Corner Cases:</b> Gestión de alta demanda y desvío de punto de recogida.</p>"
+      "out": "<h4>Alcance y Matriz de Estados</h4><p><b>Happy Path:</b> Recorrido nominal de la funcionalidad.<br><b>Casos de Error:</b> Mitigación de errores con recuperación directa.<br><b>Corner Cases:</b> Gestión preventiva de condiciones límite.</p>"
     },
     "context": {
       "summary": "Tokens Base y componentes reutilizables",
-      "logs": ["Seleccionando tokens baseui", "Configurando tokens semánticos: positive, negative, warning", "Validando componentes de movilidad"],
+      "logs": ["Seleccionando tokens baseui", "Configurando tokens semánticos: positive, negative, warning", "Validando componentes"],
       "out": "<h4>Tokens de Uber Base DS</h4><div class=\"flow\"><span>--base-black (#000000)</span><span>--base-negative (#DE1135)</span><span>--base-warning (#F69E0C)</span><span>--base-positive (#0E8345)</span><span>--base-r-rounded (8px)</span></div>"
     },
     "ux": {
-      "summary": "Arquitectura de flujo con Happy Path, Error y Corner Cases",
-      "logs": ["Estructurando las pantallas del flujo completo", "Diseñando recuperación sin dead-ends para casos de error", "Definiendo alertas proactivas para casos límite"],
-      "out": "<h4>Matriz de Flujo UX</h4><ul><li><b>Happy Path:</b> Pasos nominales del servicio.</li><li><b>Corner Case:</b> Gestión proactiva de condiciones límite.</li><li><b>Casos de Error:</b> Pantalla de fallo y recuperación en 1 clic.</li></ul>"
+      "summary": "Arquitectura de estados y navegación",
+      "logs": ["Estructurando las pantallas del flujo", "Diseñando recuperación sin dead-ends para casos de error", "Definiendo alertas proactivas"],
+      "out": "<h4>Matriz de Flujo UX</h4><ul><li><b>Happy Path:</b> Estados nominales de la funcionalidad.</li><li><b>Corner Case:</b> Gestión proactiva de advertencias.</li><li><b>Casos de Error:</b> Pantalla de error con recuperación guiada.</li></ul>"
     },
     "copy": {
       "summary": "Microcopy en tono oficial de Uber",
-      "logs": ["Redactando en sentence case", "Aplicando empatía y claridad constructiva en errores", "Redactando avisos pedagógicos para corner cases"],
-      "out": "<h4>Guía de Microcopy y Voz de Marca</h4><p>Textos directos en voz activa; explicación honesta sin culpar al usuario en incidencias; CTAs precisos que indican la acción real.</p>"
+      "logs": ["Redactando en sentence case", "Aplicando empatía y claridad constructiva en errores", "Redactando avisos pedagógicos"],
+      "out": "<h4>Guía de Microcopy y Voz de Marca</h4><p>Textos directos en voz activa; explicación honesta sin culpar al usuario en incidencias; CTAs precisos.</p>"
     },
     "ui": {
       "summary": "Componentes y pantallas con Uber Base DS",
-      "logs": ["Componiendo pantallas con tokens Base", "Aplicando MapCard y mapas oscuros en tiempo real", "Estilizando banners de error y advertencia"],
-      "out": "<h4>Componentes Base Web/Mobile</h4><div class=\"flow\"><span>MapCard</span><span>Button (SHAPE.rounded 8px)</span><span>Banner (negative & warning)</span><span>Card (F6F6F6)</span><span>StatusPin</span></div>"
+      "logs": ["Componiendo pantallas con tokens Base", "Aplicando componentes oficiales", "Estilizando banners de error y advertencia"],
+      "out": "<h4>Componentes Base Web/Mobile</h4><div class=\"flow\"><span>Modal</span><span>Drawer</span><span>Button (SHAPE.rounded 8px)</span><span>Banner</span><span>Card</span></div>"
     },
     "qa": {
       "summary": "Auditoría WCAG AA y Resiliencia",
-      "logs": ["Verificando áreas táctiles ≥ 44px", "Auditando contraste de color WCAG AA", "Comprobando resiliencia y ausencia de callejones sin salida"],
-      "out": "<h4>Auditoría QA y Resiliencia</h4><ul><li><span class=\"chip ok\">Superado</span> Contraste AA en textos y fondos.</li><li><span class=\"chip ok\">Superado</span> Áreas táctiles de 44px o más.</li><li><span class=\"chip ok\">Superado</span> Resiliencia: todo error tiene CTA de resolución guiada.</li></ul>"
+      "logs": ["Verificando áreas táctiles ≥ 44px", "Auditando contraste de color WCAG AA", "Comprobando resiliencia"],
+      "out": "<h4>Auditoría QA y Resiliencia</h4><ul><li><span class=\"chip ok\">Superado</span> Contraste AA en textos y fondos.</li><li><span class=\"chip ok\">Superado</span> Áreas táctiles de 44px o más.</li><li><span class=\"chip ok\">Superado</span> Resiliencia: todo error tiene CTA de resolución.</li></ul>"
     },
     "delivery": {
       "summary": "Handover técnico para ingeniería y QA",
       "logs": ["Generando especificación de estados", "Documentando criterios de aceptación", "Publicando paquete de entrega"],
-      "out": "<h4>Especificación para Desarrollo</h4><p>Flujo completo de pantallas con Happy Path, Casos de Error y Corner Cases documentados para testing y producción.</p>"
+      "out": "<h4>Especificación para Desarrollo</h4><p>Flujo completo documentado para testing y maquetación.</p>"
     }
   },
   "screens": [
     {
       "step": 1,
-      "shortName": "1 · Selección inicial",
+      "shortName": "1 · Vista principal / Disparador",
       "stateType": "happy_path",
       "stateBadge": "HAPPY PATH",
-      "stateDesc": "Selección nominal de servicio con precio cerrado garantizado",
-      "hint": "Explicación del paso",
-      "navTitle": "Título en la barra superior",
-      "mainTitle": "Título principal",
-      "mainSubtitle": "Subtítulo descriptivo",
+      "stateDesc": "Estado nominal inicial donde el usuario interactúa con la funcionalidad",
+      "hint": "Explicación breve del contexto",
+      "navTitle": "Título de cabecera",
+      "mainTitle": "Título principal según el brief",
+      "mainSubtitle": "Subtítulo descriptivo con información clave",
       "showMap": false,
       "heroImage": null,
       "items": [
-        { "title": "Opción 1", "subtitle": "Detalle descriptivo", "icon": "🚗", "highlight": true, "price": "14,20 €" }
+        { "title": "Elemento relevante", "subtitle": "Descripción contextual", "icon": "📋", "highlight": true }
       ],
       "cards": [
-        { "label": "Llegada", "value": "3 min" }
+        { "label": "Detalle", "value": "Información clave" }
       ],
       "banner": null,
-      "cta": "Continuar",
-      "ctaVariant": "primary"
+      "cta": "Acción principal",
+      "ctaVariant": "primary",
+      "ctaTargetStep": 2,
+      "functionality": "Permite al usuario visualizar el estado e iniciar la interacción.",
+      "designJustification": "Proporciona claridad inicial y accesibilidad sin sobrecargar la vista."
     },
     {
       "step": 2,
-      "shortName": "2 · Corner Case: Alta demanda o desvío",
-      "stateType": "corner_case",
-      "stateBadge": "CORNER CASE",
-      "stateDesc": "Condición límite atípica con advertencia proactiva y alternativa guiada",
-      "hint": "Aviso anticipado al usuario de una situación excepcional",
-      "navTitle": "Aviso de servicio",
-      "mainTitle": "Alta demanda o ajuste de ruta",
-      "mainSubtitle": "Explicación transparente de la condición excepcional",
-      "showMap": true,
-      "mapMeta": {
-        "badge": "Zona de alta afluencia",
-        "eta": "4 min",
-        "driverName": "Carlos M.",
-        "rating": "4.95",
-        "vehicle": "Toyota Corolla · 4821 LKY",
-        "location": "Punto de encuentro optimizado a 50 m",
-        "lat": 39.4699,
-        "lng": -0.3763,
-        "dlat": 39.4665,
-        "dlng": -0.3785
-      },
-      "items": [],
-      "cards": [
-        { "label": "Tarifa", "value": "Dinámica x1.2" },
-        { "label": "Espera", "value": "4 min" }
-      ],
-      "banner": { "text": "Alta demanda en esta zona: punto de recogida optimizado a 50m para evitar retenciones", "tone": "warning" },
-      "cta": "Aceptar punto de encuentro",
-      "ctaVariant": "primary"
-    },
-    {
-      "step": 3,
-      "shortName": "3 · Confirmación y pago",
+      "shortName": "2 · Funcionalidad activa / Modal / Detalle",
       "stateType": "happy_path",
       "stateBadge": "HAPPY PATH",
-      "stateDesc": "Revisión nominal de detalles, punto de encuentro y autorización",
-      "hint": "Resumen final del servicio",
-      "navTitle": "Confirmación",
-      "mainTitle": "Revisa tu viaje",
-      "mainSubtitle": "Tarifa cerrada garantizada sin sorpresas",
+      "stateDesc": "Visualización del componente o contenido solicitado en el brief",
+      "hint": "Información detallada solicitada en el brief",
+      "navTitle": "Detalle",
+      "mainTitle": "Contenido específico del brief",
+      "mainSubtitle": "Explicación detallada orientada al usuario",
       "showMap": false,
       "items": [],
       "cards": [],
       "banner": null,
-      "cta": "Confirmar viaje",
-      "ctaVariant": "primary"
+      "cta": "Entendido / Continuar",
+      "ctaVariant": "primary",
+      "ctaTargetStep": 3,
+      "functionality": "Resuelve directamente la necesidad comunicativa o de interacción del brief.",
+      "designJustification": "Diseño en BottomSheet/Modal para focalizar la atención y garantizar lectura."
+    },
+    {
+      "step": 3,
+      "shortName": "3 · Gestión de incidencia o caso límite",
+      "stateType": "error",
+      "stateBadge": "CASO DE ERROR",
+      "stateDesc": "Tratamiento de error contextual con recuperación guiada",
+      "hint": "Resolución asistida",
+      "navTitle": "Incidencia",
+      "mainTitle": "No se pudo completar la acción",
+      "mainSubtitle": "Mensaje constructivo explicando la situación sin culpar al usuario.",
+      "showMap": false,
+      "items": [],
+      "cards": [],
+      "banner": { "text": "Incidencia detectada: puedes reintentar al instante", "tone": "negative" },
+      "cta": "Reintentar acción",
+      "ctaVariant": "negative",
+      "ctaTargetStep": 2,
+      "functionality": "Evita bloqueos ofreciendo vía de escape y reintento directo.",
+      "designJustification": "Erradica callejones sin salida con CTA contrastado."
     },
     {
       "step": 4,
-      "shortName": "4 · Caso de Error: Fallo y recuperación",
-      "stateType": "error",
-      "stateBadge": "CASO DE ERROR",
-      "stateDesc": "Simulación de incidencia crítica (pago o conductor) con CTA de recuperación sin dead-ends",
-      "hint": "Gestión de error constructiva y guiada",
-      "navTitle": "Incidencia",
-      "mainTitle": "No se pudo procesar el pago",
-      "mainSubtitle": "Tu banco ha rechazado la operación. Elige un método alternativo para no perder el servicio.",
-      "showMap": false,
-      "items": [
-        { "title": "Uber Cash (Saldo: 18,50 €)", "subtitle": "Cobro instantáneo sin comisiones", "icon": "💳", "highlight": true },
-        { "title": "Tarjeta Visa •••• 8912", "subtitle": "Tarjeta bancaria secundaria", "icon": "🏦", "highlight": false }
-      ],
-      "cards": [
-        { "label": "Importe pendiente", "value": "14,20 €" },
-        { "label": "Estado", "value": "Listo para reintentar" }
-      ],
-      "banner": { "text": "Fallo de autorización: selecciona otro método para confirmar al instante", "tone": "negative" },
-      "cta": "Pagar con Uber Cash y continuar",
-      "ctaVariant": "negative"
-    },
-    {
-      "step": 5,
-      "shortName": "5 · Conductor en camino y PIN",
+      "shortName": "4 · Confirmación y cierre",
       "stateType": "happy_path",
       "stateBadge": "HAPPY PATH",
-      "stateDesc": "Recuperación completada con éxito y seguimiento en tiempo real con PIN de seguridad",
-      "hint": "Servicio en marcha y monitorización",
-      "navTitle": "En camino",
-      "mainTitle": "Tu conductor está en camino",
-      "mainSubtitle": "Carlos llegará en 3 minutos",
-      "showMap": true,
-      "mapMeta": {
-        "badge": "Llegando",
-        "eta": "2 min",
-        "driverName": "Carlos M.",
-        "rating": "4.95",
-        "vehicle": "Toyota Corolla · 4821 LKY",
-        "location": "A 300 m de tu punto de recogida",
-        "lat": 39.4699,
-        "lng": -0.3763,
-        "dlat": 39.4680,
-        "dlng": -0.3775
-      },
+      "stateDesc": "Confirmación satisfactoria de la operación",
+      "hint": "Cierre de la experiencia",
+      "navTitle": "Confirmación",
+      "mainTitle": "Operación completada con éxito",
+      "mainSubtitle": "Tus datos han sido procesados correctamente.",
+      "showMap": false,
       "items": [],
-      "cards": [
-        { "label": "PIN de seguridad", "value": "4891" },
-        { "label": "Matrícula", "value": "4821 LKY" }
-      ],
-      "banner": null,
-      "cta": "Finalizar flujo",
-      "ctaVariant": "primary"
+      "cards": [],
+      "banner": { "text": "Acción confirmada con éxito", "tone": "positive" },
+      "cta": "Volver al inicio",
+      "ctaVariant": "primary",
+      "ctaTargetStep": 1,
+      "functionality": "Certifica el éxito de la operación al usuario.",
+      "designJustification": "Feedback positivo inmediato para máxima tranquilidad del usuario."
     }
   ],
   "theme": { "cta": "ink", "radius": "rounded", "density": "comfortable" }
-}
-Reglas estrictas de Base Design System (base.uber.com · baseui v18):
-Los 7 agentes tienen a su disposición y deben emplear las 10 categorías completas del Design System de Uber:
-1. Inputs & Controles:
-   - Button (baseui/button): KIND: primary (#000000), secondary (#F6F6F6), tertiary (borde), negative (#DE1135). SHAPE: rounded (8px) o pill (9999px). SIZE: large (56px para CTAs), default (48px), compact (36px).
-   - Input (baseui/input): Altura 48px, fondo #F6F6F6, radio 8px, para origen, destino y búsqueda.
-   - PaymentCard (baseui/payment-card): Selector y formateador de tarjeta de crédito/débito.
-   - PhoneInput (baseui/phone-input): Selector de prefijo internacional e input de teléfono.
-   - PinCode (baseui/pin-code): PIN de seguridad de 4 dígitos para validación de recogida.
-   - Checkbox, Radio, Slider, Textarea (baseui/*): Controles de preferencias de confort y viaje silencioso.
-2. Pickers:
-   - Select (baseui/select): Desplegables con autocompletado y filtros.
-   - Rating (baseui/rating): Puntuación de estrellas (1 a 5) de conductores y viajes.
-3. Date & Time:
-   - DatePicker & TimePicker (baseui/datepicker, baseui/time-picker): Para reservas programadas (Uber Reserve).
-4. Navigation:
-   - HeaderNavigation (baseui/header-navigation): Barra superior con botón atrás, título y avatar.
-   - Tabs (baseui/tabs): Pestañas segmentadas para alternar servicios de movilidad.
-5. Content & Data:
-   - Avatar (baseui/avatar): Foto circular del conductor con estado verificado.
-   - List & ListItem (baseui/list): Lista estructurada de paradas, puntos de encuentro y desgloses.
-   - Tag (baseui/tag): Badges de estado (positive, negative, warning, accent).
-   - Accordion (baseui/accordion): Desplegables de preguntas frecuentes y condiciones.
-6. Surfaces:
-   - Card (baseui/card): Superficie blanca o #F6F6F6, borde 1px #E2E2E2, radio 8px.
-   - Drawer / BottomSheet (baseui/drawer): Hoja inferior deslizable icónica de la app móvil de Uber.
-   - Modal (baseui/modal): Diálogos para incidencias de cobro o confirmaciones de cancelación.
-7. Feedback & Status:
-   - Banner (baseui/banner): tone "negative" (#DE1135) para errores, tone "warning" (#F69E0C) para Corner Cases (alta demanda, desvíos), tone "positive" (#0E8345) para éxito.
-   - ProgressBar & ProgressSteps: Indicadores de avance en flujos multi-paso.
-   - Spinner: Animación de carga circular durante la búsqueda y emparejamiento.
-8. Map Markers & Geolocalización:
-   - LocationPuck (baseui/location-puck): Indicador azul pulsante de posición GPS del usuario.
-   - FloatingMarker (baseui/floating-marker): Pin con tiempo de llegada ETA (ej: "3 min") y conductor.
-   - FloatingRouteMarker: Marcador sobre el trazado de la ruta en mapa vectorial nocturno.
-9. Imágenes y Medios:
-   - "heroImage": { "url": "https://images.unsplash.com/...", "alt": "descripción" }
-   - "items": cada elemento puede incluir "image", "title", "subtitle", "price", "icon".
-10. Tipografía y Microcopy:
-   - Titulares: Uber Move Bold (700) con tracking -0.02em.
-   - Textos e interfaz: Uber Move Text (Medium 500 / Regular 400) en estricto sentence case sin culpar al usuario.`;
+}`;
 
 function buildUserPrompt(key?: string, priority?: string, title?: string, briefText?: string): string {
   return `Petición entrante del equipo de producto:
@@ -380,7 +445,12 @@ Título: ${title}
 Briefing completo:
 ${briefText}
 
-Diseña la solución profesional completa de producto enfocada en resolver este briefing concreto utilizando el sistema de diseño Uber Base. Diseña todas las pantallas que sean necesarias sin límite artificial de pantallas (típicamente entre 6 y 10+ pantallas), asegurando cubrir exhaustivamente el Happy Path, Casos de Error con pantallas de fallo y recuperación, y Corner Cases con alternativas guiadas y rutas no lineales.`;
+REGLA DE ORO DE OBLIGADO CUMPLIMIENTO:
+Diseña la solución que resuelva ÚNICA Y EXCLUSIVAMENTE este brief concreto.
+- Si el brief solicita una "Modal informativa", diseña la interacción de la modal con componentes oficiales de Uber Base (baseui/modal, baseui/drawer, banner, tarjetas y botones).
+- Si el brief trata de propinas, cancelaciones, perfiles o soporte, diseña las pantallas correspondientes a esa funcionalidad.
+- PROHIBIDO inventar un viaje en coche con conductor en mapa (Carlos M., Toyota Corolla, etc.) a menos que el usuario lo haya pedido explícitamente en el título o descripción del brief.
+- Adapta el número de pantallas (típicamente entre 2 y 5 para componentes/modales o más para flujos largos) a lo que la funcionalidad realmente requiere.`;
 }
 
 // Endpoint estándar JSON para generar propuesta completa
@@ -388,7 +458,7 @@ app.post("/api/llm/generate", async (req, res) => {
   try {
     const { key, title, priority, body: briefText } = req.body ?? {};
     if (!briefText && !title) {
-      res.status(400).json({ error: "Falta el título o el contenido del brief" });
+      res.status(400).json({ error: "Falta el tÃ­tulo o el contenido del brief" });
       return;
     }
 
@@ -422,6 +492,17 @@ app.post("/api/llm/generate", async (req, res) => {
         throw parseErr;
       }
     }
+    if (json && Array.isArray(json.screens)) {
+      const { setLatestFigmaDesign } = await import("./integrations/figma.js");
+      setLatestFigmaDesign(key || "KAN-1", json.screens);
+      broadcastToFigma({
+        type: "RENDER_FLOW_MAP",
+        screens: json.screens,
+        screenSvgs: [],
+        key: key || "KAN-1",
+        changelog: null
+      });
+    }
     res.json({ ok: true, result: json });
   } catch (err) {
     log.error("Error en /api/llm/generate:", err);
@@ -429,7 +510,7 @@ app.post("/api/llm/generate", async (req, res) => {
   }
 });
 
-// Endpoint de streaming en tiempo real (Server-Sent Events) para visualización progresiva
+// Endpoint de streaming en tiempo real (Server-Sent Events) para visualizaciÃ³n progresiva
 app.post("/api/llm/stream", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -442,14 +523,14 @@ app.post("/api/llm/stream", async (req, res) => {
   try {
     const { key, title, priority, body: briefText } = req.body ?? {};
     if (!briefText && !title) {
-      send("error", { message: "Falta el título o el contenido del brief" });
+      send("error", { message: "Falta el tÃ­tulo o el contenido del brief" });
       res.end();
       return;
     }
 
     send("agent_step", { id: "brief", name: "Analista de brief", status: "running", subagent: "Lector de Requisitos", log: "Analizando objetivos de negocio, prioridades y matriz de alcance..." });
     send("agent_step", { id: "ctx", name: "Agente de contexto", status: "running", subagent: "Base DS Token Crawler", log: "Seleccionando tokens baseui oficiales de Uber Base (base.uber.com)..." });
-    send("agent_step", { id: "ux", name: "Arquitecto UX", status: "running", subagent: "Máquina de Estados", log: "Estructurando pantallas, caminos nominales y bifurcaciones de error sin dead-ends..." });
+    send("agent_step", { id: "ux", name: "Arquitecto UX", status: "running", subagent: "MÃ¡quina de Estados", log: "Estructurando pantallas, caminos nominales y bifurcaciones de error sin dead-ends..." });
 
     const userPrompt = buildUserPrompt(key, priority, title, briefText);
     const text = await complete({ system: UBER_BASE_SYSTEM, user: userPrompt, maxTokens: 16000 });
@@ -489,7 +570,7 @@ app.post("/api/llm/stream", async (req, res) => {
   }
 });
 
-// Endpoint síncrono para que la interfaz web obtenga cambios generados por IA real inmediatamente
+// Endpoint sÃ­ncrono para que la interfaz web obtenga cambios generados por IA real inmediatamente
 app.post("/api/llm/iterate", async (req, res) => {
   try {
     const { request: userReq, currentState, prompt } = req.body ?? {};
@@ -497,10 +578,10 @@ app.post("/api/llm/iterate", async (req, res) => {
       res.status(400).json({ error: "Falta 'request'" });
       return;
     }
-    const system = "Eres el equipo de agentes de diseño autónomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y QA) aplicando el sistema de diseño oficial Base Design System (tokens base.uber.com). " +
-      "Devuelve EXCLUSIVAMENTE un objeto JSON válido con las claves: summary, changes, agents, question, state. No incluyas explicaciones en texto fuera del JSON. " +
-      "IMPORTANTE: Si 'currentState' contiene un array 'screens', debes devolver en 'state.screens' el array completo con todas las pantallas del flujo (sin límite artificial de pantallas, conservando todas las pantallas existentes o añadiendo/modificando las necesarias para resolver la petición), asegurando que cada pantalla conserve o actualice: step, shortName, stateType ('happy_path' | 'error' | 'corner_case'), stateBadge ('HAPPY PATH' | 'CASO DE ERROR' | 'CORNER CASE'), stateDesc, navTitle, mainTitle, mainSubtitle, showMap, mapMeta, heroImage, items, cards, banner, cta, ctaVariant, ctaTargetStep, secondaryCta.";
-    const user = prompt || `Petición de la diseñadora:\n${userReq}\n\nEstado actual:\n${JSON.stringify(currentState, null, 2)}`;
+    const system = "Eres el equipo de agentes de diseÃ±o autÃ³nomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y QA) aplicando el sistema de diseÃ±o oficial Base Design System (tokens base.uber.com). " +
+      "REGLA ESTRICTA: Las pantallas deben ser 100% finales de diseño para usuario real, SIN botones ni acciones de simulación dentro de la pantalla (PROHIBIDO 'Simular avance', 'Simular llegada', 'Simular error', etc.). Devuelve EXCLUSIVAMENTE un objeto JSON vÃ¡lido con las claves: summary, changes, agents, question, state. No incluyas explicaciones en texto fuera del JSON. " +
+      "IMPORTANTE: Si 'currentState' contiene un array 'screens', debes devolver en 'state.screens' el array completo con todas las pantallas del flujo (sin lÃ­mite artificial de pantallas, conservando todas las pantallas existentes o aÃ±adiendo/modificando las necesarias para resolver la peticiÃ³n), asegurando que cada pantalla conserve o actualice: step, shortName, stateType ('happy_path' | 'error' | 'corner_case'), stateBadge ('HAPPY PATH' | 'CASO DE ERROR' | 'CORNER CASE'), stateDesc, navTitle, mainTitle, mainSubtitle, showMap, mapMeta, heroImage, items, cards, banner, cta, ctaVariant, ctaTargetStep, secondaryCta.";
+    const user = prompt || `PeticiÃ³n de la diseÃ±adora:\n${userReq}\n\nEstado actual:\n${JSON.stringify(currentState, null, 2)}`;
     const text = await complete({ system, user, maxTokens: 16000 });
     let json;
     try {
@@ -529,6 +610,24 @@ app.post("/api/llm/iterate", async (req, res) => {
         throw parseErr;
       }
     }
+    const iterScreens = (json?.state && Array.isArray(json.state.screens)) ? json.state.screens : (Array.isArray(json?.screens) ? json.screens : null);
+    if (iterScreens) {
+      const { setLatestFigmaDesign } = await import("./integrations/figma.js");
+      const changelogInfo = {
+        version: (currentState?.version || 1) + 1,
+        request: userReq,
+        summary: json.summary || "Cambios aplicados según feedback de stakeholders",
+        changes: Array.isArray(json.changes) ? json.changes : []
+      };
+      setLatestFigmaDesign(currentState?.key || "KAN-1", iterScreens, changelogInfo);
+      broadcastToFigma({
+        type: "RENDER_FLOW_MAP",
+        screens: iterScreens,
+        screenSvgs: [],
+        key: currentState?.key || "KAN-1",
+        changelog: changelogInfo
+      });
+    }
     res.json({ ok: true, result: json });
   } catch (err) {
     log.error("Error en /api/llm/iterate:", err);
@@ -536,7 +635,7 @@ app.post("/api/llm/iterate", async (req, res) => {
   }
 });
 
-// --- Integración Bidireccional con Figma (Sync & Export) ---
+// --- IntegraciÃ³n Bidireccional con Figma (Sync & Export) ---
 interface FigmaUrlParsed {
   fileKey: string;
   nodeId: string;
@@ -567,11 +666,11 @@ function parseFigmaUrl(url: string): FigmaUrlParsed | null {
 }
 
 function generateFigmaPluginScript(screens: any[]): string {
-  return `// === Generador Automático de Canvas para Figma ===
+  return `// === Generador AutomÃ¡tico de Canvas para Figma ===
 // Instrucciones en Figma Desktop:
-// 1. Ve a: Plugins › Development › Open Console (o nuevo plugin de desarrollo)
-// 2. Pega este código y presiona Enter.
-// 3. Los frames con Auto Layout y tokens de Uber Base aparecerán alineados en tu lienzo.
+// 1. Ve a: Plugins â€º Development â€º Open Console (o nuevo plugin de desarrollo)
+// 2. Pega este cÃ³digo y presiona Enter.
+// 3. Los frames con Auto Layout y tokens de Uber Base aparecerÃ¡n alineados en tu lienzo.
 (async () => {
   const screens = ${JSON.stringify(screens, null, 2)};
   await figma.loadFontAsync({ family: "Inter", style: "Regular" });
@@ -643,7 +742,7 @@ function generateFigmaPluginScript(screens: any[]): string {
     figma.currentPage.appendChild(frame);
   });
 
-  figma.notify("✓ " + screens.length + " pantallas de Uber Base creadas exitosamente en el lienzo de Figma.");
+  figma.notify("âœ“ " + screens.length + " pantallas de Uber Base creadas exitosamente en el lienzo de Figma.");
 })();`;
 }
 
@@ -659,7 +758,7 @@ app.post("/api/figma/sync", async (req, res) => {
     const parsed = parseFigmaUrl(figmaUrl);
     if (!parsed) {
       res.status(400).json({
-        error: "El enlace no es una URL válida de Figma. Formato esperado: https://www.figma.com/design/:file_key/:nombre?node-id=402-12"
+        error: "El enlace no es una URL vÃ¡lida de Figma. Formato esperado: https://www.figma.com/design/:file_key/:nombre?node-id=402-12"
       });
       return;
     }
@@ -692,22 +791,22 @@ app.post("/api/figma/sync", async (req, res) => {
     }
 
     const targetDesc = (typeof targetStep === "number" && targetStep >= 1)
-      ? `Aplica los cambios específicamente a la Pantalla ${targetStep}.`
-      : (targetStep === "new" ? "Inserta esta pantalla como una nueva pantalla en el flujo." : "Detecta automáticamente qué pantalla del flujo debe actualizarse según los nombres de capas, nodos y notas del diseñador.");
+      ? `Aplica los cambios especÃ­ficamente a la Pantalla ${targetStep}.`
+      : (targetStep === "new" ? "Inserta esta pantalla como una nueva pantalla en el flujo." : "Detecta automÃ¡ticamente quÃ© pantalla del flujo debe actualizarse segÃºn los nombres de capas, nodos y notas del diseÃ±ador.");
 
-    const system = "Eres el equipo de agentes de diseño autónomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y QA) aplicando el sistema de diseño oficial Base Design System (tokens base.uber.com). " +
-      "Tu objetivo es sincronizar e incluir los cambios diseñados en Figma por la diseñadora dentro del flujo de pantallas existente de la aplicación. " +
-      "Devuelve EXCLUSIVAMENTE un objeto JSON válido con las claves: summary, changes, agents, state. No incluyas texto fuera del JSON. " +
+    const system = "Eres el equipo de agentes de diseÃ±o autÃ³nomos de Uber (Arquitecto UX, Redactor UX, Agente de UI y QA) aplicando el sistema de diseÃ±o oficial Base Design System (tokens base.uber.com). " +
+      "Tu objetivo es sincronizar e incluir los cambios diseÃ±ados en Figma por la diseÃ±adora dentro del flujo de pantallas existente de la aplicaciÃ³n. " +
+      "Devuelve EXCLUSIVAMENTE un objeto JSON vÃ¡lido con las claves: summary, changes, agents, state. No incluyas texto fuera del JSON. " +
       "En 'state.screens' debes devolver el array completo con todas las pantallas del flujo actualizado, asegurando que cada pantalla conserve o actualice: step, shortName, stateType, stateBadge, stateDesc, navTitle, mainTitle, mainSubtitle, showMap, mapMeta, heroImage, items, cards, banner, cta, ctaVariant, ctaTargetStep, secondaryCta.";
 
-    const userPrompt = `La diseñadora ha realizado ajustes en Figma y solicita incluir los cambios en el flujo de producto.\n` +
+    const userPrompt = `La diseÃ±adora ha realizado ajustes en Figma y solicita incluir los cambios en el flujo de producto.\n` +
       `- Enlace de Figma: ${figmaUrl}\n` +
       `- File Key: ${parsed.fileKey}\n` +
       `- Node ID: ${parsed.nodeId || "No especificado (archivo general)"}\n` +
-      `- Nombre de la pantalla / frame en Figma: ${parsed.fileName || "Sin título específico"}\n` +
+      `- Nombre de la pantalla / frame en Figma: ${parsed.fileName || "Sin tÃ­tulo especÃ­fico"}\n` +
       `- Pantalla de destino en el flujo: ${targetDesc}\n` +
-      `- Notas y cambios explicados por el diseñador: ${notes || "Sincronizar y adaptar la pantalla a las modificaciones hechas en Figma"}\n` +
-      (figmaData ? `- Metadatos extraídos de la API de Figma: ${JSON.stringify(figmaData).slice(0, 3000)}\n` : "") +
+      `- Notas y cambios explicados por el diseÃ±ador: ${notes || "Sincronizar y adaptar la pantalla a las modificaciones hechas en Figma"}\n` +
+      (figmaData ? `- Metadatos extraÃ­dos de la API de Figma: ${JSON.stringify(figmaData).slice(0, 3000)}\n` : "") +
       (previewImageUrl ? `- Preview PNG de Figma disponible en: ${previewImageUrl}\n` : "") +
       `\nEstado actual del flujo de pantallas:\n${JSON.stringify(currentState, null, 2)}`;
 
@@ -741,7 +840,7 @@ app.post("/api/figma/sync", async (req, res) => {
       if (json.state.screens[stepIdx]) {
         json.state.screens[stepIdx].heroImage = {
           url: previewImageUrl,
-          alt: `Diseño sincronizado desde Figma (${parsed.fileName || "Nodo " + parsed.nodeId})`,
+          alt: `DiseÃ±o sincronizado desde Figma (${parsed.fileName || "Nodo " + parsed.nodeId})`,
           caption: `Sincronizado con Figma: ${parsed.fileName || parsed.fileKey}`
         };
       }
@@ -761,11 +860,109 @@ app.post("/api/figma/sync", async (req, res) => {
   }
 });
 
+
+// Servir el SVG del flujo completo directamente como archivo descargable
+app.get("/api/figma/svg", async (req, res) => {
+  try {
+    const { getLatestFigmaDesign } = await import("./integrations/figma.js");
+    const latest = getLatestFigmaDesign();
+    const screens = latest.screens;
+    const key = latest.key || "KAN-1";
+    const frameW = 375, frameH = 812, gap = 70, padX = 80, padY = 80;
+    const screensCount = screens.length;
+    const totalW = padX * 2 + screensCount * frameW + (screensCount - 1) * gap + gap + 540;
+    const totalH = padY * 2 + frameH + 140;
+    function esc(s: any) {
+      return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+    const parts: string[] = [
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}">`,
+      `<defs><style>text{font-family:Arial,sans-serif}</style>`,
+      `<marker id="ag" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 1L10 5L0 9z" fill="#0E8345"/></marker>`,
+      `<marker id="ar" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 1L10 5L0 9z" fill="#DE1135"/></marker>`,
+      `<marker id="aw" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 1L10 5L0 9z" fill="#F69E0C"/></marker>`,
+      `<filter id="sh"><feDropShadow dx="0" dy="10" stdDeviation="16" flood-opacity="0.10"/></filter></defs>`,
+      `<rect width="100%" height="100%" fill="#F4F5F6"/>`
+    ];
+    screens.forEach((s: any, idx: number) => {
+      const x = padX + idx * (frameW + gap), y = padY + 20;
+      const isE = s.stateType === "error", isC = s.stateType === "corner_case";
+      const tc = isE ? "#DE1135" : isC ? "#F69E0C" : "#0E8345";
+      const tb = isE ? "#FDF0F2" : isC ? "#FEF6E7" : "#EBF7EE";
+      const badge = s.stateBadge || (isE ? "ERROR" : isC ? "CORNER" : "HAPPY PATH");
+      parts.push(`<g transform="translate(${x},${y})">`);
+      parts.push(`<rect x="0" y="-34" width="88" height="20" rx="4" fill="${tb}"/><text x="44" y="-20" text-anchor="middle" font-size="9" font-weight="bold" fill="${tc}">${esc(badge)}</text>`);
+      parts.push(`<text x="96" y="-20" font-size="12" font-weight="bold" fill="#000">P${idx+1} ${esc(s.shortName||s.mainTitle||"")}</text>`);
+      parts.push(`<rect width="375" height="812" rx="36" fill="#fff" stroke="#000" stroke-width="3" filter="url(#sh)"/>`);
+      parts.push(`<text x="28" y="34" font-size="12" font-weight="bold" fill="#000">9:41</text><text x="347" y="34" text-anchor="end" font-size="11" font-weight="bold" fill="#000">5G</text>`);
+      parts.push(`<text x="24" y="70" font-size="20" font-weight="bold" fill="#000">Uber</text>`);
+      let cy = 100;
+      if (s.showMap) { parts.push(`<rect x="20" y="${cy}" width="335" height="150" rx="12" fill="#141414"/><text x="187" y="${cy+90}" text-anchor="middle" font-size="24">Map</text>`); cy += 166; }
+      parts.push(`<text x="24" y="${cy+24}" font-size="18" font-weight="bold" fill="#000">${esc(s.mainTitle||s.shortName||"")}</text>`);
+      if (s.mainSubtitle) { parts.push(`<text x="24" y="${cy+48}" font-size="13" fill="#545454">${esc(s.mainSubtitle)}</text>`); cy += 32; }
+      cy += 36;
+      if (s.banner?.text) { parts.push(`<rect x="20" y="${cy}" width="335" height="40" rx="6" fill="${tb}" stroke="${tc}" stroke-width="1"/><text x="32" y="${cy+24}" font-size="12" font-weight="bold" fill="${tc}">${esc(String(s.banner.text).slice(0,48))}</text>`); cy += 52; }
+      if (Array.isArray(s.items)) s.items.slice(0,2).forEach((it: any) => { parts.push(`<rect x="20" y="${cy}" width="335" height="54" rx="8" fill="#fff" stroke="${it.highlight?"#000":"#E2E2E2"}" stroke-width="${it.highlight?2:1}"/><text x="36" y="${cy+32}" font-size="14" font-weight="bold" fill="#000">${esc(it.title)}</text>`); cy += 64; });
+      const bg = (isE||s.ctaVariant==="negative") ? "#DE1135" : "#000";
+      parts.push(`<rect x="20" y="732" width="335" height="48" rx="8" fill="${bg}"/><text x="187" y="761" text-anchor="middle" font-size="15" font-weight="bold" fill="#fff">${esc(s.cta||"Continuar")}</text>`);
+      parts.push(`</g>`);
+    });
+    screens.forEach((s: any, idx: number) => {
+      const srcX = padX + idx * (frameW + gap) + frameW, srcY = padY + 20 + 756;
+      const tStep = (typeof s.ctaTargetStep==="number"&&s.ctaTargetStep>=1)?s.ctaTargetStep:(idx<screens.length-1?idx+2:1);
+      const tIdx = tStep - 1; if (tIdx >= screens.length) return;
+      const isE = s.stateType==="error", isC = s.stateType==="corner_case";
+      const stroke = isE?"#DE1135":isC?"#F69E0C":"#0E8345";
+      const mk = isE?"ar":isC?"aw":"ag";
+      if (tIdx===idx+1) {
+        const dstX = padX + tIdx * (frameW + gap);
+        parts.push(`<path d="M ${srcX} ${srcY} L ${dstX-6} ${srcY}" fill="none" stroke="${stroke}" stroke-width="2.5" marker-end="url(#${mk})"/>`);
+        parts.push(`<text x="${(srcX+dstX)/2}" y="${srcY-18}" text-anchor="middle" font-size="10" fill="${stroke}">${esc(String(s.cta||"").slice(0,14))}</text>`);
+      } else if (tIdx<idx) {
+        const sX=padX+idx*(frameW+gap)+frameW*0.5, eX=padX+tIdx*(frameW+gap)+frameW*0.5, dropY=padY+20+frameH+35+idx*16;
+        parts.push(`<path d="M ${sX} ${padY+20+frameH} L ${sX} ${dropY} L ${eX} ${dropY} L ${eX} ${padY+20+frameH+8}" fill="none" stroke="${stroke}" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#${mk})"/>`);
+      }
+    });
+    const docX = padX + screensCount * (frameW + gap), docY = padY + 20;
+    parts.push(`<g transform="translate(${docX},${docY})">`);
+    parts.push(`<rect width="540" height="812" rx="16" fill="#fff" stroke="#000" stroke-width="2" filter="url(#sh)"/>`);
+    parts.push(`<rect x="0" y="0" width="540" height="72" rx="16" fill="#000"/>`);
+    parts.push(`<text x="24" y="30" font-size="10" font-weight="bold" fill="#888">GUIA FUNCIONAL STAKEHOLDERS</text>`);
+    parts.push(`<text x="24" y="52" font-size="15" font-weight="bold" fill="#fff">Flujo ${esc(key)}</text>`);
+    let dy = 96;
+    parts.push(`<text x="24" y="${dy}" font-size="13" font-weight="bold" fill="#000">Objetivo y Propuesta de Valor</text>`); dy+=16;
+    parts.push(`<rect x="24" y="${dy}" width="492" height="56" rx="8" fill="#F8F9FA" stroke="#E2E2E2" stroke-width="1"/>`);
+    parts.push(`<text x="36" y="${dy+20}" font-size="11" font-weight="bold" fill="#000">Certidumbre total en el viaje.</text>`);
+    parts.push(`<text x="36" y="${dy+40}" font-size="11" fill="#545454">Precios cerrados y telemetria en tiempo real.</text>`);
+    dy+=70;
+    parts.push(`<text x="24" y="${dy}" font-size="13" font-weight="bold" fill="#000">Recorrido Paso a Paso</text>`); dy+=16;
+    [{n:"1",t:"Seleccion Servicio",b:"HAPPY",c:"#0E8345",bg:"#EBF7EE",d:"Tarifa cerrada garantizada."},{n:"2",t:"Desvio Proactivo",b:"CORNER",c:"#F69E0C",bg:"#FEF6E7",d:"50m ahorra 10min de atasco."},{n:"3",t:"Resumen Cobro",b:"HAPPY",c:"#0E8345",bg:"#EBF7EE",d:"Desglose y confirmacion pago."},{n:"4",t:"Recuperacion Error",b:"ERROR",c:"#DE1135",bg:"#FDF0F2",d:"Fallo tarjeta: Uber Cash actua."},{n:"5",t:"Conductor y PIN",b:"HAPPY",c:"#0E8345",bg:"#EBF7EE",d:"GPS vivo + PIN 7492 seguridad."}].forEach(st=>{
+      parts.push(`<rect x="24" y="${dy}" width="492" height="50" rx="6" fill="#FBFBFB" stroke="#EEE" stroke-width="1"/>`);
+      parts.push(`<rect x="34" y="${dy+7}" width="62" height="16" rx="3" fill="${st.bg}"/><text x="65" y="${dy+19}" text-anchor="middle" font-size="8" font-weight="bold" fill="${st.c}">${st.b}</text>`);
+      parts.push(`<text x="104" y="${dy+19}" font-size="12" font-weight="bold" fill="#000">${st.n}. ${esc(st.t)}</text>`);
+      parts.push(`<text x="34" y="${dy+38}" font-size="10" fill="#545454">${esc(st.d)}</text>`);
+      dy+=54;
+    });
+    dy+=4;
+    parts.push(`<text x="24" y="${dy}" font-size="13" font-weight="bold" fill="#000">KPIs de Impacto</text>`); dy+=16;
+    parts.push(`<rect x="24" y="${dy}" width="492" height="50" rx="8" fill="#F8F9FA" stroke="#E2E2E2" stroke-width="1"/>`);
+    parts.push(`<text x="38" y="${dy+20}" font-size="11" font-weight="bold" fill="#000">+18% Conversion</text><text x="200" y="${dy+20}" font-size="11" font-weight="bold" fill="#0E8345">-10min Espera</text><text x="360" y="${dy+20}" font-size="11" font-weight="bold" fill="#276EF1">0% Dead-ends</text>`);
+    dy+=64;
+    parts.push(`<rect x="24" y="${dy}" width="492" height="38" rx="8" fill="#EBF7EE" stroke="#B8E4C3" stroke-width="1"/>`);
+    parts.push(`<text x="36" y="${dy+23}" font-size="11" font-weight="bold" fill="#0E8345">Base DS: botones 48px r8px - Conectores 90deg</text>`);
+    parts.push(`</g></svg>`);
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="uber_flow_${key}.svg"`);
+    res.send(parts.join("\n"));
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
 // Exportar pantallas y tokens listos para el lienzo de Figma
 app.post("/api/figma/export", async (req, res) => {
   try {
     const { screens, d } = req.body ?? {};
-    const screensList = Array.isArray(screens) && screens.length > 0 ? screens : (Array.isArray(d?.screens) ? d.screens : []);
+    const { getLatestFigmaDesign } = await import("./integrations/figma.js"); const latest = getLatestFigmaDesign(); const screensList = Array.isArray(screens) && screens.length > 0 ? screens : (Array.isArray(d?.screens) && d.screens.length > 0 ? d.screens : latest.screens);
     const pluginScript = generateFigmaPluginScript(screensList);
     if (screensList.length > 0) {
       const { setLatestFigmaDesign } = await import("./integrations/figma.js");
@@ -791,9 +988,65 @@ app.post("/api/runs/:key/approve", async (req, res) => {
   }
 });
 
-app.listen(config.port, "0.0.0.0", () => {
-  log.info(`Servidor activo en red local: http://192.168.0.19:${config.port}`);
-  log.info(`Uber Base Design Agents escuchando en http://localhost:${config.port}`);
-  log.info(config.dryRun ? "DRY_RUN activo: no se escribirá en Jira ni en Trello." : "Modo real: se escribirá en Jira y Trello.");
-  if (config.jira.baseUrl && config.jira.email && config.jira.apiToken) { startJiraPoller(15000); }
+// Endpoint para disparar el renderizado en Figma mediante MCP o API directa
+
+// Endpoint para disparar el renderizado del Flujo de Orquestación en Figma
+app.post("/api/figma/push-orchestration", async (_req, res) => {
+  try {
+    const sent = broadcastToFigma({
+      type: "RENDER_ORCHESTRATION_FLOW"
+    });
+    res.json({
+      ok: true,
+      sentToPlugins: sent,
+      message: "Orden RENDER_ORCHESTRATION_FLOW emitida"
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
 });
+
+app.get("/api/figma/orchestration-script", async (_req, res) => {
+  try {
+    const script = fs.readFileSync("scripts/render-orchestration-figma.js", "utf8");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.send(script);
+  } catch(e) {
+    res.status(500).send("console.error('Error:', " + JSON.stringify(String(e)) + ");");
+  }
+});
+
+app.post("/api/figma/push", async (req, res) => {
+  try {
+    const { getLatestFigmaDesign } = await import("./integrations/figma.js");
+    const latest = getLatestFigmaDesign();
+    const sent = broadcastToFigma({
+      type: "RENDER_FLOW_MAP",
+      screens: latest.screens,
+      screenSvgs: latest.screenSvgs,
+      key: latest.key || "KAN-1",
+      changelog: latest.changelog
+    });
+    res.json({
+      ok: true,
+      sentToPlugins: sent,
+      key: latest.key,
+      screensCount: latest.screens.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+if (!process.env.VERCEL) {
+  server.listen(config.port, "0.0.0.0", () => {
+    log.info(`Servidor activo en red local: http://192.168.0.19:${config.port}`);
+    log.info(`Uber Base Design Agents escuchando en http://localhost:${config.port}`);
+    log.info(config.dryRun ? "DRY_RUN activo: no se escribirá en Jira ni en Trello." : "Modo real: se escribirá en Jira y Trello.");
+    if (config.jira.baseUrl && config.jira.email && config.jira.apiToken) { startJiraPoller(15000); }
+  });
+}
+
+export default app;
+export { app, server };

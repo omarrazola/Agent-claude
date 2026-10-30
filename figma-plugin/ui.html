@@ -2,81 +2,89 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <title>Uber Base Auto-Design Agent</title>
   <style>
     body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
       padding: 16px;
-      background: #FFFFFF;
       color: #000000;
+      background: #FFFFFF;
       font-size: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
     }
     .header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px solid #E2E2E2;
-      padding-bottom: 10px;
     }
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #EFF4FE;
-      color: #174EA6;
-      font-weight: 600;
+      background: #F6F6F6;
+      border: 1px solid #E2E2E2;
+      border-radius: 9999px;
+      padding: 3px 8px;
       font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
+      font-weight: 600;
     }
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: #545454;
+      background: #DE1135;
     }
     .dot.live {
       background: #0E8345;
-      box-shadow: 0 0 6px rgba(14, 131, 69, 0.6);
+      box-shadow: 0 0 6px rgba(14, 131, 69, 0.4);
+    }
+    .card {
+      background: #F6F6F6;
+      border: 1px solid #E2E2E2;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .status-text {
+      font-size: 12px;
+      color: #545454;
+      margin-top: 6px;
     }
     .btn {
+      width: 100%;
+      height: 44px;
       background: #000000;
       color: #FFFFFF;
-      border: none;
-      padding: 12px;
-      border-radius: 9999px;
+      border: 0;
+      border-radius: 8px;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 13.5px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.2s;
+      transition: background 0.15s;
+      margin-bottom: 8px;
     }
-    .btn:hover { background: #333333; }
-    .btn:disabled { background: #E2E2E2; color: #757575; cursor: not-allowed; }
-    .card {
-      background: #F6F6F6;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .btn:hover:not(:disabled) {
+      background: #276EF1;
     }
-    .status-text {
-      font-size: 11.5px;
-      color: #545454;
+    .btn:disabled {
+      background: #E2E2E2;
+      color: #757575;
+      cursor: not-allowed;
     }
     .auto-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
+      font-size: 11.5px;
+      color: #545454;
+      margin: 10px 0 14px;
       cursor: pointer;
     }
   </style>
@@ -86,7 +94,7 @@
     <span style="font-size: 20px">🤖</span>
     <div>
       <b style="font-size: 14px">Agente Uber Base</b>
-      <div style="font-size: 11px; color: #545454">Bridge Automático de Diseño</div>
+      <div style="font-size: 11px; color: #545454">Bridge Automático MCP & WebSocket</div>
     </div>
   </div>
 
@@ -98,27 +106,49 @@
     <div class="status-text" id="screensCountText">0 pantallas pendientes en servidor</div>
   </div>
 
+  <div class="card" style="padding: 10px 12px; margin-bottom: 10px; background: #FAFAFA;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <span style="font-weight: 700; font-size: 11.5px; color: #111;">🎯 Archivo Figma de destino</span>
+      <span id="pluginTargetKeyBadge" style="font-family: monospace; font-size: 10px; background: #E5E7EB; color: #1F2937; padding: 1px 5px; border-radius: 4px;">---</span>
+    </div>
+    <input type="url" id="pluginTargetUrlInput" placeholder="https://www.figma.com/design/..." style="width: 100%; box-sizing: border-box; font-size: 11px; padding: 5px 8px; border: 1px solid #D1D5DB; border-radius: 6px; margin-bottom: 6px; font-family: inherit;" />
+    <div style="display: flex; gap: 6px;">
+      <button type="button" id="pluginSaveUrlBtn" style="flex: 1; height: 26px; font-size: 11px; background: #000000; color: #ffffff; border: 0; border-radius: 6px; cursor: pointer; font-weight: 600;">Guardar URL</button>
+      <button type="button" id="pluginDetectFileBtn" style="height: 26px; font-size: 11px; background: #ffffff; border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 8px; cursor: pointer; color: #374151;">📍 Detectar archivo</button>
+    </div>
+    <div id="pluginUrlFeedback" style="font-size: 10.5px; color: #0E8345; font-weight: 600; margin-top: 4px; display: none;">✓ Sincronizado con el servidor</div>
+  </div>
+
   <button class="btn" id="renderBtn" disabled>
-    <span>🎨</span> Pintar Pantallas en Canva
+    <span>🗺️</span> Importar Mapa de Flujo en Canva
+  </button>
+
+  <button class="btn" id="renderOrchestrationBtn" style="background:#4F46E5;margin-top:2px">
+    <span>🤖</span> Renderizar Flujo de Orquestación
   </button>
 
   <button class="btn" id="createLibBtn" style="background:#276EF1;margin-top:2px">
     <span>💎</span> Crear Librería de Componentes Base DS
   </button>
 
+  <button class="btn" id="createStylesBtn" style="background:#0E8345;margin-top:2px">
+    <span>🎨</span> Sincronizar Estilos Locales (Color y Texto)
+  </button>
+
   <label class="auto-toggle">
     <input type="checkbox" id="autoSyncCheck" checked>
-    <span>Pintar automáticamente al generar prototipo</span>
+    <span>Pintar automáticamente al recibir push de MCP</span>
   </label>
 
   <div class="status-text" style="line-height: 1.4; border-top: 1px solid #E2E2E2; padding-top: 10px;">
-    Conectado a <code>http://localhost:8787</code>.<br>
-    Cuando el agente complete el flujo en la web, se dibujarán aquí todas las pantallas con tokens y estilos de Uber Base.
+    Bridge activo conectado al portal en <code>http://localhost:5173</code>.<br>
+    Cuando el agente envíe un diseño, se pintará en el canvas en tiempo real sin clics.
   </div>
 
   <script>
     let latestData = null;
     let lastRenderedVersion = null;
+    let ws = null;
 
     const dot = document.getElementById("serverDot");
     const statusText = document.getElementById("serverStatus");
@@ -127,15 +157,79 @@
     const ticketBadge = document.getElementById("ticketBadge");
     const autoCheck = document.getElementById("autoSyncCheck");
 
+    function setupWebSocket() {
+      try {
+        const wsUrl = "ws://localhost:5173/ws/figma";
+        ws = new WebSocket(wsUrl);
+        ws.onopen = function() {
+          dot.className = "dot live";
+          statusText.textContent = "Portal Conectado (5173)";
+        };
+        ws.onerror = function() {
+          try {
+            ws = new WebSocket("ws://localhost:8787");
+            ws.onopen = function() {
+              dot.className = "dot live";
+              statusText.textContent = "Bridge Conectado";
+            };
+          } catch(e) {}
+        };
+
+        ws.onmessage = function(event) {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === "FIGMA_TARGET_UPDATED") {
+              setPluginTargetUI(msg.fileUrl, msg.fileKey, true);
+              return;
+            }
+            if (msg.type === "RENDER_ORCHESTRATION_FLOW") {
+              parent.postMessage({ pluginMessage: msg }, "*");
+              return;
+            }
+            if (msg.type === "RENDER_FLOW_MAP" || msg.type === "RENDER_SCREENS") {
+              ticketBadge.textContent = msg.key || "KAN";
+              countText.textContent = (msg.screens ? msg.screens.length : 0) + " pantallas recibidas vía MCP Push";
+              parent.postMessage({ pluginMessage: msg }, "*");
+            }
+          } catch(err) {
+            console.error("Error procesando mensaje WS:", err);
+          }
+        };
+
+        ws.onclose = function() {
+          dot.className = "dot";
+          statusText.textContent = "Reconectando WebSocket...";
+          setTimeout(setupWebSocket, 2000);
+        };
+
+        ws.onerror = function() {
+          try { ws.close(); } catch(e) {}
+        };
+      } catch(e) {
+        setTimeout(setupWebSocket, 2000);
+      }
+    }
+
     async function pollAgentServer() {
       try {
-        const res = await fetch("http://localhost:8787/api/figma/pending");
+        let res;
+        try {
+          res = await fetch("http://localhost:5173/api/figma/pending");
+        } catch(e) {
+          res = await fetch("http://localhost:8787/api/figma/pending");
+        }
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         latestData = data;
 
-        dot.className = "dot live";
-        statusText.textContent = "Agente Online";
+        if (data && (data.fileUrl || data.fileKey)) {
+          setPluginTargetUI(data.fileUrl, data.fileKey, false);
+        }
+
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          dot.className = "dot live";
+          statusText.textContent = "Portal Online (5173)";
+        }
         ticketBadge.textContent = data.key || "KAN";
 
         const count = Array.isArray(data.screens) ? data.screens.length : 0;
@@ -143,7 +237,6 @@
 
         if (count > 0) {
           renderBtn.disabled = false;
-          // Auto sync si está activado y cambió la versión o ticket
           const versionKey = data.key + "_" + count + "_" + (data.screens[0]?.mainTitle || "");
           if (autoCheck.checked && lastRenderedVersion !== versionKey) {
             lastRenderedVersion = versionKey;
@@ -153,10 +246,12 @@
           renderBtn.disabled = true;
         }
       } catch (err) {
-        dot.className = "dot";
-        statusText.textContent = "Desconectado";
-        countText.textContent = "Asegúrate de que 'npm run dev' esté activo en puerto 8787";
-        renderBtn.disabled = true;
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          dot.className = "dot";
+          statusText.textContent = "Desconectado";
+          countText.textContent = "Asegúrate de que el portal esté activo en http://localhost:5173";
+          renderBtn.disabled = true;
+        }
       }
     }
 
@@ -164,7 +259,7 @@
       if (!latestData || (!Array.isArray(latestData.screens) && !Array.isArray(latestData.screenSvgs))) return;
       parent.postMessage({
         pluginMessage: {
-          type: "RENDER_SCREENS",
+          type: "RENDER_FLOW_MAP",
           screenSvgs: latestData.screenSvgs || [],
           screens: latestData.screens || [],
           key: latestData.key || "KAN-1"
@@ -174,6 +269,13 @@
 
     renderBtn.addEventListener("click", triggerRender);
 
+    const renderOrchestrationBtn = document.getElementById("renderOrchestrationBtn");
+    if (renderOrchestrationBtn) {
+      renderOrchestrationBtn.addEventListener("click", function() {
+        parent.postMessage({ pluginMessage: { type: "RENDER_ORCHESTRATION_FLOW" } }, "*");
+      });
+    }
+
     const createLibBtn = document.getElementById("createLibBtn");
     if (createLibBtn) {
       createLibBtn.addEventListener("click", function() {
@@ -181,8 +283,108 @@
       });
     }
 
+    const createStylesBtn = document.getElementById("createStylesBtn");
+    if (createStylesBtn) {
+      createStylesBtn.addEventListener("click", function() {
+        parent.postMessage({ pluginMessage: { type: "CREATE_LOCAL_STYLES" } }, "*");
+      });
+    }
+
+    const targetInput = document.getElementById("pluginTargetUrlInput");
+    const targetBadge = document.getElementById("pluginTargetKeyBadge");
+    const saveUrlBtn = document.getElementById("pluginSaveUrlBtn");
+    const detectFileBtn = document.getElementById("pluginDetectFileBtn");
+    const feedbackEl = document.getElementById("pluginUrlFeedback");
+
+    function setPluginTargetUI(url, key, isSaved) {
+      if (url && targetInput && document.activeElement !== targetInput) {
+        targetInput.value = url;
+      }
+      if (key && targetBadge) {
+        targetBadge.textContent = key;
+      }
+      if (isSaved && feedbackEl) {
+        feedbackEl.style.display = "block";
+        feedbackEl.style.color = "#0E8345";
+        feedbackEl.textContent = "✓ Sincronizado con el servidor";
+        setTimeout(function() { feedbackEl.style.display = "none"; }, 3000);
+      }
+    }
+
+    if (saveUrlBtn) {
+      saveUrlBtn.addEventListener("click", async function() {
+        const url = targetInput ? targetInput.value.trim() : "";
+        if (!url) return;
+        try {
+          let res;
+          try {
+            res = await fetch("http://localhost:5173/api/figma/target", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: url })
+            });
+          } catch(e) {
+            res = await fetch("http://localhost:8787/api/figma/target", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: url })
+            });
+          }
+          const d = await res.json();
+          if (d && d.ok) {
+            setPluginTargetUI(d.fileUrl, d.fileKey, true);
+          }
+        } catch (e) {
+          console.error("Error guardando target URL:", e);
+        }
+      });
+    }
+
+    if (detectFileBtn) {
+      detectFileBtn.addEventListener("click", function() {
+        parent.postMessage({ pluginMessage: { type: "DETECT_CURRENT_FILE" } }, "*");
+      });
+    }
+
+    window.addEventListener("message", function(event) {
+      const msg = event.data && event.data.pluginMessage;
+      if (!msg) return;
+      if (msg.type === "DETECTED_FILE") {
+        if (msg.fileUrl) {
+          setPluginTargetUI(msg.fileUrl, msg.fileKey, true);
+          const saveTarget = async () => {
+            try {
+              await fetch("http://localhost:5173/api/figma/target", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: msg.fileUrl })
+              });
+            } catch(e) {
+              await fetch("http://localhost:8787/api/figma/target", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: msg.fileUrl })
+              }).catch(function() {});
+            }
+          };
+          saveTarget();
+        } else {
+          if (feedbackEl) {
+            feedbackEl.style.display = "block";
+            feedbackEl.style.color = "#4B5563";
+            feedbackEl.textContent = "💡 Archivo no publicado aún. Copia el enlace desde Figma (Share > Copy link) y pégalo arriba.";
+            setTimeout(function() {
+              feedbackEl.style.display = "none";
+              feedbackEl.style.color = "#0E8345";
+            }, 6000);
+          }
+        }
+      }
+    });
+
+    setupWebSocket();
     pollAgentServer();
-    setInterval(pollAgentServer, 2500);
+    setInterval(pollAgentServer, 3000);
   </script>
 </body>
 </html>

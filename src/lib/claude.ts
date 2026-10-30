@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import Anthropic from "@anthropic-ai/sdk";
+import { Anthropic } from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import { config, ROOT } from "../config.js";
 import { log } from "./logger.js";
@@ -42,12 +42,11 @@ export async function complete({ system, user, model, maxTokens = 8000 }: Comple
     const ai = getGeminiClient();
     const candidateModels = [
       model && model.startsWith("gemini") ? model : config.geminiModel,
-      "gemini-3.5-flash-lite",
+      "gemini-2.5-flash",
       "gemini-2.0-flash",
-      "gemini-2.0-flash-lite",
       "gemini-1.5-flash",
-      "gemini-3.5-flash",
-      "gemini-3.8-flash"
+      "gemini-2.0-flash-lite",
+      "gemini-3.5-flash-lite"
     ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
 
     let lastError: unknown = null;
@@ -88,7 +87,7 @@ export async function complete({ system, user, model, maxTokens = 8000 }: Comple
     if (message.stop_reason === "max_tokens") {
       throw new Error(`La respuesta se cortó al llegar a ${effectiveTokens} tokens.`);
     }
-    return message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("");
+    return message.content.flatMap((block: any) => (block.type === "text" ? [block.text] : [])).join("");
   }
 
   // 3. Proveedor Mock (modo offline / prueba sin gastar créditos en Antigravity)
@@ -356,202 +355,276 @@ function generateUberBaseFallback(system: string, user: string): string {
     });
   }
 
-  // Generación completa para briefing inicial (Uber Base)
-  const titleMatch = user.match(/Título:\s*([^\n]+)/);
-  const title = titleMatch ? titleMatch[1].trim() : "Seguimiento de conductor en mapa tras solicitar servicio";
-  const keyMatch = user.match(/Clave:\s*([^\n]+)/);
+  // Generación adaptativa al briefing del usuario (Uber Base DS)
+  const titleMatch = user.match(/Título:\s*([^\n]+)/i);
+  const title = titleMatch ? titleMatch[1].trim() : "Petición de diseño";
+  const keyMatch = user.match(/Clave:\s*([^\n]+)/i);
   const key = keyMatch ? keyMatch[1].trim() : "UBER-402";
+  const bodyMatch = user.match(/Briefing completo:\s*([\s\S]*?)(?:\n\nREGLA|\n\nDiseña|$)/i);
+  const briefText = bodyMatch ? bodyMatch[1].trim() : "";
+  const combined = `${title} ${briefText}`.toLowerCase();
+
+  const isModal = combined.includes("modal") || combined.includes("notificaci") || combined.includes("aviso") || combined.includes("diálogo") || combined.includes("alerta") || combined.includes("popup");
+  const isTip = combined.includes("propina") || combined.includes("tip");
+
+  let fallbackScreens: any[] = [];
+
+  if (isModal) {
+    fallbackScreens = [
+      {
+        step: 1,
+        shortName: "1 · Vista principal con aviso",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Pantalla principal donde se muestra el estado y la disponibilidad de información clave.",
+        hint: "Aviso accesible mediante interacción",
+        navTitle: "Inicio",
+        mainTitle: title,
+        mainSubtitle: briefText ? briefText.slice(0, 100) : "Información relevante disponible para el usuario.",
+        showMap: false,
+        heroImage: null,
+        items: [
+          { title: "Información del sistema", subtitle: "Toca para abrir los detalles actualizados", icon: "ℹ️", highlight: true }
+        ],
+        cards: [
+          { label: "Estado", value: "Activo" },
+          { label: "Canal", value: "Modal informativa" }
+        ],
+        banner: null,
+        cta: "Ver información detallada",
+        ctaVariant: "primary",
+        ctaTargetStep: 2,
+        functionality: "Muestra la vista de origen y el disparador claro para abrir la modal de información.",
+        designJustification: "Evita intrusión directa permitiendo al usuario desplegar la información con un toque claro."
+      },
+      {
+        step: 2,
+        shortName: "2 · Modal informativa activa",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Componente baseui/modal desplegado con el contenido informativo solicitado en el brief.",
+        hint: "Lectura transparente de la información",
+        navTitle: "Aviso importante",
+        mainTitle: title,
+        mainSubtitle: briefText || "El usuario dispone de información en tiempo real de lo que ocurre en la app.",
+        showMap: false,
+        items: [
+          { title: "Detalle de evento", subtitle: "Actualización automática de estado sin bloquear la operativa", icon: "🔔", highlight: true },
+          { title: "Sincronización en vivo", subtitle: "Datos actualizados según la telemetría del servicio", icon: "⚡", highlight: false }
+        ],
+        cards: [
+          { label: "Tipo", value: "Informativa" },
+          { label: "Prioridad", value: "Alta" }
+        ],
+        banner: { text: "Información verificada: consulta todos los detalles sin salir de tu vista", tone: "positive" },
+        cta: "Entendido y continuar",
+        ctaVariant: "primary",
+        ctaTargetStep: 4,
+        secondaryCta: { text: "Más opciones", variant: "secondary", targetStep: 3 },
+        functionality: "Presenta la modal informativa con tipografía Uber Move, banner positivo y botón de confirmación.",
+        designJustification: "Enfoca la atención en la información sin perder el contexto de la aplicación."
+      },
+      {
+        step: 3,
+        shortName: "3 · Caso límite / Incidencia de aviso",
+        stateType: "error",
+        stateBadge: "CASO DE ERROR",
+        stateDesc: "Gestión de error o fallo de sincronización en la modal con recuperación asistida.",
+        hint: "Resolución sin dead-ends",
+        navTitle: "Incidencia",
+        mainTitle: "No se pudo actualizar la información",
+        mainSubtitle: "Hemos detectado un retraso en la sincronización. Puedes reintentar o conservar la vista previa.",
+        showMap: false,
+        items: [],
+        cards: [
+          { label: "Estado", value: "Pendiente" }
+        ],
+        banner: { text: "Error de conexión temporal: tus datos no se han perdido", tone: "negative" },
+        cta: "Reintentar actualización",
+        ctaVariant: "negative",
+        ctaTargetStep: 2,
+        secondaryCta: { text: "Cerrar modal", variant: "tertiary", targetStep: 1 },
+        functionality: "Proporciona una vía de recuperación clara cuando la información no se puede obtener.",
+        designJustification: "Erradica callejones sin salida explicando la causa con microcopy empático."
+      },
+      {
+        step: 4,
+        shortName: "4 · Confirmación y cierre",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Acuse de recibo de la información y retorno al flujo principal.",
+        hint: "Cierre completado",
+        navTitle: "Confirmado",
+        mainTitle: "Información confirmada",
+        mainSubtitle: "Has recibido la actualización correctamente.",
+        showMap: false,
+        items: [],
+        cards: [
+          { label: "Confirmación", value: "Registrada" }
+        ],
+        banner: null,
+        cta: "Volver al inicio",
+        ctaVariant: "primary",
+        ctaTargetStep: 1,
+        functionality: "Cierra la modal y deja al usuario en su vista principal con el acuse completado.",
+        designJustification: "Brinda certidumbre y tranquilidad al certificar la recepción del mensaje."
+      }
+    ];
+  } else if (isTip) {
+    fallbackScreens = [
+      {
+        step: 1,
+        shortName: "1 · Selección de propina",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Pantalla post-servicio para seleccionar propina dinámica.",
+        hint: "Agradece el servicio recibido",
+        navTitle: "Añadir propina",
+        mainTitle: title,
+        mainSubtitle: "Elige una cantidad para reconocer la atención recibida.",
+        showMap: false,
+        items: [
+          { title: "1,00 €", subtitle: "Buen servicio", icon: "⭐", highlight: false },
+          { title: "2,00 €", subtitle: "Muy buen servicio (Recomendado)", icon: "✨", highlight: true },
+          { title: "5,00 €", subtitle: "Servicio excelente", icon: "🏆", highlight: false }
+        ],
+        cards: [
+          { label: "Método de pago", value: "Uber Pay" }
+        ],
+        cta: "Añadir propina de 2,00 €",
+        ctaVariant: "primary",
+        ctaTargetStep: 2,
+        functionality: "Permite seleccionar propinas de forma inmediata con 1 toque.",
+        designJustification: "Las cantidades preconfiguradas reducen la carga cognitiva y elevan el ratio de propinas."
+      },
+      {
+        step: 2,
+        shortName: "2 · Agradecimiento y recibo",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Confirmación de la propina y envío de recibo actualizado.",
+        hint: "Operación finalizada",
+        navTitle: "¡Gracias!",
+        mainTitle: "Propina añadida con éxito",
+        mainSubtitle: "El 100% del importe va destinado al profesional.",
+        showMap: false,
+        items: [],
+        cards: [
+          { label: "Importe", value: "2,00 €" },
+          { label: "Recibo", value: "Enviado por email" }
+        ],
+        banner: { text: "Propina abonada directamente", tone: "positive" },
+        cta: "Finalizar",
+        ctaVariant: "primary",
+        ctaTargetStep: 1,
+        functionality: "Agradece la aportación y emite recibo transparente.",
+        designJustification: "Fomenta la confianza recordando que el importe llega íntegro."
+      }
+    ];
+  } else {
+    fallbackScreens = [
+      {
+        step: 1,
+        shortName: "1 · Vista principal",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: `Estado nominal inicial para ${title}`,
+        hint: "Inicio de la interacción",
+        navTitle: "Servicio",
+        mainTitle: title,
+        mainSubtitle: briefText ? briefText.slice(0, 120) : "Solución de diseño con tokens oficiales de Uber Base.",
+        showMap: false,
+        items: [
+          { title: "Opción principal", subtitle: "Configuración según requerimientos del brief", icon: "📋", highlight: true }
+        ],
+        cards: [
+          { label: "Estado", value: "Listo" },
+          { label: "Sistema", value: "Base DS" }
+        ],
+        cta: "Continuar",
+        ctaVariant: "primary",
+        ctaTargetStep: 2,
+        functionality: "Permite al usuario iniciar el proceso descrito en el brief.",
+        designJustification: "Jerarquía limpia y directa centrada en la necesidad de producto."
+      },
+      {
+        step: 2,
+        shortName: "2 · Configuración / Detalle",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Pantalla interactiva con opciones del brief.",
+        hint: "Configuración de preferencias",
+        navTitle: "Detalles",
+        mainTitle: "Opciones y confirmación",
+        mainSubtitle: "Revisa los datos antes de completar la acción.",
+        showMap: false,
+        items: [],
+        cards: [
+          { label: "Validación", value: "Correcta" }
+        ],
+        cta: "Confirmar acción",
+        ctaVariant: "primary",
+        ctaTargetStep: 3,
+        functionality: "Recoge y confirma los parámetros solicitados.",
+        designJustification: "Facilita la verificación antes de ejecutar la acción."
+      },
+      {
+        step: 3,
+        shortName: "3 · Gestión de incidencia",
+        stateType: "error",
+        stateBadge: "CASO DE ERROR",
+        stateDesc: "Gestión de error con recuperación guiada sin callejones sin salida.",
+        hint: "Resolución asistida",
+        navTitle: "Atención requerida",
+        mainTitle: "No se pudo completar la operación",
+        mainSubtitle: "Comprueba tu conexión o vuelve a intentarlo.",
+        showMap: false,
+        items: [],
+        cards: [],
+        banner: { text: "Error puntual detectado: tus datos siguen a salvo", tone: "negative" },
+        cta: "Reintentar ahora",
+        ctaVariant: "negative",
+        ctaTargetStep: 2,
+        functionality: "Ofrece vía de escape transparente y reintento directo.",
+        designJustification: "Erradica el abandono con CTA contrastado."
+      },
+      {
+        step: 4,
+        shortName: "4 · Finalización",
+        stateType: "happy_path",
+        stateBadge: "HAPPY PATH",
+        stateDesc: "Confirmación final del flujo.",
+        hint: "Operación completada",
+        navTitle: "Éxito",
+        mainTitle: "Operación completada con éxito",
+        mainSubtitle: "El proceso se ha guardado correctamente.",
+        showMap: false,
+        items: [],
+        cards: [
+          { label: "Resultado", value: "Completado" }
+        ],
+        banner: { text: "Proceso completado satisfactoriamente", tone: "positive" },
+        cta: "Finalizar",
+        ctaVariant: "primary",
+        ctaTargetStep: 1,
+        functionality: "Proporciona acuse de recibo y retorno seguro.",
+        designJustification: "Cierra el ciclo de usuario con máxima certidumbre."
+      }
+    ];
+  }
 
   return JSON.stringify({
     summary: `Flujo completo de producto generado para: ${title}`,
     agents: {
-      brief: {
-        summary: `Alcance estructurado para ${key}`,
-        logs: ["Analizando requisitos del brief", "Mapeando Happy Path y gestión de incidencias", "Extrayendo métricas de producto"],
-        out: `<h4>Matriz de Alcance · ${key}</h4><p><b>Objetivo:</b> ${title}.<br><b>Happy Path:</b> Selección de servicio, recogida y llegada de conductor.<br><b>Corner Case:</b> Tráfico denso con recálculo dinámico de ruta y ETA.<br><b>Caso de Error:</b> Incidencia de autorización resuelta con Uber Cash sin dead-ends.</p>`
-      },
-      context: {
-        summary: "Tokens oficiales baseui y catálogo Uber Base DS",
-        logs: ["Extrayendo tokens oficiales de base.uber.com", "Configurando --base-positive (#0E8345) y --base-negative (#DE1135)", "Validando MapCard y componentes móviles"],
-        out: `<h4>Tokens de Uber Base DS</h4><div class="flow"><span>--base-black (#000000)</span><span>--base-positive (#0E8345)</span><span>--base-negative (#DE1135)</span><span>--base-warning (#F69E0C)</span><span>MapCard</span><span>Button (rounded 8px)</span></div>`
-      },
-      ux: {
-        summary: "Arquitectura de flujo de 5 pantallas y máquina de estados",
-        logs: ["Estructurando pantallas sin dead-ends", "Diseñando recuperación para casos de error", "Trazando telemetría GPS continua"],
-        out: `<h4>Arquitectura UX</h4><ul><li><b>Paso 1:</b> Selección de servicio y tarifa cerrada garantizada.</li><li><b>Paso 2:</b> Punto de encuentro y confirmación de cobro.</li><li><b>Paso 3:</b> Seguimiento GPS y radar en mapa en tiempo real.</li><li><b>Paso 4:</b> Recuperación asistida ante fallo de autorización sin perder conductor.</li><li><b>Paso 5:</b> Llegada de vehículo con PIN de seguridad de 4 dígitos.</li></ul>`
-      },
-      copy: {
-        summary: "Microcopys en sentence case y voz activa de Uber",
-        logs: ["Redactando mensajes claros sin culpar al usuario", "Diseñando CTAs específicos de 44px de altura", "Validando tono transparente y directo"],
-        out: `<h4>Voz y Microcopy Uber Base</h4><p>Textos constructivos; CTAs con verbo de acción explícito; sentence case sin jerga técnica.</p>`
-      },
-      ui: {
-        summary: "Componentes Uber Base con mapas oscuros y tarjetas 8px",
-        logs: ["Componiendo pantallas con tokens Base Web", "Integrando mapa vectorial en modo nocturno", "Aplicando radio de 8px en todos los botones y tarjetas"],
-        out: `<h4>Componentes Base Web/Mobile</h4><div class="flow"><span>MapCard</span><span>StatusPin</span><span>BaseButton</span><span>Banner</span><span>EtaBadge</span></div>`
-      },
-      qa: {
-        summary: "Auditoría WCAG 2.1 AA y Resiliencia 100%",
-        logs: ["Verificando contraste de textos ≥ 4.5:1", "Auditando áreas táctiles ≥ 44px", "Verificando ausencia total de callejones sin salida"],
-        out: `<h4>Auditoría QA y Resiliencia</h4><ul><li><span class="chip ok">Superado</span> WCAG 2.1 AA en todas las vistas.</li><li><span class="chip ok">Superado</span> Áreas táctiles de botones ≥ 44px.</li><li><span class="chip ok">Superado</span> Cero callejones sin salida en errores.</li></ul>`
-      },
-      delivery: {
-        summary: "Handover para desarrollo y sincronización con Figma",
-        logs: ["Generando especificación técnica de estados", "Publicando paquete de entrega", "Sincronizando con Jira y Figma"],
-        out: `<h4>Handover a Ingeniería</h4><p>Especificación de los 5 estados lista para maquetación y pruebas de QA.</p>`
-      }
+      brief: { summary: `Alcance estructurado para ${key}`, logs: ["Analizando requisitos del brief", "Mapeando Happy Path y gestión de incidencias"], out: `<h4>Matriz de Alcance · ${key}</h4><p><b>Objetivo:</b> ${title}.</p>` },
+      context: { summary: "Tokens oficiales baseui", logs: ["Tokens Base DS verificados"], out: `<h4>Tokens de Uber Base DS</h4><div class="flow"><span>--base-black (#000000)</span><span>--base-positive (#0E8345)</span><span>--base-negative (#DE1135)</span></div>` },
+      ux: { summary: "Arquitectura adaptada al brief", logs: ["Estructurando pantallas sin dead-ends"], out: `<h4>Arquitectura UX</h4><p>Flujo adaptado a la funcionalidad solicitada.</p>` },
+      copy: { summary: "Microcopy en voz oficial de Uber", logs: ["Sentence case y tono constructivo"], out: `<h4>Microcopy</h4><p>Textos claros orientados a la acción.</p>` },
+      ui: { summary: "Componentes Base Web/Mobile", logs: ["Componiendo con baseui"], out: `<h4>Componentes Base</h4><div class="flow"><span>Modal</span><span>Drawer</span><span>Button</span><span>Banner</span></div>` },
+      qa: { summary: "Auditoría WCAG AA", logs: ["Contraste y áreas táctiles auditadas"], out: `<h4>Auditoría QA</h4><p>WCAG 2.1 AA superado.</p>` },
+      delivery: { summary: "Handover para desarrollo y Figma", logs: ["Especificación generada"], out: `<h4>Entrega</h4><p>Flujo listo para desarrollo.</p>` }
     },
-    screens: [
-      {
-        step: 1,
-        shortName: "1 · Selección de servicio",
-        stateType: "happy_path",
-        stateBadge: "HAPPY PATH",
-        stateDesc: "Selección de tipo de servicio con tarifa garantizada y tiempo estimado.",
-        hint: "Elige la opción que mejor se ajuste a tu trayecto",
-        navTitle: "Solicitar viaje",
-        mainTitle: "Elige tu servicio de viaje",
-        mainSubtitle: "Precios garantizados sin sorpresas",
-        showMap: false,
-        heroImage: null,
-        items: [
-          { title: "UberX", subtitle: "Llegada en 3 min · 4 plazas", icon: "🚗", highlight: true, price: "12,40 €" },
-          { title: "Uber Comfort", subtitle: "Espacio extra para piernas · Coches nuevos", icon: "🚘", highlight: false, price: "16,20 €" },
-          { title: "Uber Black", subtitle: "Chófer profesional y vehículo premium", icon: "✨", highlight: false, price: "24,80 €" }
-        ],
-        cards: [
-          { label: "Punto de partida", value: "Estación Joaquín Sorolla" },
-          { label: "Destino", value: "Aeropuerto de Valencia" }
-        ],
-        banner: null,
-        cta: "Confirmar UberX (12,40 €)",
-        ctaVariant: "primary",
-        ctaTargetStep: 2
-      },
-      {
-        step: 2,
-        shortName: "2 · Punto de recogida y pago",
-        stateType: "happy_path",
-        stateBadge: "HAPPY PATH",
-        stateDesc: "Confirmación del punto exacto de encuentro y pasarela segura.",
-        hint: "Revisa la ubicación donde te esperará el conductor",
-        navTitle: "Punto de recogida",
-        mainTitle: "Punto de encuentro y método de pago",
-        mainSubtitle: "Parking Exprés · Puerta 2 (Zona señalizada de Uber)",
-        showMap: false,
-        items: [
-          { title: "Uber Pay (Tarjeta Visa •••• 4821)", subtitle: "Pago automático al finalizar el trayecto", icon: "💳", highlight: true },
-          { title: "Uber Cash (Saldo disponible: 25,00 €)", subtitle: "Usa tu saldo sin comisiones", icon: "🪙", highlight: false }
-        ],
-        cards: [
-          { label: "Punto exacto", value: "Dársena 3B (Planta 0)" },
-          { label: "Importe cerrado", value: "12,40 €" }
-        ],
-        banner: { text: "El conductor te esperará en el punto asignado con las luces de emergencia.", tone: "sun" },
-        cta: "Solicitar conductor ahora",
-        ctaVariant: "primary",
-        ctaTargetStep: 3,
-        secondaryCta: { text: "Cambiar servicio", variant: "secondary", targetStep: 1 }
-      },
-      {
-        step: 3,
-        shortName: "3 · Seguimiento en mapa",
-        stateType: "corner_case",
-        stateBadge: "CORNER CASE",
-        stateDesc: "Telemetría GPS en tiempo real con alerta proactiva de tráfico denso.",
-        hint: "Sigue la aproximación exacta de tu conductor sobre el mapa",
-        navTitle: "Conductor en ruta",
-        mainTitle: "Carlos se aproxima a tu ubicación",
-        mainSubtitle: "Aproximación por Av. Giorgeta con tráfico denso (ETA recalculado en vivo)",
-        showMap: true,
-        mapMeta: {
-          badge: "En ruta",
-          eta: "3 min",
-          driverName: "Carlos M.",
-          rating: "4.96",
-          vehicle: "Toyota Corolla · 4821 LKY",
-          location: "A 450 m de tu punto de encuentro",
-          lat: 39.4699,
-          lng: -0.3763,
-          dlat: 39.4680,
-          dlng: -0.3775
-        },
-        items: [
-          { title: "Conductor verificado", subtitle: "Carlos M. · 4.96 ★ (1.840 viajes)", icon: "👤", highlight: true },
-          { title: "Vehículo", subtitle: "Toyota Corolla Blanco · 4821 LKY", icon: "🚗", highlight: false }
-        ],
-        cards: [
-          { label: "Tiempo estimado", value: "3 min" },
-          { label: "Distancia", value: "450 m" }
-        ],
-        banner: { text: "Tráfico denso en el acceso: ruta actualizada para llegar más rápido.", tone: "warning" },
-        cta: "Ver detalles de llegada",
-        ctaVariant: "primary",
-        ctaTargetStep: 5,
-        secondaryCta: { text: "Simular incidencia de cobro", variant: "tertiary", targetStep: 4 }
-      },
-      {
-        step: 4,
-        shortName: "4 · Incidencia y resolución",
-        stateType: "error",
-        stateBadge: "CASO DE ERROR",
-        stateDesc: "Fallo temporal de autorización con pasarela de recuperación guiada sin pérdida de viaje.",
-        hint: "No te preocupes: tu conductor sigue asignado mientras resuelves el método de pago",
-        navTitle: "Incidencia de pago",
-        mainTitle: "No se pudo autorizar la tarjeta",
-        mainSubtitle: "Tu banco solicita verificación. Paga con Uber Cash o cambia de tarjeta para no perder tu reserva.",
-        showMap: false,
-        items: [
-          { title: "Pagar con Uber Cash (Saldo: 25,00 €)", subtitle: "Cobro inmediato con 1 toque sin esperas bancarias", icon: "🪙", highlight: true },
-          { title: "Tarjeta Mastercard •••• 9920", subtitle: "Método de respaldo registrado", icon: "💳", highlight: false }
-        ],
-        cards: [
-          { label: "Importe", value: "12,40 €" },
-          { label: "Estado del viaje", value: "Conductor esperando" }
-        ],
-        banner: { text: "Incidencia de pago: selecciona Uber Cash para continuar de inmediato sin retrasos.", tone: "negative" },
-        cta: "Reintentar con Uber Cash y continuar",
-        ctaVariant: "negative",
-        ctaTargetStep: 5,
-        secondaryCta: { text: "Volver al mapa", variant: "secondary", targetStep: 3 }
-      },
-      {
-        step: 5,
-        shortName: "5 · Conductor en punto de encuentro",
-        stateType: "happy_path",
-        stateBadge: "HAPPY PATH",
-        stateDesc: "Vehículo estacionado con código PIN de seguridad de verificación.",
-        hint: "Confirma el código PIN al conductor antes de subir al vehículo",
-        navTitle: "Conductor en el punto",
-        mainTitle: "Tu conductor te está esperando",
-        mainSubtitle: "Carlos ha llegado a la Puerta 2 del Parking Exprés",
-        showMap: true,
-        mapMeta: {
-          badge: "Esperando en Puerta 2",
-          eta: "Aquí",
-          driverName: "Carlos M.",
-          rating: "4.96",
-          vehicle: "Toyota Corolla Blanco · 4821 LKY",
-          location: "Dársena 3B",
-          lat: 39.4699,
-          lng: -0.3763,
-          dlat: 39.4698,
-          dlng: -0.3764
-        },
-        items: [
-          { title: "Código de seguridad PIN", subtitle: "Indica este número al conductor para iniciar", icon: "🔒", highlight: true, price: "PIN: 4891" }
-        ],
-        cards: [
-          { label: "Matrícula", value: "4821 LKY" },
-          { label: "Modelo", value: "Toyota Corolla" }
-        ],
-        banner: { text: "Comprueba la matrícula 4821 LKY y di tu PIN 4891 al conductor.", tone: "sun" },
-        cta: "Finalizar viaje y valorar",
-        ctaVariant: "primary",
-        ctaTargetStep: 1
-      }
-    ],
+    screens: fallbackScreens,
     theme: { cta: "ink", radius: "rounded", density: "comfortable" }
   });
 }
-

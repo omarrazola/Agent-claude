@@ -6,6 +6,13 @@ import type { Ticket } from "../types.js";
 
 const processedIssues = new Set<string>();
 
+export function markIssueHandled(issueKey: string) {
+  for (const item of processedIssues) {
+    if (item.startsWith(issueKey)) return;
+  }
+  processedIssues.add(issueKey);
+}
+
 function authHeader(): string {
   return "Basic " + Buffer.from(`${config.jira.email}:${config.jira.apiToken}`).toString("base64");
 }
@@ -20,7 +27,7 @@ export async function fetchJiraKanIssues(): Promise<any[]> {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      jql: "project = KAN ORDER BY updated DESC",
+      jql: `project = ${config.jira.projectKey || "KAN"} ORDER BY updated DESC`,
       fields: ["summary", "description", "labels", "reporter", "attachment", "updated", "status"]
     })
   });
@@ -52,7 +59,7 @@ export async function checkJiraUpdates() {
     const issues = await fetchJiraKanIssues();
     for (const issue of issues) {
       const updatedKey = `${issue.key}_${issue.fields.updated}`;
-      if (processedIssues.has(updatedKey)) continue;
+      if (processedIssues.has(updatedKey) || processedIssues.has(issue.key)) continue;
 
       const desc = adfToText(issue.fields.description).trim();
       // Si la tarea tiene título o descripción y no se ha procesado esta versión
@@ -72,7 +79,7 @@ let pollerInterval: NodeJS.Timeout | null = null;
 
 export function startJiraPoller(intervalMs = 15000) {
   if (pollerInterval) return;
-  log.info(`[JIRA POLLER] Iniciado monitor automático para Jira KAN (${intervalMs / 1000}s)`);
+  log.info(`[JIRA POLLER] Iniciado monitor automático para Jira ${config.jira.projectKey || "KAN"} (${intervalMs / 1000}s)`);
   checkJiraUpdates();
   pollerInterval = setInterval(checkJiraUpdates, intervalMs);
 }

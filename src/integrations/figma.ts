@@ -129,7 +129,10 @@ export function renderScreenSvg(scr: any, idx: number, total: number): string {
 
   // 6. Bottom CTA Button (Fixed at y=724)
   const ctaBg = (isErr || scr.ctaVariant === "negative") ? "#DE1135" : "#000000";
-  const ctaLabel = scr.cta || (idx < total - 1 ? "Continuar" : "Finalizar");
+  let ctaLabel = scr.cta || (idx < total - 1 ? "Continuar" : "Finalizar");
+  if (/simul/i.test(ctaLabel)) {
+    ctaLabel = isErr ? "Reintentar" : (idx < total - 1 ? "Continuar" : "Finalizar");
+  }
   const ctaIcon = isErr ? "↺" : "➔";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" width="375" height="812">
@@ -161,10 +164,10 @@ export function renderScreenSvg(scr: any, idx: number, total: number): string {
     <!-- Dynamic Content Body -->
     ${bodyElements}
 
-    <!-- Bottom Action Button (Uber Base Pill) -->
-    <g id="CTA_Button" transform="translate(24, 724)">
-      <rect width="327" height="54" rx="27" fill="${ctaBg}"/>
-      <text x="163" y="33" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">${escapeXml(ctaLabel)} ${ctaIcon}</text>
+    <!-- Bottom Action Button (Uber Base DS Official Button) -->
+    <g id="CTA_Button" transform="translate(20, 732)">
+      <rect width="335" height="48" rx="8" fill="${ctaBg}"/>
+      <text x="167.5" y="30" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">${escapeXml(ctaLabel)} ${ctaIcon}</text>
     </g>
   </svg>`;
 }
@@ -176,6 +179,8 @@ const defaultFullFlowScreens = [
     stateType: "happy_path",
     stateBadge: "HAPPY PATH",
     stateDesc: "Selección nominal de servicio con precio cerrado garantizado",
+    functionality: "Cotización instantánea en vivo y selección de gama (UberX, Comfort, Black)",
+    designJustification: "Elimina la incertidumbre tarifaria mostrando el precio final cerrado antes de reservar para elevar la tasa de conversión.",
     hint: "Elige entre UberX, Comfort o Black",
     navTitle: "Viaje",
     mainTitle: "Elige tu vehículo",
@@ -199,6 +204,8 @@ const defaultFullFlowScreens = [
     stateType: "corner_case",
     stateBadge: "CORNER CASE",
     stateDesc: "Condición atípica de alta demanda con punto de encuentro sugerido a 50m",
+    functionality: "Detección proactiva de retención de tráfico y sugerencia de punto exprés peatonal",
+    designJustification: "Anticipa la fricción antes de que el usuario la experimente, ahorrando 10 minutos de atasco mediante una caminata guiada de 50m.",
     hint: "Aviso anticipado para evitar retenciones de tráfico",
     navTitle: "Aviso de ruta",
     mainTitle: "Zona con alta demanda de tráfico",
@@ -228,6 +235,8 @@ const defaultFullFlowScreens = [
     stateType: "happy_path",
     stateBadge: "HAPPY PATH",
     stateDesc: "Revisión nominal de detalles, punto de encuentro y autorización",
+    functionality: "Desglose transparente del itinerario, punto de recogida y método de pago",
+    designJustification: "Genera certidumbre previa a la transacción económica, garantizando consentimiento explícito y reduciendo reclamaciones posteriores.",
     hint: "Resumen previo al servicio",
     navTitle: "Confirmación",
     mainTitle: "Revisa los detalles del viaje",
@@ -250,7 +259,9 @@ const defaultFullFlowScreens = [
     shortName: "4 · Caso de Error: Fallo y recuperación",
     stateType: "error",
     stateBadge: "CASO DE ERROR",
-    stateDesc: "Simulación de tarjeta declinada con recuperación instantánea usando Uber Cash sin dead-ends",
+    stateDesc: "Tarjeta declinada con recuperación instantánea usando Uber Cash sin dead-ends",
+    functionality: "Gestión transparente de declinación bancaria con rescate automático vía Uber Cash",
+    designJustification: "Erradica el abandono de compra (cero callejones sin salida); no culpa al usuario y ofrece un método alternativo preautorizado en 1 clic.",
     hint: "Resolución guiada de incidencia de cobro",
     navTitle: "Incidencia",
     mainTitle: "No se pudo procesar tu tarjeta",
@@ -274,6 +285,8 @@ const defaultFullFlowScreens = [
     stateType: "happy_path",
     stateBadge: "HAPPY PATH",
     stateDesc: "Flujo recuperado con éxito: conductor asignado, seguimiento GPS en tiempo real y código PIN",
+    functionality: "Seguimiento satelital en vivo del vehículo asignado y verificación física bidireccional por PIN",
+    designJustification: "Reduce la ansiedad del usuario mediante telemetría en tiempo real y garantiza seguridad física verificando conductor y matrícula antes de subir.",
     hint: "Servicio activo y seguro",
     navTitle: "En camino",
     mainTitle: "Carlos está a 2 minutos",
@@ -300,14 +313,37 @@ const defaultFullFlowScreens = [
 
 let latestScreens: any[] = defaultFullFlowScreens;
 let latestRunKey = "KAN-1";
+let latestChangelog: any = null;
 
-export function setLatestFigmaDesign(key: string, screens: any[]) {
+let customTargetUrl: string = config.figma.fileUrl || "https://www.figma.com/design/dcKVRyGjsYiK3Cl1iBHeXc/Untitled?node-id=0-1";
+let customFileKey: string = config.figma.fileKey || "dcKVRyGjsYiK3Cl1iBHeXc";
+
+export function setFigmaTarget(url: string) {
+  if (!url || typeof url !== "string") return;
+  customTargetUrl = url.trim();
+  const match = customTargetUrl.match(/figma\.com\/(?:design|file)\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    customFileKey = match[1];
+  }
+}
+
+export function getFigmaTarget() {
+  return {
+    fileUrl: customTargetUrl,
+    fileKey: customFileKey
+  };
+}
+
+export function setLatestFigmaDesign(key: string, screens: any[], changelog?: any) {
   latestRunKey = key;
   if (Array.isArray(screens) && screens.length > 0) {
     if (screens[0] && typeof screens[0].html === "string" && !screens[0].mainTitle) {
       return;
     }
     latestScreens = screens;
+  }
+  if (changelog !== undefined) {
+    latestChangelog = changelog;
   }
 }
 
@@ -323,23 +359,32 @@ export function getLatestFigmaDesign() {
 
   return {
     key: latestRunKey || "KAN-1",
-    fileKey: config.figma.fileKey,
-    fileUrl: config.figma.fileUrl,
+    fileKey: customFileKey || config.figma.fileKey,
+    fileUrl: customTargetUrl || config.figma.fileUrl,
     screens: activeScreens,
-    screenSvgs
+    screenSvgs,
+    changelog: latestChangelog
   };
 }
 
 export async function pushToFigma(run: RunState, files: ScreenFile[]): Promise<string | null> {
   const uiScreens = (run.outputs.ui as any)?.screens;
   if (Array.isArray(uiScreens) && uiScreens.length > 0) {
-    setLatestFigmaDesign(run.key, uiScreens);
+    const lastHistory = run.history && run.history.length > 0 ? run.history[run.history.length - 1] : null;
+    const changelogInfo = {
+      version: run.version,
+      request: lastHistory?.request || "",
+      summary: (run.outputs.delivery as any)?.summary || (run.outputs.brief as any)?.summary || "",
+      changes: (run.outputs.delivery as any)?.changes || []
+    };
+    setLatestFigmaDesign(run.key, uiScreens, changelogInfo);
   }
-  const fileKey = config.figma.fileKey || "dcKVRyGjsYiK3Cl1iBHeXc";
-  log.info(`[FIGMA] Diseño preparado para archivo Figma: ${config.figma.fileUrl} (${files.length} pantallas)`);
+  const fileKey = customFileKey || config.figma.fileKey || "dcKVRyGjsYiK3Cl1iBHeXc";
+  const fileUrl = customTargetUrl || config.figma.fileUrl;
+  log.info(`[FIGMA] Diseño preparado para archivo Figma: ${fileUrl} (${files.length} pantallas)`);
 
   if (!config.figma.accessToken) {
-    return config.figma.fileUrl;
+    return fileUrl;
   }
 
   try {

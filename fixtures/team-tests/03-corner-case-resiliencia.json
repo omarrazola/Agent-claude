@@ -1,0 +1,30 @@
+{
+  "webhookEvent": "jira:issue_created",
+  "issue": {
+    "key": "TEST-103",
+    "fields": {
+      "summary": "Gestión de alta demanda y atascos en salida de eventos multitudinarios",
+      "labels": ["diseño", "corner-cases", "movilidad"],
+      "reporter": { "displayName": "Elena Gómez (Lead UX)" },
+      "attachment": [
+        { "filename": "mapa_salida_estadio.png" }
+      ],
+      "description": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Al terminar conciertos y partidos en grandes estadios, el tráfico colapsa y los conductores tardan hasta 25 minutos en llegar al punto exacto." }] },
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Requisitos de resiliencia:" }] },
+          {
+            "type": "bulletList",
+            "content": [
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Detección proactiva de retención de tráfico en la zona de salida." }] }] },
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Sugerencia de un punto de encuentro exprés a 150 metros a pie que ahorre 15 minutos de espera." }] }] },
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Flujo de recuperación con botón de aceptación claro y sin callejones sin salida (zero dead-ends)." }] }] }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

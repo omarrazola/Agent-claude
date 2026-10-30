@@ -1,80 +1,111 @@
-# Catálogo Completo de Componentes · Uber Base Design System (baseui v18.2.0)
+# Catálogo Oficial de Componentes · Uber Base Design System (baseui)
 
-Fuente oficial: [Base Design System](https://base.uber.com/6d2425e9f/p/294ab4-base-design-system) y [Base Web Docs](https://baseweb.design)
+Replicado directamente desde la especificación oficial de Uber en Zeroheight:
+🔗 [https://zeroheight.com/6d2425e9f/p/556814-components](https://zeroheight.com/6d2425e9f/p/556814-components)
+🔗 Sincronizado en tu espacio: [https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/961de2-components](https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/961de2-components)
 
-Este catálogo documenta la totalidad de los componentes oficiales de Uber organizados en sus 10 categorías funcionales. Los agentes de diseño deben utilizar exclusivamente estos componentes, sus props y sus tokens W3C.
-
----
-
-## 1. Clasificación por Categorías de Componentes
-
-### 1.1 Inputs (Controles de Entrada)
-* **Button (`baseui/button`)**: Botón táctil principal (`kind`: `primary` #000, `secondary` #F6F6F6, `tertiary` borde, `negative` #DE1135; `shape`: `rounded` 8px, `pill` 9999px; `size`: `large` 56px, `default` 48px, `compact` 36px).
-* **ButtonGroup (`baseui/button-group`)**: Segmentos de selección con bordes compartidos.
-* **Checkbox (`baseui/checkbox`)**: Selección binaria y listas de opciones múltiples.
-* **FormControl (`baseui/form-control`)**: Envoltorio con `label`, `caption` y mensajes de error WCAG.
-* **Input (`baseui/input`)**: Campos de texto para direcciones, origen, destino y búsqueda.
-* **PaymentCard (`baseui/payment-card`)**: Detección de tarjeta bancaria, formato y código de seguridad.
-* **PhoneInput (`baseui/phone-input`)**: Selector de prefijo de país e input de teléfono móvil.
-* **PinCode (`baseui/pin-code`)**: Validación con PIN de seguridad de 4 dígitos para recogida de vehículo.
-* **Radio (`baseui/radio`)**: Opciones mutuamente excluyentes (ej: inmediato vs programado).
-* **Slider (`baseui/slider`)**: Ajuste continuo de rangos (ej: distancia o propina).
-* **Textarea (`baseui/textarea`)**: Instrucciones especiales para el conductor.
-
-### 1.2 Pickers (Selectores)
-* **Select (`baseui/select`)**: Menú desplegable con autocompletado y selección filtrada.
-* **Rating (`baseui/rating`)**: Calificación por estrellas (1 a 5) para valoración de conductores y servicios.
-* **Menu (`baseui/menu`)**: Menú contextual de acciones rápidas.
-* **FileUploader (`baseui/file-uploader`)**: Carga de comprobantes o documentos.
-
-### 1.3 Date & Time (Fechas y Horarios)
-* **DatePicker (`baseui/datepicker`)**: Calendario para reservas programadas (*Uber Reserve*).
-* **TimePicker (`baseui/time-picker`)**: Selector de hora de recogida garantizada.
-* **TimezonePicker (`baseui/timezone-picker`)**: Selección de huso horario para viajes internacionales.
-
-### 1.4 Navigation (Navegación)
-* **HeaderNavigation (`baseui/header-navigation`)**: Barra superior fija con retroceso, título en sentence case y avatar.
-* **Tabs (`baseui/tabs`)**: Pestañas segmentadas para alternar servicios (Viaje / Envíos / Comida).
-* **Breadcrumbs (`baseui/breadcrumbs`)**: Migas de pan de contexto de pantalla.
-* **Pagination (`baseui/pagination`)**: Paginación de histórico de viajes y facturas.
-* **SideNav (`baseui/side-nav`)**: Menú lateral de opciones de cuenta y configuración.
-* **Link (`baseui/link`)**: Enlaces de soporte, términos y ayuda 24/7.
-
-### 1.5 Content & Data Display (Contenido)
-* **Card (`baseui/card`)**: Tarjeta base con radio de 8px, borde `#E2E2E2` y fondo `#FFFFFF` o `#F6F6F6`.
-* **Avatar (`baseui/avatar`)**: Foto circular del conductor o usuario con verificación.
-* **List (`baseui/list`)**: Lista de elementos con artwork izquierdo, subtítulo y contenido lateral.
-* **Tag (`baseui/tag`)**: Píldora de estado (`positive`, `negative`, `warning`, `neutral`).
-* **Accordion (`baseui/accordion`)**: Secciones desplegables de preguntas frecuentes y desglose de tarifas.
-* **Heading & Typography (`baseui/typography`)**: Escala oficial con fuentes *Uber Move* y *Uber Move Text*.
-
-### 1.6 Feedback & Status (Notificaciones y Estados)
-* **Banner (`baseui/banner`)**: Alertas contextuales: `tone="negative"` para errores, `tone="warning"` para Corner Cases (alta demanda, obras) y `tone="positive"` para confirmación.
-* **Notification (`baseui/notification`)**: Notificaciones en línea sobre el estado del trayecto.
-* **ProgressBar (`baseui/progress-bar`)**: Barra de progreso de fases o nivel de recarga.
-* **ProgressSteps (`baseui/progress-steps`)**: Indicador de etapas del flujo de producto.
-* **Spinner (`baseui/spinner`)**: Animación circular oficial durante el emparejamiento con conductor.
-* **Toast & Snackbar (`baseui/toast`, `baseui/snackbar`)**: Feedback efímero de confirmación.
-* **Skeleton (`baseui/skeleton`)**: Estados de carga esqueleto para evitar saltos de maquetación (*CLS*).
-
-### 1.7 Surfaces & Overlays (Superficies)
-* **Drawer / BottomSheet (`baseui/drawer`)**: Hoja inferior deslizable insigne de la app de Uber.
-* **Modal (`baseui/modal`)**: Diálogos modales para incidencias, confirmación de cancelación o cobros.
-* **Popover (`baseui/popover`)**: Contenedores flotantes de información contextual.
-* **Tooltip (`baseui/tooltip`)**: Ayudas contextuales sobre tarifas o términos.
-
-### 1.8 Map Markers (Geolocalización & Movilidad)
-* **LocationPuck (`baseui/location-puck`)**: Indicador pulsante azul de la posición GPS del usuario.
-* **FloatingMarker (`baseui/floating-marker`)**: Pin flotante con tiempo de llegada (ETA) y conductor.
-* **FloatingRouteMarker (`baseui/floating-route-marker`)**: Marcador animado sobre el trazado de la ruta.
-* **FixedMarker (`baseui/fixed-marker`)**: Pin estático de punto de encuentro o parada intermedia.
+Este catálogo documenta la totalidad de los componentes oficiales de Uber organizados en sus **7 categorías oficiales**. Los agentes autónomos de diseño (Brief, Context, UX, Copy, UI, QA, Delivery) deben utilizar exclusivamente estos componentes, sus props y sus tokens W3C correspondientes sin inventar estilos arbitrarios.
 
 ---
 
-## 2. Archivos de Definición en el Repositorio
+## 1. Arquitectura de Pestañas (Tabs) Estándar por Componente
 
-* **`design-system/components/baseui.manifest.json`**: Manifiesto JSON formal con props, enums y mapeo a Figma.
-* **`design-system/tokens/base.tokens.json`**: Tokens W3C oficiales (color, tipografía, radios, sombras, espaciado).
-* **`design-system/css/base.css`**: Clases CSS con variables nativas para renderizado instantáneo en el prototipo.
-* **`design-system/guidelines/tono-de-voz.md`**: Voz de marca oficial de Uber en sentence case.
-* **`design-system/guidelines/accesibilidad.md`**: Criterios WCAG AA (áreas táctiles ≥ 44px/56px, contraste > 4.5:1).
+Cada componente en Uber Base se estructura bajo 5 pestañas de documentación técnica:
+1. **Usage:** Lineamientos de uso, variantes principales, anatomía y reglas de diseño (Do / Don't).
+2. **Specs:** Medidas numéricas, padding, escala de espaciado, tokens aplicados y estados interactivos.
+3. **Content:** Pautas de redacción, microcopy, capitalización (sentence case) y límites de longitud.
+4. **Accessibility:** Soporte de navegación por teclado, roles y atributos ARIA, contraste cromático WCAG AA.
+5. **Status & resources:** Estado de soporte en producción, enlaces al archivo de Figma y repositorio `@uber/baseui`.
+
+---
+
+## 2. Las 7 Categorías Oficiales y Componentes
+
+### 2.1 Action
+Componentes diseñados para iniciar operaciones inmediatas, confirmar flujos o navegar entre contextos:
+* **Button (`baseui/button`)**: Disparador de acción prioritario. Tipos: `Primary` (#000000), `Secondary` (#EEEEEE / #F6F6F6), `Tertiary` (ghost sin borde en reposo), `Outline`, `OnBrand`. Variantes semánticas: `Default` vs `Danger` (#DE1135 / #E11900). Forma estándar: Rectangular redondeado (8px / `radius200`); y forma `Rounded` (píldora 9999px) para CTAs móviles de pantalla o botones circulares de icono. Alturas oficiales: Large (56px), Medium (48px - default), Small (40px) y xSmall (32px).
+* **Button dock (`baseui/button-dock`)**: Contenedor inferior persistente en móvil para botones de confirmación (ej. "Confirmar UberX").
+* **Button group (`baseui/button-group`)**: Segmentos de selección acoplados con bordes compartidos.
+* **Link (`baseui/link`)**: Hipervínculos a documentación, soporte o términos legales.
+* **Sliding button (`baseui/sliding-button`)**: Deslizador de confirmación crítica (evita pulsaciones accidentales).
+* **Tile (`baseui/tile`)**: Bloques interactivos de acceso directo o categoría.
+* **Timed button (`baseui/button`)**: Botón con temporizador regresivo de cancelación o caducidad de tarifa.
+
+### 2.2 Input & control
+Elementos interactivos para captura de datos, selecciones binarias o múltiples y validación en línea:
+* **Check (`baseui/checkbox`)**: Selección binaria y listas de opciones múltiples.
+* **Date picker (`baseui/datepicker`)**: Calendario para reservas programadas (*Uber Reserve*).
+* **File upload (`baseui/file-uploader`)**: Carga de comprobantes, recibos o documentación.
+* **Menu (`baseui/menu`)**: Menú contextual de opciones desplegables.
+* **Radio (`baseui/radio`)**: Opciones mutuamente excluyentes (ej. "Inmediato" vs "Programado").
+* **Select (`baseui/select`)**: Selector desplegable con soporte de autocompletado y búsqueda.
+* **Text field (`baseui/input`)**: Entrada de texto estándar (dirección, recogida, destino, búsqueda).
+* **PIN code (`baseui/pin-code`)**: Validación de recogida con código PIN de seguridad de 4 dígitos.
+* **Search (`baseui/input`)**: Campo de búsqueda de destino con autocompletado y geocodificación.
+* **Slider (`baseui/slider`)**: Control deslizante de rangos continuos (ej. propinas o distancias).
+* **Star rating (`baseui/rating`)**: Calificación mediante estrellas (1 a 5) para evaluación de viajes.
+* **Stepper (`baseui/stepper`)**: Contador de incremento/decremento (número de pasajeros o bultos).
+* **Switch (`baseui/switch`)**: Conmutador binario de activación inmediata de ajustes.
+* **Time picker (`baseui/timepicker`)**: Selector de hora de recogida garantizada.
+
+### 2.3 Data display
+Presentación jerárquica de contenidos, datos estructurados y estados asíncronos:
+* **Accordion (`baseui/accordion`)**: Secciones desplegables de preguntas frecuentes o desglose de tarifas.
+* **Avatar (`baseui/avatar`)**: Identificador fotográfico circular del conductor o usuario.
+* **Badge (`baseui/badge`)**: Insignia compacta numérica o de estado (ej. "ETA 3 min").
+* **Divider (`baseui/divider`)**: Línea divisoria horizontal sutil (`#E2E2E2`).
+* **Draggable list (`baseui/dnd-list`)**: Lista reordenable de paradas intermedias o destinos.
+* **Drawer (`baseui/drawer`)**: Panel lateral o inferior para filtros o detalles secundarios.
+* **Empty state (`baseui/empty-state`)**: Pantalla informativa cuando no hay resultados o viajes registrados.
+* **List item (`baseui/list`)**: Fila de lista con avatar izquierdo, título, descripción y meta lateral.
+* **Message card (`baseui/card`)**: Tarjeta contextual de información o advertencia.
+* **Placeholder (`baseui/skeleton`)**: Esqueleto de carga asíncrona mientras se calculan rutas o precios.
+* **Popover (`baseui/popover`)**: Contenedor emergente de ayuda flotante.
+* **Progress bar (`baseui/progress-bar`)**: Barra lineal de avance de trayecto o validación de pago.
+* **Progress circle (`baseui/spinner`)**: Indicador circular de emparejamiento con conductor.
+* **Progress steps (`baseui/progress-steps`)**: Indicador de etapas consecutivas de viaje.
+* **Section heading (`baseui/heading`)**: Encabezados de sección jerarquizados.
+* **Tag (`baseui/tag`)**: Etiqueta compacta semántica o de estado.
+* **Tooltip (`baseui/tooltip`)**: Texto de apoyo flotante al interactuar.
+
+### 2.4 Feedback & status
+Alertas, notificaciones y estados en tiempo real:
+* **Banner (`baseui/banner`)**: Notificación destacada contextual (Positive, Warning, Negative, Info).
+* **Notification (`baseui/notification`)**: Aviso emergente o fijo en cabecera.
+* **Snackbar (`baseui/snackbar`)**: Notificación efímera en el borde inferior con acción de deshacer.
+* **Spinner (`baseui/spinner`)**: Indicador de carga activa indeterminada.
+* **System alert (`baseui/banner`)**: Alerta crítica de sistema o fallo de conectividad.
+
+### 2.5 Surfaces
+Contenedores estructurales, modales y hojas deslizantes:
+* **Card (`baseui/card`)**: Superficie principal para tarjetas de viaje, tarifas y vehículos (radio 8-12px, borde 1px).
+* **Modal (`baseui/modal`)**: Cuadro de diálogo sobrepuesto bloqueante para confirmaciones críticas.
+* **Modal full screen (`baseui/modal`)**: Modal a pantalla completa oficial de Uber (Stacked sheet e Immersive) con cabecera, cuerpo y botón docked inferior.
+* **Sheet (`baseui/bottom-sheet`)**: Hoja inferior deslizable nativa de la app móvil.
+
+### 2.6 Navigation
+Itinerarios y desplazamiento entre pantallas:
+* **Bottom navigation (`baseui/bottom-navigation`)**: Barra inferior fija de navegación móvil con iconos.
+* **Breadcrumbs (`baseui/breadcrumbs`)**: Ruta de navegación jerárquica en interfaces de escritorio.
+* **Navigation header (`baseui/header-navigation`)**: Barra superior con botón atrás, título y acción contextual.
+* **Page controls (`baseui/page-control`)**: Paginador por puntos para carruseles de onboarding.
+* **Pagination (`baseui/pagination`)**: Paginador para tablas de historial o viajes corporativos.
+* **Side navigation (`baseui/side-navigation`)**: Menú lateral jerárquico para paneles web.
+* **Tabs (`baseui/tabs`)**: Pestañas superiores para alternar vistas (ej. "Viajes", "Entregas", "Reservar").
+* **Top navigation (`baseui/header-navigation`)**: Barra de navegación global.
+* **Tree view (`baseui/tree-view`)**: Árbol colapsable para directorios o configuraciones complejas.
+
+### 2.7 Data & tables
+Visualización masiva de datos y tablas estructuradas:
+* **Charts (`baseui/charts`)**: Gráficas oficiales de Uber (conceptos, paleta cromática de datos, librería base).
+* **Data table (`baseui/data-table`)**: Tabla avanzada con ordenamiento, filtrado y renderizado virtualizado.
+* **Table (`baseui/table`)**: Tabla estática semántica accesible.
+
+---
+
+## 3. Contrato de Integración para Agentes IA
+
+Todo agente que diseñe o genere código a partir de este sistema debe seguir estas reglas:
+1. **Mapeo directo:** Cada elemento visual en la pantalla debe corresponder exactamente a uno de estos componentes de Base Web.
+2. **Tokens W3C obligatorios:** No se permiten colores hexadecimales ni espaciados arbitrarios en el CSS; deben emplearse variables `--base-*` del archivo `design-system/tokens/base.tokens.json`.
+3. **Móvil Primero:** Ancho de contenedor fijo de `430px` para vistas de usuario móvil y áreas táctiles mínimas de `48px`.

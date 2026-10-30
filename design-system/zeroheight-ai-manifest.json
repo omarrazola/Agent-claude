@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Uber Base Design System · Zeroheight AI Manifest",
+  "version": "10.02.26",
+  "officialSource": "https://zeroheight.com/6d2425e9f/p/556814-components",
+  "styleguideUrl": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/01d27b-uber-design-system",
+  "globalSections": [
+    {
+      "id": "get-started",
+      "name": "Get started",
+      "description": "Welcome to Base, What's new, Base 2.0, Help & support, Base AI (skills & MCP), Learn"
+    },
+    {
+      "id": "system-principles",
+      "name": "System principles",
+      "description": "Content heuristics, Global writing, Product tone & voice, Product inclusion, A11y first process, Mobile screen readers"
+    },
+    {
+      "id": "design-language",
+      "name": "Design language",
+      "description": "Visual styles (Color 2.0, Border, Tokens, Corner radius 2.0, Layout grids, Elevation 2.0, Typography 2.0), Expression, Content standards"
+    },
+    {
+      "id": "components",
+      "name": "Components",
+      "description": "Catálogo canónico de 60 componentes organizados en 7 categorías funcionales"
+    },
+    {
+      "id": "patterns",
+      "name": "Patterns",
+      "description": "Feedback & status, Input & forms, Modality, Selection, States"
+    },
+    {
+      "id": "extension",
+      "name": "Extension",
+      "description": "Extension library, Playbook, AI Extensions (Chat empty states, Prompts, Citations), Maps Extensions"
+    }
+  ],
+  "componentCategories": {
+    "Action": ["Button", "Button dock", "Button group", "Link", "Sliding button", "Tile", "Timed button"],
+    "Input & control": ["Check", "Date picker", "File upload", "Menu", "Radio", "Select", "Text field", "PIN code", "Search", "Slider", "Star rating", "Stepper", "Switch", "Time picker"],
+    "Data display": ["Accordion", "Avatar", "Badge", "Divider", "Draggable list", "Drawer", "Empty state", "List item", "Message card", "Placeholder", "Popover", "Progress bar", "Progress circle", "Progress steps", "Section heading", "Tag", "Tooltip"],
+    "Feedback & status": ["Banner", "Notification", "Snackbar", "Spinner", "System alert"],
+    "Surfaces": ["Card", "Modal", "Modal full screen", "Sheet"],
+    "Navigation": ["Bottom navigation", "Breadcrumbs", "Navigation header", "Page controls", "Pagination", "Side navigation", "Tabs", "Top navigation", "Tree view"],
+    "Data & tables": ["Charts", "Data table", "Table"]
+  },
+  "componentFicheArchitecture": [
+    "Usage (Alternative names, 3 Principles, Anatomy diagram, Variants, Behavior, Related components)",
+    "Content (Microcopy guidelines, Sentence case, Do's & Don'ts)",
+    "Specs (Padding, corner radius, typography tokens, light/dark mode color tokens)",
+    "Accessibility (ARIA roles, VoiceOver/TalkBack labels, Dynamic Type)",
+    "Status & resources (Platform names: iOS, Android, React Web, Figma & code links)"
+  ],
+  "pages": {
+    "cover": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/01d27b-uber-design-system",
+    "tokens": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/114420-tokens",
+    "color": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/56e0f2-color",
+    "typography": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/17ca5f-typography",
+    "typographyOfficialSource": "https://zeroheight.com/6d2425e9f/p/976582-typography-10",
+    "spacing": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/28b781-spacing",
+    "components": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/961de2-components",
+    "dedicatedComponents": {
+      "button": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/5675c6-button",
+      "textField": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/70e9fa-text-field",
+      "card": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/87b39b-card",
+      "modalFullScreen": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/5275c8-modal-full-screen",
+      "banner": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/566594-banner",
+      "tabs": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/09e542-tabs",
+      "badgeEta": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/f891ae-badge-eta",
+      "buttonCircleClose": "https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/a1dac7-button-circle-close"
+    }
+  },
+  "aiAgentContract": {
+    "targetLanguage": "es-ES",
+    "caseStyle": "sentence-case",
+    "mobileConstraints": {
+      "maxWidth": "430px",
+      "touchTargetMin": "48px"
+    },
+    "zeroPromptResolution": {
+      "primaryCTA": {
+        "component": "baseui/button",
+        "shape": "SHAPE.rounded",
+        "borderRadius": "8px",
+        "optionalShape": "SHAPE.pill",
+        "background": "#000000",
+        "textColor": "#FFFFFF",
+        "height": "56px"
+      },
+      "secondaryCTA": {
+        "component": "baseui/button",
+        "shape": "SHAPE.rounded",
+        "borderRadius": "8px",
+        "optionalShape": "SHAPE.pill",
+        "background": "#F6F6F6",
+        "textColor": "#000000",
+        "height": "48px"
+      },
+      "card": {
+        "component": "baseui/card",
+        "borderRadius": "8px",
+        "border": "1px solid #E2E2E2",
+        "background": "#FFFFFF",
+        "selectedBorder": "#000000"
+      },
+      "typography": {
+        "headings": "Uber Move Bold",
+        "bodyAndControls": "Uber Move Text"
+      },
+      "accessibility": {
+        "standard": "WCAG 2.1 AA",
+        "minimumContrastRatio": "4.5:1",
+        "headingsContrastRatio": "3:1"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { config } from "../config.js";
+import { log } from "../lib/logger.js";
 
 function authHeader(): string {
   return "Basic " + Buffer.from(`${config.jira.email}:${config.jira.apiToken}`).toString("base64");
@@ -29,4 +30,111 @@ export async function transitionJiraIssue(issueKey: string, transitionId: string
     method: "POST",
     body: JSON.stringify({ transition: { id: transitionId } }),
   });
+}
+
+export interface CreateJiraIssueParams {
+  summary: string;
+  description: string;
+  projectKey?: string;
+  issueType?: string;
+  labels?: string[];
+  priority?: string;
+}
+
+export interface JiraCreatedIssue {
+  id: string;
+  key: string;
+  self: string;
+  url: string;
+}
+
+/**
+ * Crea una incidencia o brief de diseño en Jira de manera automática.
+ */
+export async function createJiraIssue(params: CreateJiraIssueParams): Promise<JiraCreatedIssue> {
+  if (config.dryRun) {
+    const mockKey = `KAN-${Math.floor(100 + Math.random() * 900)}`;
+    log.info(`[DRY_RUN] Simulando creación de ticket en Jira: ${mockKey} - "${params.summary}"`);
+    return {
+      id: "mock-" + Date.now(),
+      key: mockKey,
+      self: `${config.jira.baseUrl || "https://jira.local"}/rest/api/2/issue/${mockKey}`,
+      url: `${config.jira.baseUrl || "https://jira.local"}/browse/${mockKey}`,
+    };
+  }
+
+  if (!config.jira.baseUrl || !config.jira.email || !config.jira.apiToken) {
+    throw new Error("Faltan JIRA_BASE_URL, JIRA_EMAIL o JIRA_API_TOKEN en la configuración (.env)");
+  }
+
+  const projectKey = params.projectKey || config.jira.projectKey || "KAN";
+  const triggerLabel = config.jira.triggerLabel || "diseño";
+  const rawLabels = [triggerLabel, "uber-base", ...(params.labels || [])];
+  // Normalizar etiquetas (en Jira las etiquetas no pueden tener espacios)
+  const labels = Array.from(new Set(rawLabels.map(l => l.trim().replace(/\s+/g, "-")).filter(Boolean)));
+
+  const fields: any = {
+    project: { key: projectKey },
+    summary: params.summary.trim(),
+    description: (params.description || "(Sin descripción de brief)").trim(),
+    issuetype: { name: params.issueType || "Tarea" },
+    labels,
+  };
+
+  if (params.priority) {
+    const p = params.priority.toLowerCase();
+    let jiraPrio = "Medium";
+    if (p.includes("muy alta") || p.includes("highest") || p.includes("crítica") || p.includes("critica")) {
+      jiraPrio = "Highest";
+    } else if (p.includes("alta") || p.includes("high")) {
+      jiraPrio = "High";
+    } else if (p.includes("baja") || p.includes("low") || p.includes("menor")) {
+      jiraPrio = "Low";
+    }
+    fields.priority = { name: jiraPrio };
+  }
+
+  let res = await fetch(`${config.jira.baseUrl}/rest/api/2/issue`, {
+    method: "POST",
+    headers: {
+      Authorization: authHeader(),
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ fields }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    // Reintentar con id común o "Task" si el nombre del tipo falló
+    if (errText.includes("issuetype")) {
+      log.warn(`[JIRA] Falló el tipo 'Tarea', reintentando con ID '10003'...`);
+      fields.issuetype = { id: "10003" };
+      res = await fetch(`${config.jira.baseUrl}/rest/api/2/issue`, {
+        method: "POST",
+        headers: {
+          Authorization: authHeader(),
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fields }),
+      });
+      if (!res.ok) {
+        throw new Error(`Jira respondió ${res.status}: ${await res.text()}`);
+      }
+    } else {
+      throw new Error(`Jira respondió ${res.status}: ${errText}`);
+    }
+  }
+
+  const data = (await res.json()) as { id: string; key: string; self: string };
+  const issueUrl = `${config.jira.baseUrl}/browse/${data.key}`;
+  log.info(`[JIRA] Ticket creado automáticamente con éxito: ${data.key} (${issueUrl})`);
+
+  return {
+    id: data.id,
+    key: data.key,
+    self: data.self,
+    url: issueUrl,
+  };
 }

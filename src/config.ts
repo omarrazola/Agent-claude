@@ -31,6 +31,7 @@ export const config = {
     baseUrl: env("JIRA_BASE_URL").replace(/\/$/, ""),
     email: env("JIRA_EMAIL"),
     apiToken: env("JIRA_API_TOKEN"),
+    projectKey: env("JIRA_PROJECT_KEY", "KAN"),
     webhookToken: env("JIRA_WEBHOOK_TOKEN"),
     triggerLabel: env("JIRA_TRIGGER_LABEL", "diseño"),
     transitionReviewId: env("JIRA_TRANSITION_REVIEW_ID"),

@@ -1,7 +1,7 @@
 import { AGENTS, ITERATION_STEPS, agentById } from "../agents/index.js";
 import { runAgent } from "../agents/runner.js";
 import { config } from "../config.js";
-import { pushToFigma } from "../integrations/figma.js";
+import { pushToFigma, renderScreenSvg } from "../integrations/figma.js";
 import { writePreview } from "../integrations/preview.js";
 import { tracker } from "../integrations/tracker.js";
 import { log } from "../lib/logger.js";
@@ -117,10 +117,25 @@ async function runSteps(run: RunState, steps: StepId[], feedback?: string): Prom
   }
 }
 
-/** Usa las pantallas corregidas por QA si las hay; si no, las del agente de UI. */
+/** Usa las pantallas corregidas por QA si las hay; si no, las del agente de UI, o genera HTML desde ui.screens. */
 function pickScreens(run: RunState): ScreenFile[] {
   const fromQa = (run.outputs.qa as { files?: ScreenFile[] } | undefined)?.files;
   const fromUi = (run.outputs.ui as { files?: ScreenFile[] } | undefined)?.files;
   const files = fromQa?.length ? fromQa : fromUi ?? [];
-  return files.filter((f) => typeof f?.path === "string" && typeof f?.html === "string");
+  const validFiles = files.filter((f) => typeof f?.path === "string" && typeof f?.html === "string");
+  if (validFiles.length > 0) return validFiles;
+
+  const uiScreens = (run.outputs.ui as { screens?: any[] } | undefined)?.screens;
+  if (Array.isArray(uiScreens) && uiScreens.length > 0) {
+    const total = uiScreens.length;
+    return uiScreens.map((scr, idx) => {
+      const stepNum = scr.step || (idx + 1);
+      const safeName = (scr.shortName || `paso-${stepNum}`).toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+      const title = scr.mainTitle || scr.shortName || `Pantalla ${stepNum}`;
+      const svg = renderScreenSvg(scr, idx, total);
+      const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><link rel="stylesheet" href="base.css"></head><body style="margin:0;padding:24px;background:#F6F6F6;display:flex;justify-content:center;font-family:Inter,sans-serif"><div style="max-width:375px;width:100%">${svg}</div></body></html>`;
+      return { path: `${stepNum}-${safeName}.html`, html };
+    });
+  }
+  return [];
 }

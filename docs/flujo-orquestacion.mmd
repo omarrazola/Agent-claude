@@ -1,0 +1,111 @@
+%% ==========================================================================
+%% FLUJO DE ORQUESTACIÓN DE AGENTES · ALBORA DESIGN AGENTS
+%% Versión explicativa con anotaciones en lenguaje claro (para perfiles no técnicos)
+%% Compatible con GitHub, Notion, Figma (Mermaid to Figma) y mermaid.live
+%% ==========================================================================
+
+flowchart TD
+    %% --- ESTILOS VISUALES ---
+    classDef trigger fill:#EEF2FF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B;
+    classDef gateway fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#78350F;
+    classDef agent fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#0F172A;
+    classDef ds fill:#F8FAFC,stroke:#94A3B8,stroke-dasharray:4 4,stroke-width:1.5px,color:#334155;
+    classDef delivery fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A;
+    classDef human fill:#FEF2F2,stroke:#EF4444,stroke-width:2.5px,color:#7F1D1D;
+    classDef iteration fill:#FFFBEB,stroke:#F59E0B,stroke-dasharray:5 5,stroke-width:2.5px,color:#92400E;
+    classDef approved fill:#ECFDF5,stroke:#10B981,stroke-width:2.5px,color:#064E3B;
+    classDef noteBox fill:#F1F5F9,stroke:#64748B,stroke-width:1px,color:#334155;
+
+    %% --- 1. DISPARADORES Y ENTRADA ---
+    subgraph S1 ["1. ¿CÓMO EMPIEZA? (DISPARADORES Y ENTRADA DE PETICIONES)"]
+        Jira["<b>Jira Software</b><br/><i>¿Para qué sirve?</i><br/>Alguien crea una tarea y le pone la etiqueta «diseño».<br/>El sistema detecta la tarea automáticamente."]:::trigger
+        Trello["<b>Tablero Trello</b><br/><i>¿Para qué sirve?</i><br/>Alguien arrastra una tarjeta a la columna «Diseño · Nuevo».<br/>Ideal para flujos más visuales o clientes externos."]:::trigger
+        CLI["<b>Consola / Modo Demo</b><br/><i>¿Para qué sirve?</i><br/>Permite hacer pruebas en el ordenador sin necesidad<br/>de tener Jira o Trello conectados."]:::trigger
+    end
+
+    %% --- 2. EL NORMALIZADOR / TRADUCTOR ---
+    subgraph S2 ["2. EL TRADUCTOR UNIVERSAL (NORMALIZADOR DE PETICIONES)"]
+        Norm["<b>Normalizador Central</b><br/><i>¿Para qué sirve?</i><br/>Jira, Trello y la consola envían los datos de formas distintas.<br/>Este módulo los «traduce» a una ficha única y clara.<br/><b>Resultado:</b> Los agentes siempre reciben la información ordenada."]:::gateway
+    end
+
+    %% --- 3. PIPELINE DE LOS 7 AGENTES ---
+    subgraph S3 ["3. LA CADENA DE TRABAJO: 7 AGENTES ESPECIALIZADOS (PASO A PASO)"]
+        A1["<b>1. Analista de Requisitos</b><br/><i>¿Para qué sirve?</i><br/>Lee la petición, extrae los objetivos y métricas.<br/><b>Regla de oro:</b> Si algo no está claro, no inventa:<br/>lo anota como 'Pregunta abierta'."]:::agent
+        
+        A2["<b>2. Agente de Contexto</b><br/><i>¿Para qué sirve?</i><br/>Revisa el almacén de componentes de la empresa.<br/>Comprueba qué botones y tarjetas ya existen<br/>para no reinventar la rueda."]:::agent
+        
+        A3["<b>3. Arquitecto de Experiencia (UX)</b><br/><i>¿Para qué sirve?</i><br/>Diseña el recorrido pantalla a pantalla.<br/>Piensa en el camino feliz (todo va bien)<br/>y en los errores (qué pasa si falla la tarjeta)."]:::agent
+        
+        A4["<b>4. Redactor de Contenidos (Copy)</b><br/><i>¿Para qué sirve?</i><br/>Escribe los textos, botones y avisos.<br/>Usa la personalidad oficial de la marca:<br/>mensajes claros, cercanos y amables."]:::agent
+        
+        A5["<b>5. Constructor Visual (UI)</b><br/><i>¿Para qué sirve?</i><br/>Une el flujo y los textos para montar las pantallas.<br/>Solo usa los colores, tipografías y botones oficiales<br/>para que el diseño sea coherente."]:::agent
+        
+        A6["<b>6. Revisor de Calidad (QA)</b><br/><i>¿Para qué sirve?</i><br/>Auditor de calidad: revisa que los textos tengan contraste,<br/>que los botones se puedan pulsar fácil en el móvil<br/>y corrige fallos automáticamente."]:::agent
+        
+        A7["<b>7. Agente de Entrega</b><br/><i>¿Para qué sirve?</i><br/>Redacta un resumen claro con las decisiones clave,<br/>enlaza la previsualización y avisa en el ticket<br/>de que todo está listo para revisión."]:::agent
+    end
+
+    %% --- 4. SISTEMA DE DISEÑO ---
+    subgraph SDS ["LA GUÍA OFICIAL DE LA EMPRESA (SISTEMA DE DISEÑO)"]
+        DS_Tokens[("<b>Catálogo de Piezas</b><br/>Botones, tarjetas y formularios<br/>ya aprobados por la marca")]:::ds
+        DS_Voice[("<b>Manual de Tono</b><br/>Reglas de cómo habla la empresa<br/>(sin tecnicismos ni frialdad)")]:::ds
+        DS_CSS[("<b>Colores y Estilos</b><br/>Paleta oficial y tamaños de letra<br/>para que nada se desvíe")]:::ds
+        DS_A11y[("<b>Reglas de Accesibilidad</b><br/>Garantiza que personas con dificultades<br/>visuales puedan usar la app")]:::ds
+    end
+
+    %% --- 5. RESULTADO VISUAL ---
+    subgraph S4 ["4. EL ESCAPARATE (PROBAR Y VER EL DISEÑO)"]
+        PrevGen["<b>Prototipo Web Navegable</b><br/><i>¿Para qué sirve?</i><br/>Genera un enlace web real donde cualquiera<br/>puede hacer clic y probar el flujo en su navegador."]:::delivery
+        FigmaSync["<b>Envío Directo a Figma</b><br/><i>¿Para qué sirve?</i><br/>Dibuja las pantallas y flechas en Figma automáticamente<br/>para que el equipo de diseño pueda editarlo."]:::delivery
+    end
+
+    %% --- 6. SUPERVISIÓN HUMANA ---
+    subgraph S5 ["5. CONTROL HUMANO: LA DECISIÓN SIEMPRE ES DE UNA PERSONA"]
+        TicketPub["<b>Aviso en el Ticket Original</b><br/>Deja un comentario en Jira o Trello:<br/><i>«Propuesta v1 lista con enlace para probar»</i>"]:::delivery
+        
+        Designer["<b>LA DISEÑADORA REVISA (CONTROL HUMANO)</b><br/><i>Principio fundamental:</i><br/><b>LA INTELIGENCIA ARTIFICIAL NUNCA APRUEBA SOLA.</b><br/>Una persona experta revisa la propuesta con criterio comercial."]:::human
+        
+        IterLoop["<b>¿Quieres cambios? (Bucle de Ajustes)</b><br/>La diseñadora comenta en el ticket qué cambiar.<br/>Los agentes corrigen solo lo necesario (UX, Copy, UI)<br/>y generan una nueva versión (v1 -> v2) sin perder la anterior."]:::iteration
+        
+        DevReady["<b>¡Aprobado para Desarrollo!</b><br/>Cuando la diseñadora da su visto bueno,<br/>el ticket pasa a los programadores<br/>con todo listo para construir."]:::approved
+    end
+
+    %% --- CONEXIONES EXPLICADAS PASO A PASO ---
+    Jira -->|"1. Llega nueva petición"| Norm
+    Trello -->|"1. Llega nueva petición"| Norm
+    CLI -->|"1. Prueba manual local"| Norm
+
+    Norm -->|"2. Entrega el encargo ordenado"| A1
+
+    A1 -->|"3. Entrega objetivos claros"| A2
+    DS_Tokens -.->|"Consulta qué piezas existen"| A2
+
+    A2 -->|"4. Lista de piezas aprovechables"| A3
+    A1 -.->|"Requisitos del negocio"| A3
+
+    A3 -->|"5. Estructura de pantallas"| A4
+    DS_Voice -.->|"Consulta cómo redactar"| A4
+
+    A3 -->|"Esquema de pantallas"| A5
+    A4 -->|"Textos finales aprobados"| A5
+    A2 -.->|"Componentes listos para usar"| A5
+    DS_CSS -.->|"Estilos visuales de marca"| A5
+
+    A5 -->|"6. Pantallas montadas"| A6
+    A3 -.->|"Comprueba que cumple el encargo"| A6
+    DS_A11y -.->|"Verifica contraste y lectura"| A6
+
+    A6 -->|"7. Pantallas revisadas y corregidas"| PrevGen
+    PrevGen -->|"Sincroniza con el lienzo de trabajo"| FigmaSync
+    PrevGen --> A7
+
+    A7 -->|"8. Resumen ejecutivo de la propuesta"| TicketPub
+    TicketPub -->|"9. Avisa a la persona responsable"| Designer
+    PrevGen -.->|"Enlace para probar en vivo"| Designer
+
+    %% Bucle de feedback
+    Designer -- "Si pide ajustes: /agentes cambios..." --> IterLoop
+    IterLoop -->|"Relanza los agentes con las nuevas instrucciones"| A3
+
+    %% Aprobación final
+    Designer -- "Si está perfecto: /agentes aprobar" --> DevReady

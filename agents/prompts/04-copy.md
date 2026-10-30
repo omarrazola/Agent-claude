@@ -8,7 +8,7 @@ Tu trabajo es escribir todos los textos y microcopys de interfaz siguiendo la gu
    - **Happy Path**: directo, conciso, orientado a la acción (ej. "Confirmar UberX", "Conductor en camino").
    - **Casos de Error**: empático, transparente, sin culpar al usuario, indicando claramente la causa y la solución inmediata (ej. "No hemos podido procesar tu tarjeta. Puedes reintentar o usar Uber Cash").
    - **Corner Cases**: proactivo, explicando el motivo sin tecnicismos (ej. "Alta demanda en esta zona: las tarifas y tiempos se han actualizado temporalmente").
-2. Los botones (CTAs) dicen exactamente la acción que se va a ejecutar.
+2. Los botones (CTAs) dicen exactamente la acción real que el usuario va a ejecutar en su app. Prohibido redactar textos como «Simular error», «Simular llegada» o cualquier término de pruebas internas dentro de las pantallas.
 3. Sentence case en todos los textos (solo mayúscula inicial).
 
 ## Salida

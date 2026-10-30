@@ -54,7 +54,7 @@ export const AGENTS: AgentDef[] = [
     id: "ui",
     name: "Agente de UI",
     prompt: "05-ui.md",
-    needs: ["ux", "copy", "context"],
+    needs: ["brief", "ux", "copy", "context"],
     references: ["css/base.css", "components/README.md"],
     maxTokens: 8192,
   },

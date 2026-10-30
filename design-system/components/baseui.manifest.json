@@ -73,73 +73,80 @@
     }
   },
   "componentCategories": {
-    "Inputs": [
+    "Action": [
       "Button",
+      "ButtonDock",
       "ButtonGroup",
-      "Checkbox",
-      "FormControl",
-      "Input",
-      "PaymentCard",
-      "PhoneInput",
-      "PinCode",
-      "Radio",
-      "Slider",
-      "Textarea"
-    ],
-    "Pickers": [
-      "FileUploader",
-      "Menu",
-      "Rating",
-      "Select"
-    ],
-    "DateTime": [
-      "DatePicker",
-      "TimePicker",
-      "TimezonePicker"
-    ],
-    "Navigation": [
-      "Breadcrumbs",
-      "HeaderNavigation",
       "Link",
-      "Pagination",
-      "SideNav",
-      "Tabs"
+      "SlidingButton",
+      "Tile",
+      "TimedButton"
     ],
-    "Content": [
+    "Input & control": [
+      "Check",
+      "DatePicker",
+      "FileUpload",
+      "Menu",
+      "Radio",
+      "Select",
+      "TextField",
+      "PinCode",
+      "Search",
+      "Slider",
+      "StarRating",
+      "Stepper",
+      "Switch",
+      "TimePicker"
+    ],
+    "Data display": [
       "Accordion",
       "Avatar",
-      "DndList",
-      "Heading",
-      "Icon",
-      "List",
+      "Badge",
+      "Divider",
+      "DraggableList",
+      "Drawer",
+      "EmptyState",
+      "ListItem",
+      "MessageCard",
+      "Placeholder",
+      "Popover",
+      "ProgressBar",
+      "ProgressCircle",
+      "ProgressSteps",
+      "SectionHeading",
       "Tag",
-      "TreeView",
-      "Typography"
+      "Tooltip"
     ],
-    "Tables": [
-      "Table",
-      "DataTable",
-      "TableGrid",
-      "TableSemantic"
-    ],
-    "Feedback": [
+    "Feedback & status": [
       "Banner",
       "Notification",
-      "ProgressBar",
-      "ProgressSteps",
-      "Skeleton",
       "Snackbar",
       "Spinner",
-      "Toast"
+      "SystemAlert"
     ],
     "Surfaces": [
       "Card",
-      "Drawer",
       "Modal",
-      "Popover",
-      "Tooltip"
+      "ModalFullScreen",
+      "Sheet"
     ],
-    "MapMarkers": [
+    "Navigation": [
+      "BottomNavigation",
+      "Breadcrumbs",
+      "NavigationHeader",
+      "PageControls",
+      "Pagination",
+      "SideNavigation",
+      "Tabs",
+      "TopNavigation",
+      "TreeView"
+    ],
+    "Data & tables": [
+      "Charts",
+      "DataTable",
+      "Table"
+    ],
+    "Extensions & MapMarkers": [
       "FixedMarker",
       "FloatingMarker",
       "FloatingRouteMarker",

@@ -74,7 +74,7 @@ Los pasos para conectar Jira, Trello y la previsualización están en [`docs/set
 ## Documentación
 
 - [Arquitectura](docs/architecture.md)
-- [Agentes](docs/agents.md)
+- [Agentes y Organigrama](docs/agents.md)
 - [Puesta en marcha](docs/setup.md)
 - [Plan de piloto](docs/pilot-plan.md)
 - [Seguridad y datos](docs/security.md)

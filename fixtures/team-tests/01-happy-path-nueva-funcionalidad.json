@@ -1,0 +1,31 @@
+{
+  "webhookEvent": "jira:issue_created",
+  "issue": {
+    "key": "TEST-101",
+    "fields": {
+      "summary": "Flujo de reserva directa de vehículo eléctrico Uber Green con Apple Pay",
+      "labels": ["diseño", "movilidad", "sostenibilidad"],
+      "reporter": { "displayName": "Laura Sánchez (Product Manager)" },
+      "attachment": [
+        { "filename": "benchmark_sostenibilidad_2026.pdf" }
+      ],
+      "description": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Objetivo de negocio: Promover la adopción de flotas 100% eléctricas mediante un flujo de reserva rápida con 1 solo toque usando Apple Pay / Google Pay y desglose claro de CO2 ahorrado." }] },
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Requisitos clave:" }] },
+          {
+            "type": "bulletList",
+            "content": [
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Selector de vehículo destacando la categoría 'Uber Green Electric' con indicador de ahorro de emisiones." }] }] },
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Precio cerrado garantizado y tiempo estimado de llegada en menos de 4 minutos." }] }] },
+              { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Autorización biométrica rápida (Apple Pay / Google Pay) sin introducir datos de tarjeta." }] }] }
+            ]
+          },
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Cumplir estrictamente con los componentes oficiales de Base Design System (botones 48px, tipografía Uber Move, accesibilidad AA)." }] }
+        ]
+      }
+    }
+  }
+}

@@ -8,7 +8,9 @@
   "networkAccess": {
     "allowedDomains": ["none"],
     "devAllowedDomains": [
-      "http://localhost:8787"
+      "http://localhost:5173", "ws://localhost:5173",
+      "http://localhost:8787", "ws://localhost:8787",
+      "http://localhost:3001", "ws://localhost:3001"
     ],
     "reasoning": "Conectar con servidor local del agente"
   }

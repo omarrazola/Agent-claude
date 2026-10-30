@@ -28,11 +28,52 @@
   "font": {
     "display": {
       "$type": "fontFamily",
-      "$value": ["Uber Move", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"]
+      "$value": ["Uber Move", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      "$description": "Uber Move Display: High-impact expressive font for Display and Headings"
     },
     "body": {
       "$type": "fontFamily",
-      "$value": ["Uber Move Text", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"]
+      "$value": ["Uber Move Text", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      "$description": "Uber Move Text: Highly legible font optimized for Labels, Paragraphs, UI controls and Buttons"
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": ["Uber Move Mono", "SF Mono", "Menlo", "Consolas", "monospace"],
+      "$description": "Uber Move Mono: Fixed-width font for financial values, prices, timers and metrics"
+    }
+  },
+  "typography10": {
+    "display": {
+      "large": { "fontSize": "96px", "lineHeight": "112px", "fontWeight": "700", "fontFamily": "Uber Move" },
+      "medium": { "fontSize": "52px", "lineHeight": "64px", "fontWeight": "700", "fontFamily": "Uber Move" },
+      "small": { "fontSize": "44px", "lineHeight": "52px", "fontWeight": "700", "fontFamily": "Uber Move" },
+      "xSmall": { "fontSize": "36px", "lineHeight": "44px", "fontWeight": "700", "fontFamily": "Uber Move" }
+    },
+    "heading": {
+      "xxLarge": { "fontSize": "40px", "lineHeight": "52px", "fontWeight": "700", "fontFamily": "Uber Move" },
+      "xLarge": { "fontSize": "36px", "lineHeight": "44px", "fontWeight": "700", "fontFamily": "Uber Move" },
+      "large": { "fontSize": "32px", "lineHeight": "40px", "fontWeight": "700", "fontFamily": "Uber Move" },
+      "medium": { "fontSize": "28px", "lineHeight": "36px", "fontWeight": "500", "fontFamily": "Uber Move" },
+      "small": { "fontSize": "24px", "lineHeight": "32px", "fontWeight": "500", "fontFamily": "Uber Move" },
+      "xSmall": { "fontSize": "20px", "lineHeight": "28px", "fontWeight": "500", "fontFamily": "Uber Move" }
+    },
+    "label": {
+      "large": { "fontSize": "18px", "lineHeight": "24px", "fontWeight": "500", "fontFamily": "Uber Move Text" },
+      "medium": { "fontSize": "16px", "lineHeight": "20px", "fontWeight": "500", "fontFamily": "Uber Move Text" },
+      "small": { "fontSize": "14px", "lineHeight": "20px", "fontWeight": "500", "fontFamily": "Uber Move Text" },
+      "xSmall": { "fontSize": "12px", "lineHeight": "16px", "fontWeight": "500", "fontFamily": "Uber Move Text" }
+    },
+    "paragraph": {
+      "large": { "fontSize": "18px", "lineHeight": "28px", "fontWeight": "400", "fontFamily": "Uber Move Text" },
+      "medium": { "fontSize": "16px", "lineHeight": "24px", "fontWeight": "400", "fontFamily": "Uber Move Text" },
+      "small": { "fontSize": "14px", "lineHeight": "20px", "fontWeight": "400", "fontFamily": "Uber Move Text" },
+      "xSmall": { "fontSize": "12px", "lineHeight": "20px", "fontWeight": "400", "fontFamily": "Uber Move Text" }
+    },
+    "mono": {
+      "displayMedium": { "fontSize": "52px", "lineHeight": "64px", "fontWeight": "500", "fontFamily": "Uber Move Mono" },
+      "headerMedium": { "fontSize": "28px", "lineHeight": "36px", "fontWeight": "500", "fontFamily": "Uber Move Mono" },
+      "labelMedium": { "fontSize": "16px", "lineHeight": "20px", "fontWeight": "500", "fontFamily": "Uber Move Mono" },
+      "paragraphMedium": { "fontSize": "16px", "lineHeight": "24px", "fontWeight": "400", "fontFamily": "Uber Move Mono" }
     }
   },
   "fontSize": {

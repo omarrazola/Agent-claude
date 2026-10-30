@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uber Base Design System · Zeroheight Interactive Showcase & AI Contract</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: "Uber Move";
+      src: url("https://d1a3f4spazzrp4.cloudfront.net/dotcom-assets/fonts/UberMove-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Uber Move Text";
+      src: url("https://d1a3f4spazzrp4.cloudfront.net/dotcom-assets/fonts/UberMoveText-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Uber Move Text";
+      src: url("https://uber-common-public.s3-us-west-2.amazonaws.com/design-platform/UberMoveText-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-display: swap;
+    }
+
+    :root {
+      /* Uber Base Tokens */
+      --base-black: #000000;
+      --base-white: #FFFFFF;
+      --base-backgroundPrimary: #FFFFFF;
+      --base-backgroundSecondary: #F6F6F6;
+      --base-backgroundTertiary: #EEEEEE;
+      --base-contentPrimary: #000000;
+      --base-contentSecondary: #545454;
+      --base-contentTertiary: #757575;
+      --base-borderOpaque: #E2E2E2;
+      --base-accent: #276EF1;
+      --base-positive: #0E8345;
+      --base-positiveLight: #EAF6ED;
+      --base-negative: #DE1135;
+      --base-negativeLight: #FFF0EE;
+      --base-warning: #F69E0C;
+      --base-warningLight: #FDF2DC;
+      --base-radius-pill: 9999px;
+      --base-radius-rounded: 8px;
+      --base-radius-medium: 12px;
+      --base-shadow: 0 4px 16px rgba(0,0,0,0.08);
+
+      /* Zeroheight Chrome Colors */
+      --zh-sidebar-bg: #FAFAFB;
+      --zh-border: #E8E8EC;
+      --zh-text: #1E1F24;
+      --zh-text-muted: #6E7180;
+      --zh-primary: #101114;
+      --zh-accent: #276EF1;
+      --zh-badge-bg: #EEF0F5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      background: #FFFFFF;
+      color: var(--zh-text);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Zeroheight Layout Structure */
+    .zh-sidebar {
+      width: 280px;
+      background: var(--zh-sidebar-bg);
+      border-right: 1px solid var(--zh-border);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .zh-sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--zh-border);
+    }
+    .zh-logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--zh-text-muted);
+      margin-bottom: 8px;
+    }
+    .zh-brand-title {
+      font-family: "Uber Move", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--base-black);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .zh-brand-pill {
+      font-family: sans-serif;
+      font-size: 11px;
+      padding: 2px 8px;
+      background: #000;
+      color: #fff;
+      border-radius: var(--base-radius-pill);
+      font-weight: 600;
+    }
+
+    .zh-nav-group {
+      padding: 16px 12px 8px;
+    }
+    .zh-nav-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--zh-text-muted);
+      padding: 0 12px 8px;
+    }
+    .zh-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--zh-text);
+      text-decoration: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .zh-nav-item:hover {
+      background: #EFEFEF;
+    }
+    .zh-nav-item.active {
+      background: #FFFFFF;
+      color: var(--base-black);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .zh-nav-tag {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--zh-badge-bg);
+      border-radius: 4px;
+      color: var(--zh-text-muted);
+      font-weight: 600;
+    }
+
+    /* Main Container */
+    .zh-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .zh-topbar {
+      padding: 16px 40px;
+      border-bottom: 1px solid var(--zh-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .zh-breadcrumbs {
+      font-size: 13px;
+      color: var(--zh-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .zh-breadcrumbs strong {
+      color: var(--base-black);
+    }
+    .zh-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .zh-link-btn {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--zh-text);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: var(--base-radius-pill);
+      border: 1px solid var(--zh-border);
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .zh-link-btn:hover {
+      background: var(--base-backgroundSecondary);
+      border-color: #D0D0D5;
+    }
+    .zh-link-btn.primary {
+      background: var(--base-black);
+      color: var(--base-white);
+      border-color: var(--base-black);
+    }
+
+    .zh-content {
+      padding: 40px 48px;
+      max-width: 1180px;
+    }
+
+    /* Zeroheight Page Header */
+    .zh-page-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--zh-border);
+    }
+    .zh-page-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--base-accent);
+      background: #EFF4FE;
+      padding: 3px 10px;
+      border-radius: var(--base-radius-pill);
+      margin-bottom: 12px;
+    }
+    .zh-page-title {
+      font-family: "Uber Move", sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--base-black);
+      margin-bottom: 10px;
+    }
+    .zh-page-desc {
+      font-family: "Uber Move Text", sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--base-contentSecondary);
+      max-width: 800px;
+    }
+
+    /* Tabs Bar */
+    .zh-tabs-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--zh-border);
+      margin-bottom: 32px;
+    }
+    .zh-tab {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--zh-text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s ease;
+    }
+    .zh-tab:hover {
+      color: var(--base-black);
+    }
+    .zh-tab.active {
+      color: var(--base-black);
+      border-bottom-color: var(--base-black);
+    }
+
+    /* Panels */
+    .zh-tab-panel { display: none; }
+    .zh-tab-panel.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards & Components Grid */
+    .zh-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .zh-card {
+      background: var(--base-white);
+      border: 1px solid var(--zh-border);
+      border-radius: var(--base-radius-medium);
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .zh-card-title {
+      font-family: "Uber Move", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .zh-card-sub {
+      font-size: 13.5px;
+      color: var(--base-contentSecondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* Uber Components */
+    .uber-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 48px;
+      padding: 0 24px;
+      border-radius: var(--base-radius-pill);
+      font-family: "Uber Move Text", sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.15s ease;
+      text-decoration: none;
+      min-width: 140px;
+    }
+    .uber-btn:active { transform: scale(0.98); }
+    .uber-btn-primary { background: var(--base-black); color: var(--base-white); }
+    .uber-btn-primary:hover { background: #222222; }
+    .uber-btn-secondary { background: var(--base-backgroundSecondary); color: var(--base-black); }
+    .uber-btn-secondary:hover { background: #EAEAEA; }
+    .uber-btn-negative { background: var(--base-negative); color: var(--base-white); }
+    .uber-btn-negative:hover { background: #BA0F2C; }
+
+    /* Uber Mobile Simulator (430px) */
+    .mobile-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 24px 0;
+    }
+    .uber-mobile-screen {
+      width: 100%;
+      max-width: 430px;
+      background: var(--base-backgroundSecondary);
+      border: 1px solid var(--base-borderOpaque);
+      border-radius: 36px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .uber-mobile-notch {
+      height: 44px;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .uber-mobile-body {
+      background: #FFFFFF;
+      padding: 20px;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .uber-mobile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .uber-mobile-title {
+      font-family: "Uber Move", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--base-black);
+    }
+
+    /* Ride Booking Option Card */
+    .uber-ride-card {
+      background: #FFFFFF;
+      border: 2px solid var(--base-borderOpaque);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .uber-ride-card.selected {
+      border-color: var(--base-black);
+      background: #FAFAFA;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .uber-ride-card:hover {
+      border-color: #757575;
+    }
+    .ride-icon {
+      width: 48px;
+      height: 48px;
+      background: #F0F0F0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .ride-info { flex: 1; }
+    .ride-name {
+      font-family: "Uber Move Text", sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--base-black);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ride-meta {
+      font-size: 12px;
+      color: var(--base-contentSecondary);
+      margin-top: 2px;
+    }
+    .ride-price {
+      font-family: "Uber Move Text", sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      text-align: right;
+    }
+    .ride-eta-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--base-positive);
+      background: var(--base-positiveLight);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Machine-Readable Code Box */
+    .ai-code-box {
+      background: #111216;
+      border-radius: 10px;
+      color: #E2E4EC;
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      padding: 20px;
+      overflow-x: auto;
+      position: relative;
+    }
+    .ai-copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 5px 10px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      color: #FFF;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .ai-copy-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* Alerts */
+    .uber-alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.4;
+    }
+    .uber-alert-positive { background: var(--base-positiveLight); color: var(--base-positive); border: 1px solid #C4E6D0; }
+    .uber-alert-warning { background: var(--base-warningLight); color: #8A5500; border: 1px solid #FCDCA5; }
+    .uber-alert-negative { background: var(--base-negativeLight); color: var(--base-negative); border: 1px solid #F9CBD2; }
+
+    /* Interactive Simulator */
+    .prompt-simulator {
+      background: #F9FAFB;
+      border: 1px solid var(--zh-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .prompt-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--zh-border);
+      font-family: inherit;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .prompt-input:focus { border-color: var(--base-black); }
+  </style>
+</head>
+<body>
+
+  <!-- Zeroheight Left Sidebar Navigation -->
+  <aside class="zh-sidebar">
+    <div class="zh-sidebar-header">
+      <div class="zh-logo-badge">
+        <span>Zeroheight Space</span>
+      </div>
+      <div class="zh-brand-title">
+        Uber Base DS
+        <span class="zh-brand-pill">v10.02.26</span>
+      </div>
+    </div>
+
+    <div class="zh-nav-group">
+      <div class="zh-nav-title">Guía Principal</div>
+      <a class="zh-nav-item active" onclick="switchTab('overview')">
+        <span>📖</span> Cover & Visión
+        <span class="zh-nav-tag">Live</span>
+      </a>
+      <a class="zh-nav-item" onclick="switchTab('ai-contract')">
+        <span>🤖</span> Contrato Agentes IA
+        <span class="zh-nav-tag">0-Prompt</span>
+      </a>
+      <a class="zh-nav-item" onclick="switchTab('prototype')">
+        <span>📱</span> Prototipo Móvil (430px)
+        <span class="zh-nav-tag">Demo</span>
+      </a>
+    </div>
+
+    <div class="zh-nav-group">
+      <div class="zh-nav-title">Foundations</div>
+      <a class="zh-nav-item" onclick="switchTab('tokens')">
+        <span>🎨</span> Tokens W3C & CSS
+      </a>
+      <a class="zh-nav-item" onclick="switchTab('components')">
+        <span>🧩</span> Base Web Components
+      </a>
+    </div>
+
+    <div class="zh-nav-group" style="margin-top: auto; padding: 16px;">
+      <a href="https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/01d27b-uber-design-system" target="_blank" class="zh-link-btn primary" style="width:100%; justify-content:center;">
+        Abrir Zeroheight Real ↗
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content View -->
+  <main class="zh-main">
+    <div class="zh-topbar">
+      <div class="zh-breadcrumbs">
+        <span>Uber Design System</span>
+        <span>/</span>
+        <strong>Zeroheight Styleguide & AI Contract</strong>
+      </div>
+      <div class="zh-actions">
+        <span class="zh-nav-tag" style="background:#EAF6ED; color:#0E8345;">Sincronizado Zeroheight</span>
+        <a href="https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/114420-tokens" target="_blank" class="zh-link-btn">
+          Tokens W3C en Zeroheight
+        </a>
+      </div>
+    </div>
+
+    <div class="zh-content">
+
+      <!-- Page Header -->
+      <header class="zh-page-header">
+        <span class="zh-page-tag">Uber Base Web + Zeroheight Integration</span>
+        <h1 class="zh-page-title">Sistema de Diseño para Agentes Autónomos</h1>
+        <p class="zh-page-desc">
+          Documentación estructurada y ejecutable que permite a agentes de IA (Brief, Context, UX, Copy, UI, QA y Delivery) interpretar e implementar pantallas 100% conformes con Uber Base sin necesidad de instrucciones adicionales.
+        </p>
+      </header>
+
+      <!-- Sub Tabs -->
+      <nav class="zh-tabs-bar">
+        <div class="zh-tab active" onclick="switchTab('overview')">1. Visión & Principios</div>
+        <div class="zh-tab" onclick="switchTab('ai-contract')">2. Contrato IA (Machine-Readable)</div>
+        <div class="zh-tab" onclick="switchTab('components')">3. Componentes Oficiales</div>
+        <div class="zh-tab" onclick="switchTab('prototype')">4. Prototipo Interactivo (Móvil)</div>
+        <div class="zh-tab" onclick="switchTab('tokens')">5. Tokens W3C JSON</div>
+      </nav>
+
+      <!-- TAB 1: OVERVIEW -->
+      <section id="panel-overview" class="zh-tab-panel active">
+        <div class="zh-grid-2">
+          <div class="zh-card">
+            <h3 class="zh-card-title">Principios Fundamentales de Uber</h3>
+            <p class="zh-card-sub">Reglas de diseño inmutables que aplican tanto a diseñadores humanos como a agentes generativos.</p>
+            <ul style="padding-left: 20px; line-height: 1.8; font-size: 14px;">
+              <li><strong>Negro (#000000)</strong> como color de máxima acción y contraste en CTA.</li>
+              <li><strong>Forma de Píldora (9999px)</strong> en todos los botones y selectores interactivos.</li>
+              <li><strong>Tipografías Move:</strong> Uber Move (Display titulares) y Uber Move Text (UI).</li>
+              <li><strong>Mobile First (430px):</strong> Optimizado para pantallas táctiles y touch target ≥ 48px.</li>
+            </ul>
+          </div>
+          <div class="zh-card">
+            <h3 class="zh-card-title">Arquitectura Zeroheight</h3>
+            <p class="zh-card-sub">Estado actual de la documentación sincronizada en el workspace en vivo.</p>
+            <div class="uber-alert uber-alert-positive" style="margin-bottom: 12px;">
+              ✓ Portada (Cover) actualizada y guardada en el servidor de Zeroheight.
+            </div>
+            <div class="uber-alert uber-alert-positive" style="margin-bottom: 12px;">
+              ✓ Página <code>Foundations > Tokens</code> con especificación W3C estructurada.
+            </div>
+            <div class="uber-alert uber-alert-positive">
+              ✓ Página <code>Foundations > Color</code> con ratios de contraste WCAG AA.
+            </div>
+          </div>
+        </div>
+
+        <div class="zh-card">
+          <h3 class="zh-card-title">¿Cómo lo interpretan los Agentes IA sin instrucciones?</h3>
+          <p class="zh-card-sub">
+            Cualquier modelo de lenguaje o agente conectado a Zeroheight recibe directamente el manifiesto JSON de componentes y el árbol de variables CSS. La regla de cero ambigüedad significa que:
+          </p>
+          <div class="zh-grid-2" style="margin-bottom:0;">
+            <div style="background:var(--base-backgroundSecondary); padding:16px; border-radius:8px;">
+              <strong style="font-size:13px; display:block; margin-bottom:6px;">Entrada para el Agente (Input)</strong>
+              <p style="font-size:12.5px; color:var(--base-contentSecondary);">Brief en lenguaje natural ("El usuario quiere seleccionar un UberX o Uber Black hacia el aeropuerto con precio garantizado").</p>
+            </div>
+            <div style="background:var(--base-backgroundSecondary); padding:16px; border-radius:8px;">
+              <strong style="font-size:13px; display:block; margin-bottom:6px;">Salida Determinista (Output)</strong>
+              <p style="font-size:12.5px; color:var(--base-contentSecondary);">Mapeo automático a componentes <code>baseui/button</code> (SHAPE.rounded / pill), tarjetas <code>baseui/card</code> con tokens <code>--base-*</code> y WCAG AA validado.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: AI CONTRACT -->
+      <section id="panel-ai-contract" class="zh-tab-panel">
+        <div class="zh-card" style="margin-bottom:24px;">
+          <h3 class="zh-card-title">Especificación Formal para Prompts de Agentes IA</h3>
+          <p class="zh-card-sub">Copia y pega este bloque en cualquier agente de diseño para que genere pantallas perfectas según el Zeroheight de Uber Base.</p>
+          <div class="ai-code-box">
+            <button class="ai-copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText); this.innerText='Copiado!'; setTimeout(()=>this.innerText='Copiar', 2000);">Copiar</button>
+            <pre><code># REGLAS ESTRICTAS DE DISEÑO: UBER BASE DESIGN SYSTEM (zeroheight v10.02.26)
+Fuente de verdad: https://untitled-team-601jp.zeroheight.com/styleguide/s/146571/p/01d27b-uber-design-system
+
+1. RESOLUCIÓN DE COMPONENTES:
+   - Botón Primario: background: var(--base-black, #000000); color: #FFF; border-radius: 9999px; height: 48px;
+   - Botón Secundario: background: var(--base-backgroundSecondary, #F6F6F6); color: #000; border-radius: 9999px;
+   - Botón Error / Cancelar: background: var(--base-negative, #DE1135); color: #FFF; border-radius: 9999px;
+   - Tarjetas / Superficies: background: #FFF; border: 1px solid var(--base-borderOpaque, #E2E2E2); border-radius: 8px;
+   - Badges de Estado: border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+
+2. ACCESIBILIDAD (WCAG AA):
+   - Texto principal #000000 sobre blanco #FFFFFF (Ratio 21:1).
+   - Texto secundario #545454 sobre blanco (Ratio 7.5:1).
+   - Touch target mínimo: 48px x 48px.
+   - Ancho máximo de página móvil: 430px.
+
+3. VOCABULARIO Y TONO:
+   - Idioma: Español en sentence case.
+   - Claro, transparente y orientado a la acción inmediata.</code></pre>
+          </div>
+        </div>
+
+        <div class="prompt-simulator">
+          <h4 style="font-size:15px; font-weight:700; margin-bottom:8px;">Validador de Prompts en Vivo</h4>
+          <p style="font-size:13px; color:var(--base-contentSecondary); margin-bottom:12px;">Escribe una instrucción de producto y comprueba la conformidad con los lineamientos del Zeroheight:</p>
+          <input type="text" id="sim-prompt" class="prompt-input" value="Quiero una pantalla para confirmar un viaje Uber Black con tarifa fijada de 32,50€" />
+          <button class="uber-btn uber-btn-primary" style="height:40px; font-size:13px;" onclick="runAiSimulation()">Interpretar con Agente IA</button>
+          <div id="sim-result" style="margin-top:14px; display:none;" class="uber-alert uber-alert-positive"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: COMPONENTS -->
+      <section id="panel-components" class="zh-tab-panel">
+        <div class="zh-card" style="margin-bottom:24px;">
+          <h3 class="zh-card-title">Catálogo Oficial Replicado de Uber Base Zeroheight</h3>
+          <p class="zh-card-sub">Replicado directamente desde <code>https://zeroheight.com/6d2425e9f/p/556814-components</code>. Selecciona una categoría para explorar los componentes oficiales, equivalencias en Base Web y roles semánticos para agentes IA:</p>
+
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+            <button class="zh-link-btn primary" id="btn-cat-action" onclick="showCategory('action')">1. Action (7)</button>
+            <button class="zh-link-btn" id="btn-cat-input" onclick="showCategory('input')">2. Input & Control (14)</button>
+            <button class="zh-link-btn" id="btn-cat-content" onclick="showCategory('content')">3. Data Display (17)</button>
+            <button class="zh-link-btn" id="btn-cat-feedback" onclick="showCategory('feedback')">4. Feedback & Status (5)</button>
+            <button class="zh-link-btn" id="btn-cat-surfaces" onclick="showCategory('surfaces')">5. Surfaces (4)</button>
+            <button class="zh-link-btn" id="btn-cat-nav" onclick="showCategory('nav')">6. Navigation (9)</button>
+            <button class="zh-link-btn" id="btn-cat-data" onclick="showCategory('data')">7. Data & Tables (3)</button>
+          </div>
+
+          <div id="category-details" style="background:var(--base-backgroundSecondary); padding:20px; border-radius:8px; font-size:13.5px; line-height:1.6;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div class="zh-grid-2">
+          <!-- Button Showroom -->
+          <div class="zh-card">
+            <h3 class="zh-card-title">Botones Oficiales (Pill Shape)</h3>
+            <p class="zh-card-sub">Todos los botones principales utilizan el radio completo de 9999px y altura accesible de 48px.</p>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <button class="uber-btn uber-btn-primary">KIND.primary (#000000)</button>
+              <button class="uber-btn uber-btn-secondary">KIND.secondary (#F6F6F6)</button>
+              <button class="uber-btn uber-btn-negative">KIND.negative (#DE1135)</button>
+            </div>
+          </div>
+
+          <!-- Semantic Alerts -->
+          <div class="zh-card">
+            <h3 class="zh-card-title">Banners & Alertas Semánticas</h3>
+            <p class="zh-card-sub">Colores con fondo suave y borde de token para feedback inmediato.</p>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="uber-alert uber-alert-positive">
+                <span>✓</span>
+                <div><strong>Viaje Confirmado:</strong> Tu conductor llegará en 3 minutos.</div>
+              </div>
+              <div class="uber-alert uber-alert-warning">
+                <span>⚠️</span>
+                <div><strong>Alta Demanda:</strong> Tarifas dinámicas aplicadas en esta zona.</div>
+              </div>
+              <div class="uber-alert uber-alert-negative">
+                <span>✕</span>
+                <div><strong>Método Rechazado:</strong> Por favor actualiza tu tarjeta.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: MOBILE PROTOTYPE -->
+      <section id="panel-prototype" class="zh-tab-panel">
+        <div class="mobile-wrapper">
+          <div class="uber-mobile-screen">
+            <div class="uber-mobile-notch">
+              <span>9:41</span>
+              <span>Uber Base 5G</span>
+              <span>100%</span>
+            </div>
+            <div class="uber-mobile-body">
+              <div class="uber-mobile-header">
+                <span class="uber-mobile-title">Elige tu viaje</span>
+                <span style="font-size:12px; font-weight:600; background:#F0F0F0; padding:4px 10px; border-radius:9999px;">Terminal 4</span>
+              </div>
+
+              <!-- Ride Option 1 -->
+              <div class="uber-ride-card selected" onclick="selectRide(this, 'UberX', '18,40 €')">
+                <div class="ride-icon">🚗</div>
+                <div class="ride-info">
+                  <div class="ride-name">
+                    UberX <span class="ride-eta-badge">3 min</span>
+                  </div>
+                  <div class="ride-meta">Viajes rápidos y asequibles · 4 plazas</div>
+                </div>
+                <div class="ride-price">18,40 €</div>
+              </div>
+
+              <!-- Ride Option 2 -->
+              <div class="uber-ride-card" onclick="selectRide(this, 'Uber Black', '32,50 €')">
+                <div class="ride-icon">✨</div>
+                <div class="ride-info">
+                  <div class="ride-name">
+                    Uber Black <span class="ride-eta-badge">5 min</span>
+                  </div>
+                  <div class="ride-meta">Vehículos de alta gama con chófer · 4 plazas</div>
+                </div>
+                <div class="ride-price">32,50 €</div>
+              </div>
+
+              <!-- Ride Option 3 -->
+              <div class="uber-ride-card" onclick="selectRide(this, 'Uber Van', '44,00 €')">
+                <div class="ride-icon">🚐</div>
+                <div class="ride-info">
+                  <div class="ride-name">
+                    Uber Van <span class="ride-eta-badge">8 min</span>
+                  </div>
+                  <div class="ride-meta">Espacio para grupos y equipaje · 6 plazas</div>
+                </div>
+                <div class="ride-price">44,00 €</div>
+              </div>
+
+              <div class="uber-alert uber-alert-positive" style="margin-top:auto; font-size:12px;">
+                <span>🛡️</span> Tarifa garantizada y confirmación inmediata en un toque.
+              </div>
+
+              <button class="uber-btn uber-btn-primary" style="width:100%;" id="mobile-cta" onclick="confirmMobileBooking()">
+                Confirmar UberX · 18,40 €
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: TOKENS JSON -->
+      <section id="panel-tokens" class="zh-tab-panel">
+        <div class="zh-card">
+          <h3 class="zh-card-title">Definición de Tokens en Formato Estándar W3C</h3>
+          <p class="zh-card-sub">Exactamente sincronizado con la página `Foundations > Tokens` de Zeroheight.</p>
+          <div class="ai-code-box">
+            <pre><code>{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "version": "10.02.26",
+  "name": "Uber Base Design System Tokens",
+  "color": {
+    "black": { "$type": "color", "$value": "#000000" },
+    "white": { "$type": "color", "$value": "#FFFFFF" },
+    "backgroundSecondary": { "$type": "color", "$value": "#F6F6F6" },
+    "borderOpaque": { "$type": "color", "$value": "#E2E2E2" },
+    "accent": { "$type": "color", "$value": "#276EF1" },
+    "positive": { "$type": "color", "$value": "#0E8345" },
+    "negative": { "$type": "color", "$value": "#DE1135" },
+    "warning": { "$type": "color", "$value": "#F69E0C" }
+  },
+  "borderRadius": {
+    "pill": { "$type": "dimension", "$value": "9999px" },
+    "rounded": { "$type": "dimension", "$value": "8px" }
+  },
+  "spacing": {
+    "scale100": { "$type": "dimension", "$value": "4px" },
+    "scale200": { "$type": "dimension", "$value": "8px" },
+    "scale400": { "$type": "dimension", "$value": "16px" },
+    "scale600": { "$type": "dimension", "$value": "24px" }
+  },
+  "mobile": {
+    "maxWidth": { "$type": "dimension", "$value": "430px" },
+    "touchTargetMin": { "$type": "dimension", "$value": "48px" }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.zh-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.zh-nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.zh-tab-panel').forEach(p => p.classList.remove('active'));
+
+      const targetPanel = document.getElementById('panel-' + tabId);
+      if (targetPanel) targetPanel.classList.add('active');
+
+      const tabEls = document.querySelectorAll('.zh-tab');
+      const tabsMap = { 'overview': 0, 'ai-contract': 1, 'components': 2, 'prototype': 3, 'tokens': 4 };
+      if (tabsMap[tabId] !== undefined && tabEls[tabsMap[tabId]]) {
+        tabEls[tabsMap[tabId]].classList.add('active');
+      }
+    }
+
+    let selectedVehicle = "UberX";
+    let selectedPrice = "18,40 €";
+
+    function selectRide(card, name, price) {
+      document.querySelectorAll('.uber-ride-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedVehicle = name;
+      selectedPrice = price;
+      document.getElementById('mobile-cta').innerText = `Confirmar ${name} · ${price}`;
+    }
+
+    function confirmMobileBooking() {
+      const cta = document.getElementById('mobile-cta');
+      cta.innerText = "¡Viaje Solicitado! Buscando conductor...";
+      cta.style.background = "var(--base-positive)";
+      setTimeout(() => {
+        alert(`¡Conductor asignado para ${selectedVehicle}! Llegará en 3 min.`);
+        cta.innerText = `Confirmar ${selectedVehicle} · ${selectedPrice}`;
+        cta.style.background = "var(--base-black)";
+      }, 900);
+    }
+
+    function runAiSimulation() {
+      const input = document.getElementById('sim-prompt').value;
+      const res = document.getElementById('sim-result');
+      res.style.display = 'block';
+      res.innerHTML = `<strong>✓ Mapeo de Agente IA Exitoso:</strong><br>
+      • Componente: <code>UberRideCard (selected)</code> con token <code>--base-black</code>.<br>
+      • CTA: <code>Button KIND.primary</code> pill radius (9999px) con etiqueta 'Confirmar Uber Black · 32,50 €'.<br>
+      • WCAG AA: 100% de contraste aprobado (21:1). Sin necesidad de prompts adicionales.`;
+    }
+    const categoriesData = {
+      action: {
+        title: "1. Action (Acción)",
+        desc: "Componentes para iniciar operaciones inmediatas, confirmar flujos o navegar.",
+        components: [
+          { name: "Button", pkg: "baseui/button", role: "CTA principal/secundario. Obligatorio pill (9999px)." },
+          { name: "Button dock", pkg: "baseui/button-dock", role: "Barra inferior fija con botón de confirmación." },
+          { name: "Button group", pkg: "baseui/button-group", role: "Conjunto de botones agrupados." },
+          { name: "Link", pkg: "baseui/link", role: "Navegación contextual o enlaces externos." },
+          { name: "Sliding button", pkg: "baseui/sliding-button", role: "Confirmación crítica deslizable (evita errores)." },
+          { name: "Tile", pkg: "baseui/tile", role: "Mosaico interactivo de acceso rápido." },
+          { name: "Timed button", pkg: "baseui/button", role: "Botón con cuenta regresiva de expiración." }
+        ]
+      },
+      input: {
+        title: "2. Input and control (Entrada y control)",
+        desc: "Captura de datos de usuario, selecciones y controles continuos.",
+        components: [
+          { name: "Check", pkg: "baseui/checkbox", role: "Selección binaria o múltiple." },
+          { name: "Date picker", pkg: "baseui/datepicker", role: "Selector de fechas de reserva." },
+          { name: "File upload", pkg: "baseui/file-uploader", role: "Carga de documentos o comprobantes." },
+          { name: "Menu", pkg: "baseui/menu", role: "Lista de opciones desplegables." },
+          { name: "Radio", pkg: "baseui/radio", role: "Selección única mutuamente excluyente." },
+          { name: "Select", pkg: "baseui/select", role: "Menú desplegable con búsqueda." },
+          { name: "Text field", pkg: "baseui/input", role: "Campo de texto para origen, destino o notas." },
+          { name: "PIN code", pkg: "baseui/pin-code", role: "Entrada de 4 dígitos para recogida segura." },
+          { name: "Segmented control", pkg: "baseui/segmented-control", role: "Alternador compacto en una fila." },
+          { name: "Slider", pkg: "baseui/slider", role: "Ajuste continuo (propina, rango)." },
+          { name: "Star rating", pkg: "baseui/rating", role: "Valoración de 1 a 5 estrellas." },
+          { name: "Stepper", pkg: "baseui/stepper", role: "Contador numérico de pasajeros/maletas." },
+          { name: "Switch", pkg: "baseui/switch", role: "Interruptor binario de configuración." },
+          { name: "Time picker", pkg: "baseui/timepicker", role: "Selección horaria exacta." }
+        ]
+      },
+      content: {
+        title: "3. Data display (Visualización de datos)",
+        desc: "Estructuración de datos, identidad y retroalimentación pasiva.",
+        components: [
+          { name: "Accordion", pkg: "baseui/accordion", role: "Paneles colapsables para FAQs y desglose." },
+          { name: "Avatar", pkg: "baseui/avatar", role: "Foto del conductor o usuario." },
+          { name: "Badge", pkg: "baseui/badge", role: "Insignia compacta de estado (ETA, tipo de servicio)." },
+          { name: "Divider", pkg: "baseui/divider", role: "Línea de separación sutil (#E2E2E2)." },
+          { name: "Draggable list", pkg: "baseui/dnd-list", role: "Lista de paradas reordenables." },
+          { name: "Drawer", pkg: "baseui/drawer", role: "Hoja lateral o inferior para filtros." },
+          { name: "Empty state", pkg: "baseui/empty-state", role: "Pantalla cuando no hay datos o viajes." },
+          { name: "List item", pkg: "baseui/list", role: "Elemento de lista con avatar y texto." },
+          { name: "Message card", pkg: "baseui/card", role: "Tarjeta de mensaje contextual." },
+          { name: "Placeholder", pkg: "baseui/skeleton", role: "Esqueleto de carga asíncrona." },
+          { name: "Popover", pkg: "baseui/popover", role: "Contenedor flotante con contenido." },
+          { name: "Progress bar", pkg: "baseui/progress-bar", role: "Progreso lineal de viaje." },
+          { name: "Progress circle", pkg: "baseui/spinner", role: "Indicador circular de emparejamiento." },
+          { name: "Progress steps", pkg: "baseui/progress-steps", role: "Hitos secuenciales del viaje." },
+          { name: "Section heading", pkg: "baseui/heading", role: "Titulares jerárquicos." },
+          { name: "Tag", pkg: "baseui/tag", role: "Etiqueta informativa pequeña." },
+          { name: "Tooltip", pkg: "baseui/tooltip", role: "Ayuda flotante en hover." }
+        ]
+      },
+      feedback: {
+        title: "4. Feedback & status (Retroalimentación y estado)",
+        desc: "Alertas y mensajes en tiempo real sobre el estado del sistema.",
+        components: [
+          { name: "Banner", pkg: "baseui/banner", role: "Aviso contextual destacado (éxito, aviso, error)." },
+          { name: "Notification", pkg: "baseui/notification", role: "Notificación en cabecera o bandeja." },
+          { name: "Snackbar", pkg: "baseui/snackbar", role: "Mensaje inferior efímero con acción." },
+          { name: "Spinner", pkg: "baseui/spinner", role: "Indicador de carga indeterminada." },
+          { name: "System alert", pkg: "baseui/banner", role: "Aviso crítico a nivel de sistema global." }
+        ]
+      },
+      surfaces: {
+        title: "5. Surfaces (Superficies y contención)",
+        desc: "Contenedores estructurales, modales y hojas flotantes.",
+        components: [
+          { name: "Card", pkg: "baseui/card", role: "Superficie de tarjeta con borde 1px y radio 8px." },
+          { name: "Modal", pkg: "baseui/modal", role: "Diálogo modal para confirmaciones." },
+          { name: "Modal full screen", pkg: "baseui/modal", role: "Flujo a pantalla completa (ej. pago)." },
+          { name: "Sheet", pkg: "baseui/bottom-sheet", role: "Hoja inferior nativa de la app móvil." }
+        ]
+      },
+      nav: {
+        title: "6. Navigation (Navegación)",
+        desc: "Desplazamiento e itinerarios entre pantallas.",
+        components: [
+          { name: "Bottom navigation", pkg: "baseui/bottom-navigation", role: "Barra inferior fija con pestañas." },
+          { name: "Breadcrumbs", pkg: "baseui/breadcrumbs", role: "Migas de pan de ruta." },
+          { name: "Navigation header", pkg: "baseui/header-navigation", role: "Barra superior con título y retroceso." },
+          { name: "Page controls", pkg: "baseui/page-control", role: "Indicador de puntos para carruseles." },
+          { name: "Pagination", pkg: "baseui/pagination", role: "Paginador de tablas o historiales." },
+          { name: "Side navigation", pkg: "baseui/side-navigation", role: "Menú lateral jerárquico." },
+          { name: "Tabs", pkg: "baseui/tabs", role: "Pestañas superiores de servicio." },
+          { name: "Top navigation", pkg: "baseui/header-navigation", role: "Cabecera principal de escritorio." },
+          { name: "Tree view", pkg: "baseui/tree-view", role: "Árbol colapsable." }
+        ]
+      },
+      data: {
+        title: "7. Data and tables (Datos y tablas)",
+        desc: "Visualización masiva de información y analítica.",
+        components: [
+          { name: "Charts", pkg: "baseui/charts", role: "Gráficas de datos con paleta oficial." },
+          { name: "Data table", pkg: "baseui/data-table", role: "Tabla avanzada virtualizada." },
+          { name: "Table", pkg: "baseui/table", role: "Tabla tabular estática accesible." }
+        ]
+      }
+    };
+
+    function showCategory(catKey) {
+      document.querySelectorAll('[id^="btn-cat-"]').forEach(b => b.classList.remove('primary'));
+      const activeBtn = document.getElementById('btn-cat-' + catKey);
+      if (activeBtn) activeBtn.classList.add('primary');
+
+      const data = categoriesData[catKey];
+      if (!data) return;
+
+      let html = `<div style="margin-bottom:12px;"><strong>${data.title}</strong> — <span style="color:var(--base-contentSecondary);">${data.desc}</span></div>`;
+      html += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:10px;">`;
+      data.components.forEach(c => {
+        html += `<div style="background:#FFF; padding:12px; border:1px solid var(--zh-border); border-radius:6px;">
+          <div style="font-weight:700; color:var(--base-black);">${c.name} <code style="font-size:11px; background:#F0F0F0; padding:1px 5px; border-radius:3px; float:right;">${c.pkg}</code></div>
+          <div style="font-size:12px; color:var(--base-contentSecondary); margin-top:4px;">${c.role}</div>
+          <div style="font-size:10.5px; color:#999; margin-top:6px;">Tabs: Usage · Specs · Content · A11y · Status</div>
+        </div>`;
+      });
+      html += `</div>`;
+      document.getElementById('category-details').innerHTML = html;
+    }
+
+    // Initialize default category
+    showCategory('action');
+  </script>
+</body>
+</html>

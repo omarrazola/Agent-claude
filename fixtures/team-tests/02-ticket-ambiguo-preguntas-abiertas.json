@@ -1,0 +1,19 @@
+{
+  "webhookEvent": "jira:issue_created",
+  "issue": {
+    "key": "TEST-102",
+    "fields": {
+      "summary": "Mejorar la experiencia de pago y añadir propinas",
+      "labels": ["diseño"],
+      "reporter": { "displayName": "Carlos Menéndez (Operaciones)" },
+      "attachment": [],
+      "description": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          { "type": "paragraph", "content": [{ "type": "text", "text": "Los usuarios quieren dejar propina a los conductores y a veces piden poder dividir la tarifa con amigos. Necesitamos añadir esto en la pantalla final o durante el viaje de forma sencilla." }] }
+        ]
+      }
+    }
+  }
+}

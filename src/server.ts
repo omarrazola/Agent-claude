@@ -92,9 +92,27 @@ app.post("/webhooks/trello", trelloWebhook);
 
 // --- Consola de Agentes y Previsualizaciones ---
 app.use("/previews", express.static(path.join(config.paths.output, "previews")));
+app.use(express.static(path.join(process.cwd(), "public")));
+app.use(express.static(path.join(process.cwd(), "demo")));
+app.use(express.static(path.join(ROOT, "public")));
 app.use(express.static(path.join(ROOT, "demo")));
-app.use("/app", express.static(path.join(ROOT, "demo")));
-app.use("/demo", express.static(path.join(ROOT, "demo")));
+app.use("/app", express.static(path.join(process.cwd(), "demo")));
+app.use("/demo", express.static(path.join(process.cwd(), "demo")));
+
+app.get(["/", "/demo", "/app"], (_req, res) => {
+  const candidates = [
+    path.join(process.cwd(), "public", "index.html"),
+    path.join(process.cwd(), "demo", "index.html"),
+    path.join(ROOT, "public", "index.html"),
+    path.join(ROOT, "demo", "index.html"),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return res.sendFile(c);
+    }
+  }
+  res.status(404).send("index.html no encontrado");
+});
 
 // --- API interna (para un panel propio o pruebas) ---
 app.post("/api/runs", async (req, res) => {

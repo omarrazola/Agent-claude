@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "dist/server.js": {
+      "includeFiles": "demo/**"
+    }
+  }
+}
